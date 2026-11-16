@@ -38,7 +38,7 @@ export default function App() {
     }
 
     try {
-      const response = await fetch("http://localhost:8000/api/v1/extract-coa", {
+      const response = await fetch("https://certiverify-backend-loxl.onrender.com/api/v1/extract-coa", {
         method: "POST",
         body: formData,
       });
@@ -73,7 +73,7 @@ export default function App() {
     }));
 
     try {
-      const res = await fetch("http://localhost:8000/api/v1/ask-coa", {
+      const res = await fetch("https://certiverify-backend-loxl.onrender.com/api/v1/ask-coa", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
