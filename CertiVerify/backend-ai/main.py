@@ -86,8 +86,11 @@ class LoginRequest(BaseModel):
     password: str
     role: Optional[str] = "Senior QA Compliance Officer"
 
-# Initialize Google Gemini Client using environment API key
-client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+# Initialize Google Gemini Client with v1beta API version support
+client = genai.Client(
+    api_key=os.environ.get("GEMINI_API_KEY"),
+    http_options=types.HttpOptions(api_version="v1beta")
+)
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     text = ""
@@ -131,7 +134,6 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
     """
 
     try:
-        # Using supported gemini-1.5-flash model
         response = client.models.generate_content(
             model="gemini-1.5-flash",
             contents=prompt,
