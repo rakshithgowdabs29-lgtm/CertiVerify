@@ -1,4 +1,5 @@
 import os
+import io
 import json
 import hashlib
 import re
@@ -17,9 +18,8 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, F
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
-# 1. DATABASE CONFIGURATION (PostgreSQL on Render / Neon / Supabase, fallback to SQLite)
+# 1. DATABASE CONFIGURATION (PostgreSQL on Render with SQLite local fallback)
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./certiverify_enterprise.db")
-# Fix for Render postgres URI format if necessary
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
 
@@ -37,12 +37,12 @@ class DBUser(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class DBAuditLog(Base):
-    """Immutable, append-only audit trail table for regulatory tracking."""
+    """Immutable, append-only audit trail table for regulatory compliance tracking."""
     __tablename__ = "audit_logs"
     id = Column(Integer, primary_key=True, index=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
     user_email = Column(String, index=True)
-    action_type = Column(String) # e.g., "LOGIN", "COA_AUDIT_VERIFIED", "BATCH_REJECTED"
+    action_type = Column(String) # e.g., "USER_LOGIN", "COA_AI_AUDIT_EXECUTED"
     details = Column(Text)
     ip_address = Column(String, nullable=True)
 
@@ -63,7 +63,7 @@ class DBBatchRecord(Base):
     sha256_hash = Column(String)
     timestamp = Column(DateTime, default=datetime.utcnow)
 
-# Create tables automatically
+# Create tables automatically on startup
 Base.metadata.create_all(bind=engine)
 
 def get_db():
@@ -75,6 +75,7 @@ def get_db():
 
 app = FastAPI(title="CertiVerify Enterprise AI - FDA Part 11 Compliant Backend")
 
+# Allow all origins for Netlify and mobile browser access
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -88,6 +89,7 @@ class LoginRequest(BaseModel):
     password: str
     role: Optional[str] = "Senior QA Compliance Officer"
 
+# Initialize Google Gemini Client using environment API key
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
@@ -229,7 +231,7 @@ async def extract_coa(file: UploadFile = File(...), po_file: Optional[UploadFile
 
         result = analyze_coa_with_gemini(coa_text, po_text, file.filename or "CoA.pdf")
         
-        # Save to persistent database
+        # Save record to PostgreSQL database
         db_batch = DBBatchRecord(
             batch_id=result["batch_id"],
             filename=result["filename"],
@@ -262,6 +264,6 @@ async def extract_coa(file: UploadFile = File(...), po_file: Optional[UploadFile
 
 @app.get("/api/v1/audit-trail")
 def get_audit_trail(db: Session = Depends(get_db)):
-    """Exposes the secure append-only FDA Part 11 audit trail."""
+    """Exposes the secure append-only FDA Part 11 audit log."""
     logs = db.query(DBAuditLog).order_by(DBAuditLog.id.desc()).limit(50).all()
     return [{"id": l.id, "timestamp": l.timestamp.strftime("%Y-%m-%d %H:%M:%S UTC"), "user": l.user_email, "action": l.action_type, "details": l.details} for l in logs]
