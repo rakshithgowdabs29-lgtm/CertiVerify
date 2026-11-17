@@ -86,11 +86,8 @@ class LoginRequest(BaseModel):
     password: str
     role: Optional[str] = "Senior QA Compliance Officer"
 
-# Initialize Google Gemini Client with v1beta API version support
-client = genai.Client(
-    api_key=os.environ.get("GEMINI_API_KEY"),
-    http_options=types.HttpOptions(api_version="v1beta")
-)
+# Initialize Google Gemini Client with standard v1 endpoint
+client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     text = ""
