@@ -131,8 +131,9 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
     """
 
     try:
+        # Using supported gemini-2.0-flash model
         response = client.models.generate_content(
-            model="gemini-1.5-flash",
+            model="gemini-2.0-flash",
             contents=prompt,
             config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.0),
         )
@@ -172,7 +173,7 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
             "verdict": verdict,
             "risk_score": ai_data.get("risk_score", 100 if status == "NON-COMPLIANT" else 10),
             "confidence_score": 99.9,
-            "ai_engine": "Google Gemini 1.5 Flash Strict Regulatory Guardrails",
+            "ai_engine": "Google Gemini 2.0 Flash Strict Regulatory Guardrails",
             "summary": ai_data.get("summary", "Document audited successfully."),
             "parameters": parameters,
             "test_results": parameters,
@@ -222,7 +223,7 @@ def get_ledger(db: Session = Depends(get_db)):
             "capa_recommendations": json.loads(r.capa_json),
             "summary": f"Batch {r.batch_id} verified against regulatory monographs.",
             "sha256_hash": r.sha256_hash,
-            "ai_engine": "Google Gemini 1.5 Flash Strict Guardrails"
+            "ai_engine": "Google Gemini 2.0 Flash Strict Guardrails"
         })
     return ledger_list
 
