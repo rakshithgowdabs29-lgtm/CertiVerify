@@ -4,4 +4,5 @@ pdfplumber
 requests
 google-genai
 sqlalchemy
+psycopg[binary]
 psycopg2-binary
