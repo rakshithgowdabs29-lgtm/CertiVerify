@@ -2,7 +2,7 @@ import os
 import io
 import json
 import hashlib
-import re
+import time
 import uuid
 from datetime import datetime
 from typing import Optional
@@ -86,7 +86,6 @@ class LoginRequest(BaseModel):
     password: str
     role: Optional[str] = "Senior QA Compliance Officer"
 
-# Initialize Google Gemini Client with standard v1 endpoint
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
@@ -130,14 +129,33 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
     ---
     """
 
+    # Enterprise Auto-Retry Loop for High Demand / 503 errors
+    max_retries = 3
+    delay = 2
+    response_text = None
+
+    for attempt in range(max_retries):
+        try:
+            response = client.models.generate_content(
+                model="gemini-3.8-flash",
+                contents=prompt,
+                config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.0),
+            )
+            response_text = response.text
+            break
+        except Exception as e:
+            if "503" in str(e) or "UNAVAILABLE" in str(e) or "high demand" in str(e):
+                if attempt < max_retries - 1:
+                    time.sleep(delay)
+                    delay *= 2  # Exponential backoff
+                    continue
+            raise HTTPException(status_code=500, detail=f"Enterprise AI Audit Error: {str(e)}")
+
+    if not response_text:
+        raise HTTPException(status_code=500, detail="Enterprise AI Audit Error: Model unavailable after multiple retries.")
+
     try:
-        # Updated to gemini-3.8-flash as required by API
-        response = client.models.generate_content(
-            model="gemini-3.8-flash",
-            contents=prompt,
-            config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.0),
-        )
-        ai_data = json.loads(response.text)
+        ai_data = json.loads(response_text)
         
         status = ai_data.get("status", "NON-COMPLIANT")
         verdict = ai_data.get("verdict", "REJECTED")
@@ -173,7 +191,7 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
             "verdict": verdict,
             "risk_score": ai_data.get("risk_score", 100 if status == "NON-COMPLIANT" else 10),
             "confidence_score": 99.9,
-            "ai_engine": "Google Gemini 3.8 Flash Strict Regulatory Guardrails",
+            "ai_engine": "Google Gemini 3.8 Flash Enterprise Auto-Retry",
             "summary": ai_data.get("summary", "Document audited successfully."),
             "parameters": parameters,
             "test_results": parameters,
@@ -182,7 +200,7 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
             "sha256_hash": hashlib.sha256(f"{batch_id}-{filename}-{datetime.utcnow().isoformat()}".encode()).hexdigest(),
         }
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Enterprise AI Audit Error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Enterprise JSON Parsing Error: {str(e)}")
 
 @app.get("/")
 def root():
@@ -223,7 +241,7 @@ def get_ledger(db: Session = Depends(get_db)):
             "capa_recommendations": json.loads(r.capa_json),
             "summary": f"Batch {r.batch_id} verified against regulatory monographs.",
             "sha256_hash": r.sha256_hash,
-            "ai_engine": "Google Gemini 3.8 Flash Strict Guardrails"
+            "ai_engine": "Google Gemini 3.8 Flash Enterprise Auto-Retry"
         })
     return ledger_list
 
