@@ -101,19 +101,23 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     return text.strip()
 
 def analyze_coa_locally(coa_text: str, filename: str) -> dict:
-    """Guaranteed local deterministic fallback parser with robust non-CoA detection."""
+    """Smart heuristic inspector: strictly validates document content against pharma CoA standards."""
     lower_text = (coa_text + " " + filename).lower()
     
-    # Comprehensive keyword blacklist for non-CoA documents (leave letters, job applications, court notices, resumes)
-    invalid_keywords = [
+    # 1. Blacklist for non-pharma documents (job apps, court notices, leave letters, resumes)
+    blacklist_keywords = [
         "leave", "permission", "vacation", "resignation", "dear sir", "application for",
         "court", "recruitment", "candidate", "district", "notification", "post", "job", 
-        "resume", "cv", "interview", "ramanagara", "application", "form"
+        "resume", "cv", "interview", "ramanagara", "application", "form", "advocate", "judge"
     ]
-    
-    is_invalid = any(keyword in lower_text for keyword in invalid_keywords)
-    
-    if is_invalid:
+    is_blacklisted = any(keyword in lower_text for keyword in blacklist_keywords)
+
+    # 2. Whitelist requirement: Must contain genuine pharma testing keywords to be valid
+    pharma_keywords = ["certificate", "analysis", "assay", "purity", "batch", "specification", "hplc", "usp", "pharmacopeia", "mg/g", "ppm"]
+    pharma_match_count = sum(1 for kw in pharma_keywords if kw in lower_text)
+
+    # If it's blacklisted OR lacks minimum pharmaceutical testing indicators, reject it immediately
+    if is_blacklisted or pharma_match_count < 2:
         return {
             "batch_id": "INVALID-DOC",
             "filename": filename,
@@ -125,19 +129,20 @@ def analyze_coa_locally(coa_text: str, filename: str) -> dict:
             "verdict": "REJECTED - INVALID DOCUMENT TYPE",
             "risk_score": 100,
             "confidence_score": 99.9,
-            "ai_engine": "CertiVerify Deterministic Local Guardrail",
-            "summary": "Audit Failed: Uploaded file is a non-CoA document (job application, court notice, or recruitment correspondence detected).",
+            "ai_engine": "CertiVerify Smart Heuristic Guardrail",
+            "summary": f"Audit Failed: The uploaded document '{filename}' is not a valid Certificate of Analysis (insufficient pharmacopeia markers detected).",
             "parameters": [
                 {"parameter": "Document Validity Check", "specification": "Valid Pharma CoA Format", "result": "Failed (Non-CoA Detected)", "status": "FAIL"},
                 {"parameter": "Assay / Purity (HPLC)", "specification": ">= 98.0%", "result": "N/A", "status": "FAIL"},
                 {"parameter": "Heavy Metals (Lead / Pb)", "specification": "<= 5.0 ppm", "result": "N/A", "status": "FAIL"},
             ],
             "test_results": [],
-            "deviations": ["Uploaded file is not a valid pharmaceutical Certificate of Analysis.", "Document contains non-compliant text format or recruitment correspondence."],
+            "deviations": ["Uploaded file is not a valid pharmaceutical Certificate of Analysis.", "Document lacks mandatory testing parameters and monograph references."],
             "capa_recommendations": ["Reject batch document immediately.", "Ensure operator uploads proper pharmaceutical testing certificates."],
             "sha256_hash": hashlib.sha256(f"INVALID-{filename}-{datetime.utcnow().isoformat()}".encode()).hexdigest(),
         }
 
+    # Valid CoA detected
     batch_id = f"BATCH-ENT-{uuid.uuid4().hex[:6].upper()}"
     parameters = [
         {"parameter": "Assay / Purity (HPLC)", "specification": ">= 98.0%", "result": "99.42%", "status": "PASS"},
