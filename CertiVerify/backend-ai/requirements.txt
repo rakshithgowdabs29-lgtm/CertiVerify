@@ -1,7 +1,5 @@
 fastapi
 uvicorn
-pydantic
-requests
-python-multipart
 pdfplumber
-pypdf
+requests
+google-genai
