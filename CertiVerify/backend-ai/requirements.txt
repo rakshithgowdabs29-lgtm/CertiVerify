@@ -3,3 +3,5 @@ uvicorn
 pdfplumber
 requests
 google-genai
+sqlalchemy
+psycopg2-binary
