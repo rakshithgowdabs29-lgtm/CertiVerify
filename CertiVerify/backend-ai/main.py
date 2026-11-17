@@ -129,30 +129,27 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
     ---
     """
 
-    # Enterprise Auto-Retry Loop for High Demand / 503 errors
-    max_retries = 3
-    delay = 2
+    # Multi-Model Fallback Rotation for High Demand / 503 errors
+    candidate_models = ["gemini-1.5-flash", "gemini-1.5-pro", "gemini-2.0-flash", "gemini-3.8-flash"]
     response_text = None
+    last_error = ""
 
-    for attempt in range(max_retries):
+    for model_name in candidate_models:
         try:
             response = client.models.generate_content(
-                model="gemini-3.8-flash",
+                model=model_name,
                 contents=prompt,
                 config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.0),
             )
-            response_text = response.text
-            break
+            if response and response.text:
+                response_text = response.text
+                break
         except Exception as e:
-            if "503" in str(e) or "UNAVAILABLE" in str(e) or "high demand" in str(e):
-                if attempt < max_retries - 1:
-                    time.sleep(delay)
-                    delay *= 2  # Exponential backoff
-                    continue
-            raise HTTPException(status_code=500, detail=f"Enterprise AI Audit Error: {str(e)}")
+            last_error = str(e)
+            continue
 
     if not response_text:
-        raise HTTPException(status_code=500, detail="Enterprise AI Audit Error: Model unavailable after multiple retries.")
+        raise HTTPException(status_code=500, detail=f"Enterprise AI Audit Error (All fallback models busy): {last_error}")
 
     try:
         ai_data = json.loads(response_text)
@@ -191,7 +188,7 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
             "verdict": verdict,
             "risk_score": ai_data.get("risk_score", 100 if status == "NON-COMPLIANT" else 10),
             "confidence_score": 99.9,
-            "ai_engine": "Google Gemini 3.8 Flash Enterprise Auto-Retry",
+            "ai_engine": "Google Gemini Multi-Model Enterprise Fallback Engine",
             "summary": ai_data.get("summary", "Document audited successfully."),
             "parameters": parameters,
             "test_results": parameters,
@@ -241,7 +238,7 @@ def get_ledger(db: Session = Depends(get_db)):
             "capa_recommendations": json.loads(r.capa_json),
             "summary": f"Batch {r.batch_id} verified against regulatory monographs.",
             "sha256_hash": r.sha256_hash,
-            "ai_engine": "Google Gemini 3.8 Flash Enterprise Auto-Retry"
+            "ai_engine": "Google Gemini Multi-Model Fallback Engine"
         })
     return ledger_list
 
