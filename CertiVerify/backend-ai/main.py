@@ -101,23 +101,22 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     return text.strip()
 
 def analyze_coa_locally(coa_text: str, filename: str, db_session=None) -> dict:
-    """Smart heuristic inspector with visible Confidence-Aware Extraction & Batch Anomaly Screening."""
+    """Smart heuristic inspector with unique ID generation for rejected docs."""
     lower_text = (coa_text + " " + filename).lower()
     
-    # Blacklist for non-pharma documents (job apps, court notices, leave letters, resumes)
     blacklist_keywords = [
         "leave", "permission", "vacation", "resignation", "dear sir", "application for",
         "court", "recruitment", "candidate", "district", "notification", "post", "job", 
         "resume", "cv", "interview", "ramanagara", "application", "form", "advocate", "judge"
     ]
     is_blacklisted = any(keyword in lower_text for keyword in blacklist_keywords)
-
     pharma_keywords = ["certificate", "analysis", "assay", "purity", "batch", "specification", "hplc", "usp", "pharmacopeia", "mg/g", "ppm"]
     pharma_match_count = sum(1 for kw in pharma_keywords if kw in lower_text)
 
     if is_blacklisted or pharma_match_count < 2:
+        unique_invalid_id = f"INVALID-DOC-{uuid.uuid4().hex[:6].upper()}"
         return {
-            "batch_id": "INVALID-DOC",
+            "batch_id": unique_invalid_id,
             "filename": filename,
             "material_name": "Not a Pharmaceutical Material",
             "supplier": "Unknown / Non-Pharma Source",
@@ -128,17 +127,16 @@ def analyze_coa_locally(coa_text: str, filename: str, db_session=None) -> dict:
             "risk_score": 100,
             "confidence_score": 99.9,
             "ai_engine": "CertiVerify Smart Heuristic & Anomaly Engine",
-            "summary": f"Audit Failed: The uploaded document '{filename}' is not a valid Certificate of Analysis. Non-pharma document markers detected.",
+            "summary": f"Audit Failed: The uploaded document '{filename}' is not a valid Certificate of Analysis.",
             "parameters": [
                 {"parameter": "Document Validity Check", "specification": "Valid Pharma CoA Format", "result": "Failed (Non-CoA Detected)", "status": "FAIL", "confidence": "100.0%"}
             ],
             "test_results": [],
             "deviations": ["Uploaded file is not a valid pharmaceutical Certificate of Analysis.", "Document lacks mandatory testing parameters and monograph references."],
             "capa_recommendations": ["Reject batch document immediately.", "Ensure operator uploads proper pharmaceutical testing certificates."],
-            "sha256_hash": hashlib.sha256(f"INVALID-{filename}-{datetime.utcnow().isoformat()}".encode()).hexdigest(),
+            "sha256_hash": hashlib.sha256(f"{unique_invalid_id}-{filename}-{datetime.utcnow().isoformat()}".encode()).hexdigest(),
         }
 
-    # Batch Anomaly Screening against historical records in PostgreSQL
     anomaly_flag = "Normal variance across historical batches (Baseline established)"
     if db_session:
         try:
@@ -233,28 +231,45 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str, db_sessi
         ai_data = json.loads(response_text)
         status = ai_data.get("status", "NON-COMPLIANT")
         verdict = ai_data.get("verdict", "REJECTED")
-        batch_id = ai_data.get("batch_id", f"BATCH-ERR-{uuid.uuid4().hex[:6].upper()}")
         
+        # If AI flags it as invalid, assign a unique invalid ID to prevent duplicate primary key violations
         if "INVALID" in verdict or "REJECTED" in verdict or status == "NON-COMPLIANT":
-            parameters = [
-                {"parameter": "Document Validity Check", "specification": "Valid Pharma CoA Format", "result": "Failed (Non-CoA Detected)", "status": "FAIL", "confidence": "100.0%"},
-                {"parameter": "Assay / Purity (HPLC)", "specification": ">= 98.0%", "result": "N/A", "status": "FAIL", "confidence": "N/A"},
-                {"parameter": "Heavy Metals (Lead / Pb)", "specification": "<= 5.0 ppm", "result": "N/A", "status": "FAIL", "confidence": "N/A"},
-            ]
-        else:
-            purity_val = float(ai_data.get("purity_percentage", 99.2))
-            lead_val = float(ai_data.get("lead_ppm", 1.2))
-            moisture_val = float(ai_data.get("moisture_percentage", 0.4))
-            ph_val = float(ai_data.get("ph_value", 6.8))
+            unique_invalid_id = f"INVALID-DOC-{uuid.uuid4().hex[:6].upper()}"
+            return {
+                "batch_id": unique_invalid_id,
+                "filename": filename,
+                "material_name": "Not a Pharmaceutical Material",
+                "supplier": "Unknown / Non-Pharma Source",
+                "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
+                "status": "NON-COMPLIANT",
+                "overall_status": "NON-COMPLIANT",
+                "verdict": "REJECTED - INVALID DOCUMENT TYPE",
+                "risk_score": 100,
+                "confidence_score": 99.9,
+                "ai_engine": "Google Gemini Enterprise Engine",
+                "summary": "Audit Failed: The submitted document does not conform to a valid Certificate of Analysis format.",
+                "parameters": [
+                    {"parameter": "Document Validity Check", "specification": "Valid Pharma CoA Format", "result": "Failed (Non-CoA Detected)", "status": "FAIL", "confidence": "100.0%"}
+                ],
+                "test_results": [],
+                "deviations": ["Uploaded file is not a valid pharmaceutical Certificate of Analysis."],
+                "capa_recommendations": ["Reject batch document immediately."],
+                "sha256_hash": hashlib.sha256(f"{unique_invalid_id}-{filename}-{datetime.utcnow().isoformat()}".encode()).hexdigest(),
+            }
 
-            parameters = [
-                {"parameter": "Assay / Purity (HPLC)", "specification": ">= 98.0%", "result": f"{purity_val}%", "status": "PASS" if purity_val >= 98.0 else "FAIL", "confidence": "99.8%"},
-                {"parameter": "Heavy Metals (Lead / Pb)", "specification": "<= 5.0 ppm (ICH Q3D)", "result": f"{lead_val} ppm", "status": "PASS" if lead_val <= 5.0 else "FAIL", "confidence": "99.5%"},
-                {"parameter": "Moisture / Loss on Drying", "specification": "<= 1.0%", "result": f"{moisture_val}%", "status": "PASS" if moisture_val <= 1.0 else "FAIL", "confidence": "99.1%"},
-                {"parameter": "Acidity / Alkalinity (pH)", "specification": "5.5 - 7.5", "result": f"{ph_val}", "status": "PASS" if 5.5 <= ph_val <= 7.5 else "FAIL", "confidence": "99.7%"},
-            ]
+        batch_id = ai_data.get("batch_id", f"BATCH-ERR-{uuid.uuid4().hex[:6].upper()}")
+        purity_val = float(ai_data.get("purity_percentage", 99.2))
+        lead_val = float(ai_data.get("lead_ppm", 1.2))
+        moisture_val = float(ai_data.get("moisture_percentage", 0.4))
+        ph_val = float(ai_data.get("ph_value", 6.8))
 
-        # Batch Anomaly Screening check for cloud path
+        parameters = [
+            {"parameter": "Assay / Purity (HPLC)", "specification": ">= 98.0%", "result": f"{purity_val}%", "status": "PASS" if purity_val >= 98.0 else "FAIL", "confidence": "99.8%"},
+            {"parameter": "Heavy Metals (Lead / Pb)", "specification": "<= 5.0 ppm (ICH Q3D)", "result": f"{lead_val} ppm", "status": "PASS" if lead_val <= 5.0 else "FAIL", "confidence": "99.5%"},
+            {"parameter": "Moisture / Loss on Drying", "specification": "<= 1.0%", "result": f"{moisture_val}%", "status": "PASS" if moisture_val <= 1.0 else "FAIL", "confidence": "99.1%"},
+            {"parameter": "Acidity / Alkalinity (pH)", "specification": "5.5 - 7.5", "result": f"{ph_val}", "status": "PASS" if 5.5 <= ph_val <= 7.5 else "FAIL", "confidence": "99.7%"},
+        ]
+
         anomaly_flag = "Normal variance across historical batches"
         if db_session:
             try:
@@ -276,7 +291,7 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str, db_sessi
             "status": status,
             "overall_status": status,
             "verdict": verdict,
-            "risk_score": ai_data.get("risk_score", 100 if status == "NON-COMPLIANT" else 10),
+            "risk_score": ai_data.get("risk_score", 10 if status == "COMPLIANT" else 100),
             "confidence_score": 99.9,
             "ai_engine": "Google Gemini Enterprise Engine with Anomaly Screening",
             "summary": enhanced_summary,
