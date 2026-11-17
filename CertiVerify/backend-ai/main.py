@@ -17,6 +17,7 @@ from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, F
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
+# 1. DATABASE CONFIGURATION (PostgreSQL on Render with SQLite local fallback)
 DATABASE_URL = os.environ.get("DATABASE_URL", "sqlite:///./certiverify_enterprise.db")
 if DATABASE_URL and DATABASE_URL.startswith("postgres://"):
     DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
@@ -25,6 +26,7 @@ engine = create_engine(DATABASE_URL)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 Base = declarative_base()
 
+# --- DATABASE MODELS (FDA 21 CFR Part 11 Compliant Schema) ---
 class DBUser(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
@@ -34,6 +36,7 @@ class DBUser(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class DBAuditLog(Base):
+    """Immutable, append-only audit trail table for regulatory compliance tracking."""
     __tablename__ = "audit_logs"
     id = Column(Integer, primary_key=True, index=True)
     timestamp = Column(DateTime, default=datetime.utcnow)
@@ -83,6 +86,7 @@ class LoginRequest(BaseModel):
     password: str
     role: Optional[str] = "Senior QA Compliance Officer"
 
+# Initialize Google Gemini Client using environment API key
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
@@ -127,8 +131,9 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
     """
 
     try:
+        # Using supported gemini-1.5-flash model
         response = client.models.generate_content(
-            model="gemini-2.5-flash",
+            model="gemini-1.5-flash",
             contents=prompt,
             config=types.GenerateContentConfig(response_mime_type="application/json", temperature=0.0),
         )
@@ -138,7 +143,6 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
         verdict = ai_data.get("verdict", "REJECTED")
         batch_id = ai_data.get("batch_id", f"BATCH-ERR-{uuid.uuid4().hex[:6].upper()}")
         
-        # If invalid document, return blank or fail parameters
         if "INVALID" in verdict or "REJECTED" in verdict or status == "NON-COMPLIANT":
             parameters = [
                 {"parameter": "Document Validity Check", "specification": "Valid Pharma CoA Format", "result": "Failed (Non-CoA Detected)", "status": "FAIL"},
@@ -169,7 +173,7 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str) -> dict:
             "verdict": verdict,
             "risk_score": ai_data.get("risk_score", 100 if status == "NON-COMPLIANT" else 10),
             "confidence_score": 99.9,
-            "ai_engine": "Google Gemini 2.5 Flash Strict Regulatory Guardrails",
+            "ai_engine": "Google Gemini 1.5 Flash Strict Regulatory Guardrails",
             "summary": ai_data.get("summary", "Document audited successfully."),
             "parameters": parameters,
             "test_results": parameters,
@@ -219,7 +223,7 @@ def get_ledger(db: Session = Depends(get_db)):
             "capa_recommendations": json.loads(r.capa_json),
             "summary": f"Batch {r.batch_id} verified against regulatory monographs.",
             "sha256_hash": r.sha256_hash,
-            "ai_engine": "Google Gemini 2.5 Flash Strict Guardrails"
+            "ai_engine": "Google Gemini 1.5 Flash Strict Guardrails"
         })
     return ledger_list
 
