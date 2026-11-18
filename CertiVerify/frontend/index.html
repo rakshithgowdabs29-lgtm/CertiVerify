@@ -41,14 +41,14 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 #progress{position:fixed;top:0;left:0;height:4px;width:0;z-index:150;background:linear-gradient(90deg,var(--cy),var(--pur),var(--amb))}
 
 /* glass */
-.cinematic-glass{background:rgba(15, 20, 42, 0.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(0, 240, 255, 0.25);box-shadow:0 20px 50px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.08)}
+.cinematic-glass{background:rgba(15, 20, 42, 0.85);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(0, 240, 255, 0.25);box-shadow:0 25px 60px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.08)}
 .cinematic-glass-hover{transition:border-color .3s,box-shadow .3s,transform .2s ease-out}
-.cinematic-glass-hover:hover{border-color:rgba(168, 85, 247, 0.5);box-shadow:0 25px 60px rgba(0,240,255,.15),inset 0 1px 0 rgba(255,255,255,.15)}
+.cinematic-glass-hover:hover{border-color:rgba(168, 85, 247, 0.5);box-shadow:0 30px 70px rgba(0,240,255,.2),inset 0 1px 0 rgba(255,255,255,.15)}
 .glow-text{text-shadow:0 0 35px rgba(0,240,255,.5)}
 .tilt{transform-style:preserve-3d;will-change:transform}
 
 /* hero */
-#hero{position:relative;min-height:88vh;display:flex;flex-direction:column;justify-content:center;padding:0 2rem;overflow:hidden}
+#hero{position:relative;min-height:85vh;display:flex;flex-direction:column;justify-content:center;padding:0 2rem;overflow:hidden}
 .moon{position:absolute;right:8%;top:14%;width:clamp(160px,24vw,340px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff007f,#ff7a1a 45%,#3b0764 100%);box-shadow:0 0 140px 40px rgba(255,122,26,.4);animation:float 8s ease-in-out infinite;will-change:transform}
 @keyframes float{50%{margin-top:-18px}}
 .hero-line{font-weight:900;line-height:.88;letter-spacing:-.03em;font-size:clamp(3.2rem,13vw,11rem);text-transform:uppercase;will-change:transform}
@@ -66,11 +66,14 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 .scroll-hint i::after{content:"";position:absolute;inset:0;background:var(--cy);animation:slide 1.6s infinite}
 @keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
 
+/* app-container box */
+.app-container{background:rgba(10, 14, 30, 0.95);border:1px solid rgba(0, 240, 255, 0.3);box-shadow:0 30px 90px rgba(0,0,0,0.85);border-radius:2rem;overflow:hidden;position:relative}
+
 /* tabs */
-.tab-content{display:none}
+.tab-content{display:none;max-height:75vh;overflow-y:auto;padding-right:4px}
 .tab-content.active{display:block}
 .tab-content.active>*{animation:enter .7s cubic-bezier(.2,.8,.2,1) both}
-@keyframes enter{from{opacity:0;transform:translateY(40px) scale(.98);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+@keyframes enter{from{opacity:0;transform:translateY(20px) scale(.99);filter:blur(4px)}to{opacity:1;transform:none;filter:none}}
 
 /* Upload Laser Scan Animation */
 .scan{position:relative;overflow:hidden}
@@ -87,11 +90,10 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-cyan-400 selection:text-black">
 
-<!-- AUTHENTICATION & REGISTRATION MODAL -->
+<!-- AUTHENTICATION MODAL -->
 <div id="auth-modal" class="hidden-modal">
   <div class="cinematic-glass rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl relative overflow-hidden border border-cyan-500/40">
     <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
-    
     <div class="text-center mb-6">
       <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-400 via-purple-500 to-amber-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/40 text-slate-950 font-bold">
         <i class="fa-solid fa-shield-halved text-lg"></i>
@@ -99,13 +101,10 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
       <h2 id="auth-modal-title" class="text-xl font-extrabold text-white font-mono tracking-wider">Welcome to CertiVerify</h2>
       <p id="auth-modal-sub" class="text-xs text-slate-400 mt-1">Sign in with your registered corporate account or create a profile.</p>
     </div>
-
-    <!-- Toggle Mode -->
     <div class="flex bg-slate-950 p-1 rounded-xl mb-6 border border-slate-800">
       <button type="button" onclick="setAuthMode('login')" id="mode-login-btn" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-md">Sign In</button>
       <button type="button" onclick="setAuthMode('register')" id="mode-reg-btn" class="flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white">Create Account</button>
     </div>
-
     <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
       <div id="reg-fields" class="space-y-4 hidden">
         <div>
@@ -125,7 +124,6 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
           </select>
         </div>
       </div>
-
       <div>
         <label class="block text-[11px] font-semibold text-cyan-300 uppercase font-mono mb-1">Email Address *</label>
         <input type="email" id="auth-email" required placeholder="name@domain.com" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
@@ -134,7 +132,6 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
         <label class="block text-[11px] font-semibold text-cyan-300 uppercase font-mono mb-1">Password *</label>
         <input type="password" id="auth-pass" required placeholder="••••••••" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
       </div>
-
       <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-gradient-to-r from-cyan-400 via-purple-500 to-amber-500 hover:opacity-90 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-cyan-500/30 transition uppercase font-mono tracking-wider">
         Sign In to Workspace
       </button>
@@ -165,13 +162,6 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
     </div>
   </div>
 
-  <nav class="flex items-center space-x-1.5 bg-slate-950/90 p-1.5 rounded-2xl border border-cyan-500/30 shadow-inner">
-    <button onclick="switchTab('portal')" id="nav-portal" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Compliance Portal</span></button>
-    <button onclick="switchTab('ledger')" id="nav-ledger" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2"><i class="fa-solid fa-layer-group"></i><span>Batch Ledger</span></button>
-    <button onclick="switchTab('audit')" id="nav-audit" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2"><i class="fa-solid fa-shield-halved"></i><span>Part 11 Audit Trail</span></button>
-    <button onclick="switchTab('research')" id="nav-research" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2"><i class="fa-solid fa-atom"></i><span>5-Pillar Framework</span></button>
-  </nav>
-
   <div class="flex items-center space-x-4">
     <span class="text-xs px-3.5 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 flex items-center space-x-2 font-mono">
       <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span><span id="current-user-badge">Loading Profile...</span>
@@ -194,170 +184,182 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
       <button class="chap" data-t="research" onclick="goChapter('research')">04<small>Framework</small></button>
     </div>
   </div>
-  <div class="scroll-hint">SCROLL TO ENTER<i></i></div>
+  <div class="scroll-hint">SCROLL TO ENTER APP WINDOW<i></i></div>
 </section>
 
-<main id="main" class="max-w-7xl w-full mx-auto p-8 flex-grow">
+<!-- CONTAINED APP WORKSPACE (INSIDE CONTAINER VIEW) -->
+<main id="main" class="max-w-7xl w-full mx-auto p-4 md:p-8 flex-grow">
+  <div class="app-container p-6 md:p-8">
+    
+    <!-- Internal App Navigation Tabs -->
+    <nav class="flex items-center space-x-1.5 bg-slate-950/90 p-1.5 rounded-2xl border border-cyan-500/30 shadow-inner mb-8 overflow-x-auto">
+      <button onclick="switchTab('portal')" id="nav-portal" class="magnetic px-5 py-2.5 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2 whitespace-nowrap"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Compliance Portal</span></button>
+      <button onclick="switchTab('ledger')" id="nav-ledger" class="magnetic px-5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2 whitespace-nowrap"><i class="fa-solid fa-layer-group"></i><span>Batch Ledger</span></button>
+      <button onclick="switchTab('audit')" id="nav-audit" class="magnetic px-5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2 whitespace-nowrap"><i class="fa-solid fa-shield-halved"></i><span>Part 11 Audit Trail</span></button>
+      <button onclick="switchTab('research')" id="nav-research" class="magnetic px-5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2 whitespace-nowrap"><i class="fa-solid fa-atom"></i><span>5-Pillar Framework</span></button>
+    </nav>
 
-  <!-- TAB 1 -->
-  <div id="tab-portal" class="tab-content active grid grid-cols-1 lg:grid-cols-12 gap-8">
-    <div class="lg:col-span-5 space-y-6">
-      <div class="tilt cinematic-glass rounded-3xl p-7 relative overflow-hidden cinematic-glass-hover">
-        <div class="absolute top-0 right-0 w-40 h-40 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
-        <h2 class="text-base font-bold text-cyan-300 mb-5 flex items-center font-mono tracking-wide"><i class="fa-solid fa-file-arrow-up mr-2.5 text-cyan-400 text-lg"></i> 01. MULTI-DOCUMENT DOSSIER</h2>
-        <form id="audit-form" onsubmit="handleAudit(event)" class="space-y-5">
-          <div class="space-y-1.5">
-            <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase">Certificate of Analysis (CoA PDF) *</label>
-            <input type="file" id="coa-file" accept=".pdf" required class="w-full text-xs text-slate-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cyan-950 file:text-cyan-300 hover:file:bg-cyan-900 border border-cyan-500/30 rounded-2xl bg-slate-900/80 transition shadow-inner focus:border-cyan-400 outline-none">
+    <!-- TAB 1: COMPLIANCE PORTAL -->
+    <div id="tab-portal" class="tab-content active grid grid-cols-1 lg:grid-cols-12 gap-8">
+      <div class="lg:col-span-5 space-y-6">
+        <div class="tilt cinematic-glass rounded-3xl p-7 relative overflow-hidden cinematic-glass-hover">
+          <div class="absolute top-0 right-0 w-40 h-40 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
+          <h2 class="text-base font-bold text-cyan-300 mb-5 flex items-center font-mono tracking-wide"><i class="fa-solid fa-file-arrow-up mr-2.5 text-cyan-400 text-lg"></i> 01. MULTI-DOCUMENT DOSSIER</h2>
+          <form id="audit-form" onsubmit="handleAudit(event)" class="space-y-5">
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase">Certificate of Analysis (CoA PDF) *</label>
+              <input type="file" id="coa-file" accept=".pdf" required class="w-full text-xs text-slate-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cyan-950 file:text-cyan-300 hover:file:bg-cyan-900 border border-cyan-500/30 rounded-2xl bg-slate-900/80 transition shadow-inner focus:border-cyan-400 outline-none">
+            </div>
+            <div class="space-y-1.5">
+              <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase">Purchase Order / Spec Sheet (Optional PO PDF)</label>
+              <input type="file" id="po-file" accept=".pdf" class="w-full text-xs text-slate-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-950 file:text-purple-300 hover:file:bg-purple-900 border border-purple-500/30 rounded-2xl bg-slate-900/80 transition shadow-inner focus:border-purple-400 outline-none">
+            </div>
+            <button type="submit" id="submit-btn" class="magnetic w-full py-3.5 px-5 bg-gradient-to-r from-cyan-400 via-purple-500 to-amber-500 hover:opacity-90 text-slate-950 font-extrabold text-xs rounded-2xl shadow-xl shadow-cyan-500/25 transition flex items-center justify-center space-x-2.5 tracking-wider uppercase font-mono">
+              <i class="fa-solid fa-microchip text-sm"></i><span id="btn-text">Execute 5-Pillar Research AI Audit</span>
+            </button>
+          </form>
+        </div>
+
+        <div class="tilt cinematic-glass rounded-3xl p-7 cinematic-glass-hover">
+          <div class="flex justify-between items-center mb-5">
+            <h2 class="text-base font-bold text-cyan-300 flex items-center font-mono tracking-wide"><i class="fa-solid fa-database mr-2.5 text-cyan-400 text-lg"></i> 02. VERIFIED BATCH LEDGER (<span id="ledger-count">0</span>)</h2>
+            <button onclick="loadLedger()" class="text-xs text-cyan-400 hover:text-cyan-300 transition p-2 rounded-xl bg-cyan-950/50 border border-cyan-500/30 hover:rotate-180 duration-500"><i class="fa-solid fa-rotate"></i></button>
           </div>
-          <div class="space-y-1.5">
-            <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase">Purchase Order / Spec Sheet (Optional PO PDF)</label>
-            <input type="file" id="po-file" accept=".pdf" class="w-full text-xs text-slate-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-950 file:text-purple-300 hover:file:bg-purple-900 border border-purple-500/30 rounded-2xl bg-slate-900/80 transition shadow-inner focus:border-purple-400 outline-none">
+          <div id="ledger-list" class="space-y-3 max-h-[280px] overflow-y-auto pr-1">
+            <p class="text-xs text-slate-500 text-center py-8 font-mono">Initializing PostgreSQL stream...</p>
           </div>
-          <button type="submit" id="submit-btn" class="magnetic w-full py-3.5 px-5 bg-gradient-to-r from-cyan-400 via-purple-500 to-amber-500 hover:opacity-90 text-slate-950 font-extrabold text-xs rounded-2xl shadow-xl shadow-cyan-500/25 transition flex items-center justify-center space-x-2.5 tracking-wider uppercase font-mono">
-            <i class="fa-solid fa-microchip text-sm"></i><span id="btn-text">Execute 5-Pillar Research AI Audit</span>
-          </button>
-        </form>
+        </div>
       </div>
 
-      <div class="tilt cinematic-glass rounded-3xl p-7 cinematic-glass-hover">
-        <div class="flex justify-between items-center mb-5">
-          <h2 class="text-base font-bold text-cyan-300 flex items-center font-mono tracking-wide"><i class="fa-solid fa-database mr-2.5 text-cyan-400 text-lg"></i> 02. VERIFIED BATCH LEDGER (<span id="ledger-count">0</span>)</h2>
-          <button onclick="loadLedger()" class="text-xs text-cyan-400 hover:text-cyan-300 transition p-2 rounded-xl bg-cyan-950/50 border border-cyan-500/30 hover:rotate-180 duration-500"><i class="fa-solid fa-rotate"></i></button>
-        </div>
-        <div id="ledger-list" class="space-y-3 max-h-[320px] overflow-y-auto pr-1">
-          <p class="text-xs text-slate-500 text-center py-8 font-mono">Initializing PostgreSQL stream...</p>
-        </div>
-      </div>
-    </div>
+      <div class="lg:col-span-7">
+        <div id="result-card" class="scan tilt cinematic-glass rounded-3xl p-8 h-full flex flex-col justify-between relative overflow-hidden cinematic-glass-hover">
+          <div class="absolute bottom-0 right-0 w-80 h-80 bg-purple-600/15 rounded-full blur-[100px] pointer-events-none"></div>
+          <div class="space-y-6">
+            <div class="flex justify-between items-start border-b border-slate-800/80 pb-5">
+              <div>
+                <span class="text-[10px] uppercase font-extrabold tracking-[0.2em] text-cyan-300 px-3 py-1.5 bg-cyan-950/80 rounded-lg border border-cyan-500/40 font-mono" id="res-engine">CertiVerify 5-Pillar Engine</span>
+                <h2 class="text-2xl font-extrabold text-white mt-3 font-mono tracking-tight" id="res-title">Awaiting Dossier Inspection</h2>
+                <p class="text-xs text-slate-400 mt-1 font-mono" id="res-supplier">Upload a Certificate of Analysis to trigger immersive USP/ICH compliance parsing.</p>
+              </div>
+              <div class="text-right">
+                <div id="res-verdict-badge" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs tracking-wider uppercase font-mono bg-slate-900 text-slate-400 border border-slate-800">IDLE</div>
+                <p class="text-[11px] text-slate-400 mt-1.5 font-mono" id="res-risk">Risk Score: -- | Confidence: --</p>
+              </div>
+            </div>
 
-    <div class="lg:col-span-7">
-      <div id="result-card" class="scan tilt cinematic-glass rounded-3xl p-8 h-full flex flex-col justify-between relative overflow-hidden cinematic-glass-hover">
-        <div class="absolute bottom-0 right-0 w-80 h-80 bg-purple-600/15 rounded-full blur-[100px] pointer-events-none"></div>
-        <div class="space-y-6">
-          <div class="flex justify-between items-start border-b border-slate-800/80 pb-5">
+            <div class="bg-slate-900/80 border border-cyan-500/30 rounded-2xl p-4 shadow-inner">
+              <h3 class="text-xs font-bold text-cyan-300 mb-1.5 flex items-center font-mono uppercase tracking-wider"><i class="fa-solid fa-brain mr-2 text-cyan-400 text-sm"></i> AI Inspector & Research Insights</h3>
+              <p class="text-xs text-slate-300 leading-relaxed font-sans" id="res-summary">System primed for zero-downtime deterministic and cloud AI regulatory validation against global monographs.</p>
+            </div>
+
             <div>
-              <span class="text-[10px] uppercase font-extrabold tracking-[0.2em] text-cyan-300 px-3 py-1.5 bg-cyan-950/80 rounded-lg border border-cyan-500/40 font-mono" id="res-engine">CertiVerify 5-Pillar Engine</span>
-              <h2 class="text-2xl font-extrabold text-white mt-3 font-mono tracking-tight" id="res-title">Awaiting Dossier Inspection</h2>
-              <p class="text-xs text-slate-400 mt-1 font-mono" id="res-supplier">Upload a Certificate of Analysis to trigger immersive USP/ICH compliance parsing.</p>
+              <h3 class="text-xs font-bold text-cyan-300 mb-2.5 flex items-center justify-between font-mono uppercase tracking-wider"><span><i class="fa-solid fa-flask mr-2 text-cyan-400"></i> Analytical Monograph Verification (USP / ICH Q3D)</span></h3>
+              <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider font-mono">
+                    <tr><th class="p-3">Parameter</th><th class="p-3">Specification Limit</th><th class="p-3">Measured Result</th><th class="p-3">Confidence</th><th class="p-3 text-right">Status</th></tr>
+                  </thead>
+                  <tbody id="parameters-table-body" class="divide-y divide-slate-900 bg-slate-950/40">
+                    <tr><td colspan="5" class="p-6 text-center text-slate-500 font-mono">No extraction parameters loaded.</td></tr>
+                  </tbody>
+                </table>
+              </div>
             </div>
-            <div class="text-right">
-              <div id="res-verdict-badge" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs tracking-wider uppercase font-mono bg-slate-900 text-slate-400 border border-slate-800">IDLE</div>
-              <p class="text-[11px] text-slate-400 mt-1.5 font-mono" id="res-risk">Risk Score: -- | Confidence: --</p>
+
+            <div class="bg-purple-950/20 border border-purple-500/30 rounded-2xl p-4 shadow-inner">
+              <h3 class="text-xs font-bold text-purple-300 mb-2 flex items-center font-mono uppercase tracking-wider"><i class="fa-solid fa-shield-check mr-2 text-purple-400 text-sm"></i> Automated CAPA & ERP Disposition Directives</h3>
+              <ul id="res-capa-list" class="list-disc list-inside text-xs text-slate-300 space-y-1.5 font-sans"><li>Pending batch dossier upload...</li></ul>
             </div>
           </div>
-
-          <div class="bg-slate-900/80 border border-cyan-500/30 rounded-2xl p-4 shadow-inner">
-            <h3 class="text-xs font-bold text-cyan-300 mb-1.5 flex items-center font-mono uppercase tracking-wider"><i class="fa-solid fa-brain mr-2 text-cyan-400 text-sm"></i> AI Inspector & Research Insights</h3>
-            <p class="text-xs text-slate-300 leading-relaxed font-sans" id="res-summary">System primed for zero-downtime deterministic and cloud AI regulatory validation against global monographs.</p>
+          <div class="mt-8 pt-4 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-slate-500 font-mono">
+            <span id="res-hash" class="truncate max-w-[70%]">SHA-256 Dossier Seal: ----------------------------------------</span>
+            <span class="text-cyan-400 font-bold">FDA 21 CFR Part 11</span>
           </div>
+        </div>
+      </div>
+    </div>
 
+    <!-- TAB 2: BATCH LEDGER -->
+    <div id="tab-ledger" class="tab-content space-y-6">
+      <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover">
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
           <div>
-            <h3 class="text-xs font-bold text-cyan-300 mb-2.5 flex items-center justify-between font-mono uppercase tracking-wider"><span><i class="fa-solid fa-flask mr-2 text-cyan-400"></i> Analytical Monograph Verification (USP / ICH Q3D)</span></h3>
-            <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider font-mono">
-                  <tr><th class="p-3">Parameter</th><th class="p-3">Specification Limit</th><th class="p-3">Measured Result</th><th class="p-3">Confidence</th><th class="p-3 text-right">Status</th></tr>
-                </thead>
-                <tbody id="parameters-table-body" class="divide-y divide-slate-900 bg-slate-950/40">
-                  <tr><td colspan="5" class="p-6 text-center text-slate-500 font-mono">No extraction parameters loaded.</td></tr>
-                </tbody>
-              </table>
-            </div>
+            <h2 class="text-xl font-bold text-white flex items-center font-mono tracking-tight"><i class="fa-solid fa-database mr-3 text-cyan-400"></i> Immutable PostgreSQL Batch Ledger</h2>
+            <p class="text-xs text-slate-400 mt-1 font-mono">Decentralized enterprise database recording tamper-evident pharmaceutical batches.</p>
           </div>
+          <button onclick="loadFullLedger()" class="magnetic px-5 py-2.5 bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 rounded-2xl text-xs font-bold transition flex items-center space-x-2 font-mono uppercase"><i class="fa-solid fa-rotate"></i><span>Refresh Records</span></button>
+        </div>
+        <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider">
+              <tr><th class="p-3.5">Batch ID</th><th class="p-3.5">Material Name</th><th class="p-3.5">Supplier</th><th class="p-3.5">Risk Score</th><th class="p-3.5">Timestamp (UTC)</th><th class="p-3.5">Status / Verdict</th></tr>
+            </thead>
+            <tbody id="full-ledger-tbody" class="divide-y divide-slate-900 bg-slate-950/40">
+              <tr><td colspan="6" class="p-8 text-center text-slate-500">Querying ledger records...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
 
-          <div class="bg-purple-950/20 border border-purple-500/30 rounded-2xl p-4 shadow-inner">
-            <h3 class="text-xs font-bold text-purple-300 mb-2 flex items-center font-mono uppercase tracking-wider"><i class="fa-solid fa-shield-check mr-2 text-purple-400 text-sm"></i> Automated CAPA & ERP Disposition Directives</h3>
-            <ul id="res-capa-list" class="list-disc list-inside text-xs text-slate-300 space-y-1.5 font-sans"><li>Pending batch dossier upload...</li></ul>
+    <!-- TAB 3: AUDIT TRAIL -->
+    <div id="tab-audit" class="tab-content space-y-6">
+      <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover">
+        <div class="flex justify-between items-center mb-8">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center font-mono tracking-tight"><i class="fa-solid fa-list-check mr-3 text-cyan-400"></i> FDA 21 CFR Part 11 Immutable Audit Trail</h2>
+            <p class="text-xs text-slate-400 mt-1 font-mono">Secure append-only compliance logs tracking user authentication and document audits.</p>
+          </div>
+          <button onclick="loadAuditTrail()" class="magnetic px-5 py-2.5 bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 rounded-2xl text-xs font-bold transition flex items-center space-x-2 font-mono uppercase"><i class="fa-solid fa-rotate"></i><span>Refresh Logs</span></button>
+        </div>
+        <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
+          <table class="w-full text-left text-xs font-mono">
+            <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider">
+              <tr><th class="p-3.5">Log ID</th><th class="p-3.5">Timestamp (UTC)</th><th class="p-3.5">User Email</th><th class="p-3.5">Action Type</th><th class="p-3.5">Event Details</th></tr>
+            </thead>
+            <tbody id="audit-trail-tbody" class="divide-y divide-slate-900 bg-slate-950/40">
+              <tr><td colspan="5" class="p-8 text-center text-slate-500">Reading secure audit trails...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 4: 5-PILLAR FRAMEWORK -->
+    <div id="tab-research" class="tab-content space-y-6">
+      <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover">
+        <h2 class="text-xl font-bold text-white mb-2 flex items-center font-mono tracking-tight"><i class="fa-solid fa-atom mr-3 text-cyan-400"></i> CertiVerify 5-Pillar Research Architecture</h2>
+        <p class="text-xs text-slate-400 mb-8 font-mono">Detailed breakdown of the advanced AI and regulatory research innovations engineered into the platform.</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
+            <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">01</div>
+            <h3 class="text-sm font-bold text-white mb-2 font-mono">Confidence-Aware Extraction</h3>
+            <p class="text-xs text-slate-400 leading-relaxed font-sans">Extracts chemical assay values, heavy metal counts, and batch identifiers while estimating field-level confidence percentages for human verification.</p>
+          </div>
+          <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
+            <div class="w-10 h-10 rounded-xl bg-purple-950 text-purple-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-purple-500/30 shadow-md">02</div>
+            <h3 class="text-sm font-bold text-white mb-2 font-mono">Context-Aware Validation</h3>
+            <p class="text-xs text-slate-400 leading-relaxed font-sans">Validates extracted values against authorized USP, EP, and ICH Q3D pharmacopeia monographs and threshold limits before deciding pass/fail status.</p>
+          </div>
+          <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
+            <div class="w-10 h-10 rounded-xl bg-amber-950 text-amber-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-amber-500/30 shadow-md">03</div>
+            <h3 class="text-sm font-bold text-white mb-2 font-mono">Cross-Document Consistency</h3>
+            <p class="text-xs text-slate-400 leading-relaxed font-sans">Cross-examines data points across linked multi-document dossiers, such as matching Certificate of Analysis (CoA) records against Purchase Orders (POs).</p>
+          </div>
+          <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
+            <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">04</div>
+            <h3 class="text-sm font-bold text-white mb-2 font-mono">Tamper Screening</h3>
+            <p class="text-xs text-slate-400 leading-relaxed font-sans">Generates a unique SHA-256 cryptographic dossier hash seal for every audited batch, archiving immutable records in PostgreSQL.</p>
+          </div>
+          <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40 md:col-span-2">
+            <div class="w-10 h-10 rounded-xl bg-purple-950 text-purple-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-purple-500/30 shadow-md">05</div>
+            <h3 class="text-sm font-bold text-white mb-2 font-mono">Batch Anomaly Screening</h3>
+            <p class="text-xs text-slate-400 leading-relaxed font-sans">Compares like-for-like batches against historical database records in PostgreSQL to flag unusual statistical drift or deviations for QA investigation.</p>
           </div>
         </div>
-        <div class="mt-8 pt-4 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-slate-500 font-mono">
-          <span id="res-hash" class="truncate max-w-[70%]">SHA-256 Dossier Seal: ----------------------------------------</span>
-          <span class="text-cyan-400 font-bold">FDA 21 CFR Part 11</span>
-        </div>
       </div>
     </div>
-  </div>
 
-  <!-- TAB 2 -->
-  <div id="tab-ledger" class="tab-content space-y-6">
-    <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover">
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-        <div>
-          <h2 class="text-xl font-bold text-white flex items-center font-mono tracking-tight"><i class="fa-solid fa-database mr-3 text-cyan-400"></i> Immutable PostgreSQL Batch Ledger</h2>
-          <p class="text-xs text-slate-400 mt-1 font-mono">Decentralized enterprise database recording tamper-evident pharmaceutical batches.</p>
-        </div>
-        <button onclick="loadFullLedger()" class="magnetic px-5 py-2.5 bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 rounded-2xl text-xs font-bold transition flex items-center space-x-2 font-mono uppercase"><i class="fa-solid fa-rotate"></i><span>Refresh Records</span></button>
-      </div>
-      <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
-        <table class="w-full text-left text-xs font-mono">
-          <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider">
-            <tr><th class="p-3.5">Batch ID</th><th class="p-3.5">Material Name</th><th class="p-3.5">Supplier</th><th class="p-3.5">Risk Score</th><th class="p-3.5">Timestamp (UTC)</th><th class="p-3.5">Status / Verdict</th></tr>
-          </thead>
-          <tbody id="full-ledger-tbody" class="divide-y divide-slate-900 bg-slate-950/40">
-            <tr><td colspan="6" class="p-8 text-center text-slate-500">Querying ledger records...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB 3 -->
-  <div id="tab-audit" class="tab-content space-y-6">
-    <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover">
-      <div class="flex justify-between items-center mb-8">
-        <div>
-          <h2 class="text-xl font-bold text-white flex items-center font-mono tracking-tight"><i class="fa-solid fa-list-check mr-3 text-cyan-400"></i> FDA 21 CFR Part 11 Immutable Audit Trail</h2>
-          <p class="text-xs text-slate-400 mt-1 font-mono">Secure append-only compliance logs tracking user authentication and document audits.</p>
-        </div>
-        <button onclick="loadAuditTrail()" class="magnetic px-5 py-2.5 bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 rounded-2xl text-xs font-bold transition flex items-center space-x-2 font-mono uppercase"><i class="fa-solid fa-rotate"></i><span>Refresh Logs</span></button>
-      </div>
-      <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
-        <table class="w-full text-left text-xs font-mono">
-          <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider">
-            <tr><th class="p-3.5">Log ID</th><th class="p-3.5">Timestamp (UTC)</th><th class="p-3.5">User Email</th><th class="p-3.5">Action Type</th><th class="p-3.5">Event Details</th></tr>
-          </thead>
-          <tbody id="audit-trail-tbody" class="divide-y divide-slate-900 bg-slate-950/40">
-            <tr><td colspan="5" class="p-8 text-center text-slate-500">Reading secure audit trails...</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
-
-  <!-- TAB 4 -->
-  <div id="tab-research" class="tab-content space-y-6">
-    <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover">
-      <h2 class="text-xl font-bold text-white mb-2 flex items-center font-mono tracking-tight"><i class="fa-solid fa-atom mr-3 text-cyan-400"></i> CertiVerify 5-Pillar Research Architecture</h2>
-      <p class="text-xs text-slate-400 mb-8 font-mono">Detailed breakdown of the advanced AI and regulatory research innovations engineered into the platform.</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
-          <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">01</div>
-          <h3 class="text-sm font-bold text-white mb-2 font-mono">Confidence-Aware Extraction</h3>
-          <p class="text-xs text-slate-400 leading-relaxed font-sans">Extracts chemical assay values, heavy metal counts, and batch identifiers while estimating field-level confidence percentages for human verification.</p>
-        </div>
-        <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
-          <div class="w-10 h-10 rounded-xl bg-purple-950 text-purple-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-purple-500/30 shadow-md">02</div>
-          <h3 class="text-sm font-bold text-white mb-2 font-mono">Context-Aware Validation</h3>
-          <p class="text-xs text-slate-400 leading-relaxed font-sans">Validates extracted values against authorized USP, EP, and ICH Q3D pharmacopeia monographs and threshold limits before deciding pass/fail status.</p>
-        </div>
-        <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
-          <div class="w-10 h-10 rounded-xl bg-amber-950 text-amber-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-amber-500/30 shadow-md">03</div>
-          <h3 class="text-sm font-bold text-white mb-2 font-mono">Cross-Document Consistency</h3>
-          <p class="text-xs text-slate-400 leading-relaxed font-sans">Cross-examines data points across linked multi-document dossiers, such as matching Certificate of Analysis (CoA) records against Purchase Orders (POs).</p>
-        </div>
-        <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
-          <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">04</div>
-          <h3 class="text-sm font-bold text-white mb-2 font-mono">Tamper Screening</h3>
-          <p class="text-xs text-slate-400 leading-relaxed font-sans">Generates a unique SHA-256 cryptographic dossier hash seal for every audited batch, archiving immutable records in PostgreSQL[cite: 8].</p>
-        </div>
-        <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40 md:col-span-2">
-          <div class="w-10 h-10 rounded-xl bg-purple-950 text-purple-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-purple-500/30 shadow-md">05</div>
-          <h3 class="text-sm font-bold text-white mb-2 font-mono">Batch Anomaly Screening</h3>
-          <p class="text-xs text-slate-400 leading-relaxed font-sans">Compares like-for-like batches against historical database records in PostgreSQL to flag unusual statistical drift or deviations for QA investigation[cite: 8].</p>
-        </div>
-      </div>
-    </div>
   </div>
 </main>
 
@@ -525,7 +527,7 @@ const h1=document.getElementById('h1'),h2=document.getElementById('h2'),moon=doc
 addEventListener('scroll',()=>{
   sy=scrollY;
   const max=document.documentElement.scrollHeight-innerHeight;
-  document.getElementById('progress').style.width=(sy/max*100)+'%';
+  document.getElementById('progress'].style.width=(sy/max*100)+'%';
   if(sy<innerHeight*1.2){
     h1.style.transform=`translateX(${sy*-0.35}px)`;
     h2.style.transform=`translateX(${sy*0.35}px)`;
@@ -559,8 +561,8 @@ function switchTab(tabId){
   const navButtons={portal:document.getElementById('nav-portal'),ledger:document.getElementById('nav-ledger'),audit:document.getElementById('nav-audit'),research:document.getElementById('nav-research')};
   Object.keys(navButtons).forEach(key=>{
     navButtons[key].className = key===tabId
-      ? "magnetic px-5 py-2 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2"
-      : "magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2";
+      ? "magnetic px-5 py-2.5 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2 whitespace-nowrap"
+      : "magnetic px-5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2 whitespace-nowrap";
   });
   document.querySelectorAll('.chap').forEach(c=>c.classList.toggle('on',c.dataset.t===tabId));
   if(tabId==='ledger') loadFullLedger();
@@ -581,7 +583,7 @@ async function handleAudit(event){
 
   btnText.innerText='Scanning Dossier with AI Engine...';
   submitBtn.disabled=true; 
-  card.classList.add('run'); // Triggers laser scan animation on the result card!
+  card.classList.add('run');
 
   const formData=new FormData();
   formData.append('file',coaInput.files[0]);
@@ -598,7 +600,7 @@ async function handleAudit(event){
   }finally{
     btnText.innerText='Execute 5-Pillar Research AI Audit';
     submitBtn.disabled=false; 
-    card.classList.remove('run'); // Stops laser scan animation
+    card.classList.remove('run');
   }
 }
 
