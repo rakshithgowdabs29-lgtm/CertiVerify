@@ -12,55 +12,55 @@
 tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Outfit','sans-serif'],mono:['Space Grotesk','monospace']}}}}
 </script>
 <style>
-:root{--cy:#06b6d4;--amb:#ff7a1a;--bg:#020408}
+:root{--cy:#00f0ff;--pur:#a855f7;--amb:#ff7a1a;--bg:#070814}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',sans-serif}
 @media (hover:hover){body,button,a,input,select{cursor:none}}
 #canvas-container{position:fixed;inset:0;z-index:-1;pointer-events:none}
 
 /* Auth Modal Overlay */
-#auth-modal{position:fixed;inset:0;z-index:400;background:rgba(2,4,8,0.92);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;transition:opacity 0.4s ease}
+#auth-modal{position:fixed;inset:0;z-index:400;background:rgba(7,8,20,0.92);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;transition:opacity 0.4s ease}
 #auth-modal.hidden-modal{opacity:0;pointer-events:none}
 
 /* intro */
-#intro{position:fixed;inset:0;z-index:200;background:#020408;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform 1s cubic-bezier(.77,0,.18,1)}
+#intro{position:fixed;inset:0;z-index:200;background:#070814;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform 1s cubic-bezier(.77,0,.18,1)}
 #intro.out{transform:translateY(-100%)}
 #intro h1{font-size:clamp(2.5rem,9vw,7rem);font-weight:900;letter-spacing:.02em;display:flex;overflow:hidden}
 #intro h1 span{display:inline-block;transform:translateY(110%);animation:rise .9s cubic-bezier(.2,.9,.2,1) forwards}
-#intro .bar{width:min(300px,60vw);height:2px;background:#0b1626;margin-top:28px;overflow:hidden}
-#intro .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cy),var(--amb));animation:load 1.6s ease forwards}
+#intro .bar{width:min(300px,60vw);height:3px;background:#1a1c35;margin-top:28px;overflow:hidden;border-radius:99px}
+#intro .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cy),var(--pur),var(--amb));animation:load 1.6s ease forwards}
 @keyframes rise{to{transform:none}}
 @keyframes load{to{width:100%}}
 
 /* cursor + progress */
 #cur-dot,#cur-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:500;border-radius:50%;transform:translate(-50%,-50%)}
-#cur-dot{width:6px;height:6px;background:var(--cy)}
-#cur-ring{width:38px;height:38px;border:1px solid rgba(6,182,212,.6);transition:width .25s,height .25s,background .25s,border-color .25s}
-#cur-ring.hov{width:68px;height:68px;background:rgba(6,182,212,.12);border-color:var(--amb)}
+#cur-dot{width:8px;height:8px;background:var(--cy);box-shadow:0 0 12px var(--cy)}
+#cur-ring{width:40px;height:40px;border:1.5px solid rgba(0,240,255,.6);transition:width .25s,height .25s,background .25s,border-color .25s}
+#cur-ring.hov{width:72px;height:72px;background:rgba(168,85,247,.15);border-color:var(--amb)}
 @media (hover:none){#cur-dot,#cur-ring{display:none}}
-#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:150;background:linear-gradient(90deg,var(--cy),var(--amb))}
+#progress{position:fixed;top:0;left:0;height:4px;width:0;z-index:150;background:linear-gradient(90deg,var(--cy),var(--pur),var(--amb))}
 
 /* glass */
-.cinematic-glass{background:rgba(8,13,26,.72);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(6,182,212,.15);box-shadow:0 20px 50px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05)}
+.cinematic-glass{background:rgba(15, 20, 42, 0.75);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(0, 240, 255, 0.25);box-shadow:0 20px 50px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.08)}
 .cinematic-glass-hover{transition:border-color .3s,box-shadow .3s,transform .2s ease-out}
-.cinematic-glass-hover:hover{border-color:rgba(6,182,212,.45);box-shadow:0 25px 60px rgba(6,182,212,.12),inset 0 1px 0 rgba(255,255,255,.1)}
-.glow-text{text-shadow:0 0 30px rgba(6,182,212,.4)}
+.cinematic-glass-hover:hover{border-color:rgba(168, 85, 247, 0.5);box-shadow:0 25px 60px rgba(0,240,255,.15),inset 0 1px 0 rgba(255,255,255,.15)}
+.glow-text{text-shadow:0 0 35px rgba(0,240,255,.5)}
 .tilt{transform-style:preserve-3d;will-change:transform}
 
 /* hero */
 #hero{position:relative;min-height:88vh;display:flex;flex-direction:column;justify-content:center;padding:0 2rem;overflow:hidden}
-.moon{position:absolute;right:8%;top:14%;width:clamp(160px,24vw,340px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffb066,var(--amb) 45%,#8a1d00 100%);box-shadow:0 0 120px 30px rgba(255,122,26,.35);animation:float 8s ease-in-out infinite;will-change:transform}
+.moon{position:absolute;right:8%;top:14%;width:clamp(160px,24vw,340px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ff007f,#ff7a1a 45%,#3b0764 100%);box-shadow:0 0 140px 40px rgba(255,122,26,.4);animation:float 8s ease-in-out infinite;will-change:transform}
 @keyframes float{50%{margin-top:-18px}}
 .hero-line{font-weight:900;line-height:.88;letter-spacing:-.03em;font-size:clamp(3.2rem,13vw,11rem);text-transform:uppercase;will-change:transform}
 .hero-line.outline{color:transparent;-webkit-text-stroke:2px rgba(243,244,246,.85)}
-.hero-line.fill{background:linear-gradient(90deg,#fff,var(--cy) 60%,#3b82f6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-line.fill{background:linear-gradient(90deg,#fff,var(--cy) 40%,var(--pur) 70%,var(--amb));-webkit-background-clip:text;background-clip:text;color:transparent}
 .hero-sub{max-width:34rem;color:#94a3b8;font-size:1rem;line-height:1.6;margin-top:1.5rem}
 .chapters{display:flex;gap:2.2rem;margin-top:2.6rem;flex-wrap:wrap}
 .chap{font-family:'Space Grotesk';font-size:2.2rem;font-weight:600;color:#475569;transition:color .3s,transform .3s;position:relative;background:none;border:0;padding:0}
 .chap small{display:block;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:#64748b;margin-top:2px;transition:color .3s}
 .chap:hover,.chap.on{color:#fff;transform:translateY(-6px)}
 .chap.on small,.chap:hover small{color:var(--cy)}
-.chap.on::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:2px;background:var(--amb)}
+.chap.on::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:2px;background:linear-gradient(90deg,var(--cy),var(--pur))}
 .scroll-hint{position:absolute;bottom:22px;left:2rem;font:600 .65rem 'Space Grotesk';letter-spacing:.3em;color:#64748b;display:flex;align-items:center;gap:12px}
 .scroll-hint i{width:50px;height:1px;background:#64748b;position:relative;overflow:hidden}
 .scroll-hint i::after{content:"";position:absolute;inset:0;background:var(--cy);animation:slide 1.6s infinite}
@@ -72,51 +72,52 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 .tab-content.active>*{animation:enter .7s cubic-bezier(.2,.8,.2,1) both}
 @keyframes enter{from{opacity:0;transform:translateY(40px) scale(.98);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
 
+/* Upload Laser Scan Animation */
 .scan{position:relative;overflow:hidden}
-.scan.run::before{content:"";position:absolute;left:0;right:0;height:120px;top:-120px;background:linear-gradient(transparent,rgba(6,182,212,.18),transparent);animation:scan 1.4s linear infinite;z-index:5;pointer-events:none}
-@keyframes scan{to{top:100%}}
+.scan.run::before{content:"";position:absolute;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,#00f0ff,#a855f7,#ff007f,transparent);box-shadow:0 0 25px #00f0ff, 0 0 50px #a855f7;animation: laserScan 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;z-index:20;pointer-events:none}
+@keyframes laserScan{0%{top:0%;opacity:0.9}50%{opacity:1}100%{top:100%;opacity:0.9}}
 
 .pillar{transition:transform .35s,border-color .35s,background .35s}
-.pillar:hover{transform:translateY(-8px);background:rgba(6,40,60,.6)}
+.pillar:hover{transform:translateY(-8px);background:rgba(0,240,255,.05);border-color:rgba(168,85,247,.4)}
 
 ::-webkit-scrollbar{width:6px;height:6px}
-::-webkit-scrollbar-track{background:#020408}
-::-webkit-scrollbar-thumb{background:#0e7490;border-radius:3px}
+::-webkit-scrollbar-track{background:#070814}
+::-webkit-scrollbar-thumb{background:var(--pur);border-radius:3px}
 </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
+<body class="min-h-screen flex flex-col justify-between selection:bg-cyan-400 selection:text-black">
 
 <!-- AUTHENTICATION & REGISTRATION MODAL -->
 <div id="auth-modal" class="hidden-modal">
-  <div class="cinematic-glass rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl relative overflow-hidden border border-cyan-500/30">
-    <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+  <div class="cinematic-glass rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl relative overflow-hidden border border-cyan-500/40">
+    <div class="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-cyan-500/20 to-purple-600/20 rounded-full blur-3xl pointer-events-none"></div>
     
     <div class="text-center mb-6">
-      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/30">
-        <i class="fa-solid fa-shield-halved text-white text-xl"></i>
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-400 via-purple-500 to-amber-500 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/40 text-slate-950 font-bold">
+        <i class="fa-solid fa-shield-halved text-lg"></i>
       </div>
       <h2 id="auth-modal-title" class="text-xl font-extrabold text-white font-mono tracking-wider">Welcome to CertiVerify</h2>
-      <p id="auth-modal-sub" class="text-xs text-slate-400 mt-1">Sign in with your registered account or create a new profile.</p>
+      <p id="auth-modal-sub" class="text-xs text-slate-400 mt-1">Sign in with your registered corporate account or create a profile.</p>
     </div>
 
     <!-- Toggle Mode -->
     <div class="flex bg-slate-950 p-1 rounded-xl mb-6 border border-slate-800">
-      <button type="button" onclick="setAuthMode('login')" id="mode-login-btn" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-cyan-600 text-white">Sign In</button>
+      <button type="button" onclick="setAuthMode('login')" id="mode-login-btn" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-md">Sign In</button>
       <button type="button" onclick="setAuthMode('register')" id="mode-reg-btn" class="flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white">Create Account</button>
     </div>
 
     <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
       <div id="reg-fields" class="space-y-4 hidden">
         <div>
-          <label class="block text-[11px] font-semibold text-slate-300 uppercase font-mono mb-1">Full Name *</label>
+          <label class="block text-[11px] font-semibold text-cyan-300 uppercase font-mono mb-1">Full Name *</label>
           <input type="text" id="reg-name" placeholder="Rakshith Gowda BS" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
         </div>
         <div>
-          <label class="block text-[11px] font-semibold text-slate-300 uppercase font-mono mb-1">Company / Institution Name *</label>
+          <label class="block text-[11px] font-semibold text-cyan-300 uppercase font-mono mb-1">Company / Institution Name *</label>
           <input type="text" id="reg-company" placeholder="DSATM / Enterprise" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
         </div>
         <div>
-          <label class="block text-[11px] font-semibold text-slate-300 uppercase font-mono mb-1">Account Role *</label>
+          <label class="block text-[11px] font-semibold text-cyan-300 uppercase font-mono mb-1">Account Role *</label>
           <select id="reg-role" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
             <option value="Senior QA Officer">Senior QA Compliance Officer</option>
             <option value="Student / Researcher">Student / Researcher</option>
@@ -126,15 +127,15 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
       </div>
 
       <div>
-        <label class="block text-[11px] font-semibold text-slate-300 uppercase font-mono mb-1">Email Address *</label>
+        <label class="block text-[11px] font-semibold text-cyan-300 uppercase font-mono mb-1">Email Address *</label>
         <input type="email" id="auth-email" required placeholder="name@domain.com" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
       </div>
       <div>
-        <label class="block text-[11px] font-semibold text-slate-300 uppercase font-mono mb-1">Password *</label>
+        <label class="block text-[11px] font-semibold text-cyan-300 uppercase font-mono mb-1">Password *</label>
         <input type="password" id="auth-pass" required placeholder="••••••••" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
       </div>
 
-      <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/25 transition uppercase font-mono tracking-wider">
+      <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-gradient-to-r from-cyan-400 via-purple-500 to-amber-500 hover:opacity-90 text-slate-950 font-extrabold text-xs rounded-xl shadow-lg shadow-cyan-500/30 transition uppercase font-mono tracking-wider">
         Sign In to Workspace
       </button>
     </form>
@@ -149,33 +150,33 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 <div id="cur-dot"></div><div id="cur-ring"></div>
 
 <div id="canvas-container"></div>
-<div class="fixed top-0 left-1/4 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
-<div class="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+<div class="fixed top-0 left-1/4 w-[600px] h-[600px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+<div class="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-purple-600/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
 
 <!-- Header -->
 <header class="cinematic-glass border-b border-cyan-950/80 sticky top-0 z-50 px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
   <div class="flex items-center space-x-3.5">
-    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 border border-cyan-400/30">
-      <i class="fa-solid fa-cube text-white text-lg"></i>
+    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-400 via-purple-600 to-amber-500 flex items-center justify-center shadow-lg shadow-cyan-500/40 border border-cyan-400/40 text-slate-950">
+      <i class="fa-solid fa-cube text-lg"></i>
     </div>
     <div>
-      <h1 class="font-extrabold text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-500 font-mono glow-text">CERTIVERIFY.AI</h1>
-      <p class="text-[9px] text-cyan-400/60 tracking-[0.25em] uppercase font-bold">Cinematic Regulatory Compliance Suite</p>
+      <h1 class="font-extrabold text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-purple-400 to-amber-400 font-mono glow-text">CERTIVERIFY.AI</h1>
+      <p class="text-[9px] text-cyan-400/70 tracking-[0.25em] uppercase font-bold">Cinematic Regulatory Compliance Suite</p>
     </div>
   </div>
 
-  <nav class="flex items-center space-x-1.5 bg-slate-950/90 p-1.5 rounded-2xl border border-slate-800/80 shadow-inner">
-    <button onclick="switchTab('portal')" id="nav-portal" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Compliance Portal</span></button>
+  <nav class="flex items-center space-x-1.5 bg-slate-950/90 p-1.5 rounded-2xl border border-cyan-500/30 shadow-inner">
+    <button onclick="switchTab('portal')" id="nav-portal" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Compliance Portal</span></button>
     <button onclick="switchTab('ledger')" id="nav-ledger" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2"><i class="fa-solid fa-layer-group"></i><span>Batch Ledger</span></button>
     <button onclick="switchTab('audit')" id="nav-audit" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2"><i class="fa-solid fa-shield-halved"></i><span>Part 11 Audit Trail</span></button>
     <button onclick="switchTab('research')" id="nav-research" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2"><i class="fa-solid fa-atom"></i><span>5-Pillar Framework</span></button>
   </nav>
 
   <div class="flex items-center space-x-4">
-    <span class="text-xs px-3.5 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 flex items-center space-x-2 font-mono">
+    <span class="text-xs px-3.5 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/40 text-cyan-300 flex items-center space-x-2 font-mono">
       <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span><span id="current-user-badge">Loading Profile...</span>
     </span>
-    <button onclick="logout()" class="magnetic text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 px-3.5 py-2 rounded-xl border border-rose-500/30 transition font-semibold">Sign Out</button>
+    <button onclick="logout()" class="magnetic text-xs bg-rose-950/50 hover:bg-rose-900/80 text-rose-300 px-3.5 py-2 rounded-xl border border-rose-500/40 transition font-semibold">Sign Out</button>
   </div>
 </header>
 
@@ -202,18 +203,18 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
   <div id="tab-portal" class="tab-content active grid grid-cols-1 lg:grid-cols-12 gap-8">
     <div class="lg:col-span-5 space-y-6">
       <div class="tilt cinematic-glass rounded-3xl p-7 relative overflow-hidden cinematic-glass-hover">
-        <div class="absolute top-0 right-0 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="absolute top-0 right-0 w-40 h-40 bg-cyan-500/15 rounded-full blur-3xl pointer-events-none"></div>
         <h2 class="text-base font-bold text-cyan-300 mb-5 flex items-center font-mono tracking-wide"><i class="fa-solid fa-file-arrow-up mr-2.5 text-cyan-400 text-lg"></i> 01. MULTI-DOCUMENT DOSSIER</h2>
         <form id="audit-form" onsubmit="handleAudit(event)" class="space-y-5">
           <div class="space-y-1.5">
             <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase">Certificate of Analysis (CoA PDF) *</label>
-            <input type="file" id="coa-file" accept=".pdf" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cyan-950 file:text-cyan-300 hover:file:bg-cyan-900 border border-slate-700/80 rounded-2xl bg-slate-900/80 transition shadow-inner focus:border-cyan-400 outline-none">
+            <input type="file" id="coa-file" accept=".pdf" required class="w-full text-xs text-slate-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cyan-950 file:text-cyan-300 hover:file:bg-cyan-900 border border-cyan-500/30 rounded-2xl bg-slate-900/80 transition shadow-inner focus:border-cyan-400 outline-none">
           </div>
           <div class="space-y-1.5">
             <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase">Purchase Order / Spec Sheet (Optional PO PDF)</label>
-            <input type="file" id="po-file" accept=".pdf" class="w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 border border-slate-700/80 rounded-2xl bg-slate-900/80 transition shadow-inner focus:border-cyan-400 outline-none">
+            <input type="file" id="po-file" accept=".pdf" class="w-full text-xs text-slate-300 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-purple-950 file:text-purple-300 hover:file:bg-purple-900 border border-purple-500/30 rounded-2xl bg-slate-900/80 transition shadow-inner focus:border-purple-400 outline-none">
           </div>
-          <button type="submit" id="submit-btn" class="magnetic w-full py-3.5 px-5 bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs rounded-2xl shadow-xl shadow-cyan-500/25 transition flex items-center justify-center space-x-2.5 tracking-wider uppercase font-mono">
+          <button type="submit" id="submit-btn" class="magnetic w-full py-3.5 px-5 bg-gradient-to-r from-cyan-400 via-purple-500 to-amber-500 hover:opacity-90 text-slate-950 font-extrabold text-xs rounded-2xl shadow-xl shadow-cyan-500/25 transition flex items-center justify-center space-x-2.5 tracking-wider uppercase font-mono">
             <i class="fa-solid fa-microchip text-sm"></i><span id="btn-text">Execute 5-Pillar Research AI Audit</span>
           </button>
         </form>
@@ -222,7 +223,7 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
       <div class="tilt cinematic-glass rounded-3xl p-7 cinematic-glass-hover">
         <div class="flex justify-between items-center mb-5">
           <h2 class="text-base font-bold text-cyan-300 flex items-center font-mono tracking-wide"><i class="fa-solid fa-database mr-2.5 text-cyan-400 text-lg"></i> 02. VERIFIED BATCH LEDGER (<span id="ledger-count">0</span>)</h2>
-          <button onclick="loadLedger()" class="text-xs text-cyan-400 hover:text-cyan-300 transition p-2 rounded-xl bg-cyan-950/40 border border-cyan-500/20 hover:rotate-180 duration-500"><i class="fa-solid fa-rotate"></i></button>
+          <button onclick="loadLedger()" class="text-xs text-cyan-400 hover:text-cyan-300 transition p-2 rounded-xl bg-cyan-950/50 border border-cyan-500/30 hover:rotate-180 duration-500"><i class="fa-solid fa-rotate"></i></button>
         </div>
         <div id="ledger-list" class="space-y-3 max-h-[320px] overflow-y-auto pr-1">
           <p class="text-xs text-slate-500 text-center py-8 font-mono">Initializing PostgreSQL stream...</p>
@@ -232,11 +233,11 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 
     <div class="lg:col-span-7">
       <div id="result-card" class="scan tilt cinematic-glass rounded-3xl p-8 h-full flex flex-col justify-between relative overflow-hidden cinematic-glass-hover">
-        <div class="absolute bottom-0 right-0 w-80 h-80 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="absolute bottom-0 right-0 w-80 h-80 bg-purple-600/15 rounded-full blur-[100px] pointer-events-none"></div>
         <div class="space-y-6">
           <div class="flex justify-between items-start border-b border-slate-800/80 pb-5">
             <div>
-              <span class="text-[10px] uppercase font-extrabold tracking-[0.2em] text-cyan-400 px-3 py-1.5 bg-cyan-950/80 rounded-lg border border-cyan-500/30 font-mono" id="res-engine">CertiVerify 5-Pillar Engine</span>
+              <span class="text-[10px] uppercase font-extrabold tracking-[0.2em] text-cyan-300 px-3 py-1.5 bg-cyan-950/80 rounded-lg border border-cyan-500/40 font-mono" id="res-engine">CertiVerify 5-Pillar Engine</span>
               <h2 class="text-2xl font-extrabold text-white mt-3 font-mono tracking-tight" id="res-title">Awaiting Dossier Inspection</h2>
               <p class="text-xs text-slate-400 mt-1 font-mono" id="res-supplier">Upload a Certificate of Analysis to trigger immersive USP/ICH compliance parsing.</p>
             </div>
@@ -246,7 +247,7 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
             </div>
           </div>
 
-          <div class="bg-slate-900/80 border border-cyan-500/25 rounded-2xl p-4 shadow-inner">
+          <div class="bg-slate-900/80 border border-cyan-500/30 rounded-2xl p-4 shadow-inner">
             <h3 class="text-xs font-bold text-cyan-300 mb-1.5 flex items-center font-mono uppercase tracking-wider"><i class="fa-solid fa-brain mr-2 text-cyan-400 text-sm"></i> AI Inspector & Research Insights</h3>
             <p class="text-xs text-slate-300 leading-relaxed font-sans" id="res-summary">System primed for zero-downtime deterministic and cloud AI regulatory validation against global monographs.</p>
           </div>
@@ -265,8 +266,8 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
             </div>
           </div>
 
-          <div class="bg-blue-950/20 border border-blue-500/25 rounded-2xl p-4 shadow-inner">
-            <h3 class="text-xs font-bold text-blue-300 mb-2 flex items-center font-mono uppercase tracking-wider"><i class="fa-solid fa-shield-check mr-2 text-blue-400 text-sm"></i> Automated CAPA & ERP Disposition Directives</h3>
+          <div class="bg-purple-950/20 border border-purple-500/30 rounded-2xl p-4 shadow-inner">
+            <h3 class="text-xs font-bold text-purple-300 mb-2 flex items-center font-mono uppercase tracking-wider"><i class="fa-solid fa-shield-check mr-2 text-purple-400 text-sm"></i> Automated CAPA & ERP Disposition Directives</h3>
             <ul id="res-capa-list" class="list-disc list-inside text-xs text-slate-300 space-y-1.5 font-sans"><li>Pending batch dossier upload...</li></ul>
           </div>
         </div>
@@ -336,24 +337,24 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
           <p class="text-xs text-slate-400 leading-relaxed font-sans">Extracts chemical assay values, heavy metal counts, and batch identifiers while estimating field-level confidence percentages for human verification.</p>
         </div>
         <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
-          <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">02</div>
+          <div class="w-10 h-10 rounded-xl bg-purple-950 text-purple-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-purple-500/30 shadow-md">02</div>
           <h3 class="text-sm font-bold text-white mb-2 font-mono">Context-Aware Validation</h3>
           <p class="text-xs text-slate-400 leading-relaxed font-sans">Validates extracted values against authorized USP, EP, and ICH Q3D pharmacopeia monographs and threshold limits before deciding pass/fail status.</p>
         </div>
         <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
-          <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">03</div>
+          <div class="w-10 h-10 rounded-xl bg-amber-950 text-amber-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-amber-500/30 shadow-md">03</div>
           <h3 class="text-sm font-bold text-white mb-2 font-mono">Cross-Document Consistency</h3>
           <p class="text-xs text-slate-400 leading-relaxed font-sans">Cross-examines data points across linked multi-document dossiers, such as matching Certificate of Analysis (CoA) records against Purchase Orders (POs).</p>
         </div>
         <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
           <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">04</div>
           <h3 class="text-sm font-bold text-white mb-2 font-mono">Tamper Screening</h3>
-          <p class="text-xs text-slate-400 leading-relaxed font-sans">Generates a unique SHA-256 cryptographic dossier hash seal for every audited batch, archiving immutable records in PostgreSQL[cite: 5, 8].</p>
+          <p class="text-xs text-slate-400 leading-relaxed font-sans">Generates a unique SHA-256 cryptographic dossier hash seal for every audited batch, archiving immutable records in PostgreSQL[cite: 8].</p>
         </div>
         <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40 md:col-span-2">
-          <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">05</div>
+          <div class="w-10 h-10 rounded-xl bg-purple-950 text-purple-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-purple-500/30 shadow-md">05</div>
           <h3 class="text-sm font-bold text-white mb-2 font-mono">Batch Anomaly Screening</h3>
-          <p class="text-xs text-slate-400 leading-relaxed font-sans">Compares like-for-like batches against historical database records in PostgreSQL to flag unusual statistical drift or deviations for QA investigation[cite: 5, 8].</p>
+          <p class="text-xs text-slate-400 leading-relaxed font-sans">Compares like-for-like batches against historical database records in PostgreSQL to flag unusual statistical drift or deviations for QA investigation[cite: 8].</p>
         </div>
       </div>
     </div>
@@ -398,14 +399,14 @@ function setAuthMode(mode) {
         title.innerText = 'Create New Profile';
         sub.innerText = 'Enter your institution & role details to start auditing.';
         submitBtn.innerText = 'Register & Open Workspace';
-        regBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-cyan-600 text-white";
+        regBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-md";
         loginBtn.className = "flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white";
     } else {
         regFields.classList.add('hidden');
         title.innerText = 'Welcome Back to CertiVerify';
         sub.innerText = 'Sign in with your registered credentials to access your session ledger.';
         submitBtn.innerText = 'Sign In to Workspace';
-        loginBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-cyan-600 text-white";
+        loginBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-md";
         regBtn.className = "flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white";
     }
 }
@@ -487,14 +488,14 @@ container.appendChild(renderer.domElement);
 const particleCount=1400, geometry=new THREE.BufferGeometry(), positions=new Float32Array(particleCount*3);
 for(let i=0;i<particleCount*3;i++) positions[i]=(Math.random()-0.5)*60;
 geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
-const particleSystem=new THREE.Points(geometry,new THREE.PointsMaterial({color:0x06b6d4,size:0.1,transparent:true,opacity:0.8}));
+const particleSystem=new THREE.Points(geometry,new THREE.PointsMaterial({color:0x00f0ff,size:0.12,transparent:true,opacity:0.85}));
 scene.add(particleSystem);
 
-const core=new THREE.Mesh(new THREE.IcosahedronGeometry(4,1),new THREE.MeshBasicMaterial({color:0x06b6d4,wireframe:true,transparent:true,opacity:0.22}));
+const core=new THREE.Mesh(new THREE.IcosahedronGeometry(4,1),new THREE.MeshBasicMaterial({color:0x00f0ff,wireframe:true,transparent:true,opacity:0.25}));
 core.position.set(-9,2,-6); scene.add(core);
-const ring=new THREE.Mesh(new THREE.TorusGeometry(6,0.03,8,120),new THREE.MeshBasicMaterial({color:0xff7a1a,transparent:true,opacity:0.5}));
+const ring=new THREE.Mesh(new THREE.TorusGeometry(6,0.03,8,120),new THREE.MeshBasicMaterial({color:0xff7a1a,transparent:true,opacity:0.6}));
 ring.position.copy(core.position); ring.rotation.x=1.2; scene.add(ring);
-const knot=new THREE.Mesh(new THREE.TorusKnotGeometry(2.2,0.04,160,8),new THREE.MeshBasicMaterial({color:0x3b82f6,transparent:true,opacity:0.35}));
+const knot=new THREE.Mesh(new THREE.TorusKnotGeometry(2.2,0.04,160,8),new THREE.MeshBasicMaterial({color:0xa855f7,transparent:true,opacity:0.45}));
 knot.position.set(11,-4,-8); scene.add(knot);
 camera.position.z=20;
 
@@ -558,7 +559,7 @@ function switchTab(tabId){
   const navButtons={portal:document.getElementById('nav-portal'),ledger:document.getElementById('nav-ledger'),audit:document.getElementById('nav-audit'),research:document.getElementById('nav-research')};
   Object.keys(navButtons).forEach(key=>{
     navButtons[key].className = key===tabId
-      ? "magnetic px-5 py-2 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2"
+      ? "magnetic px-5 py-2 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2"
       : "magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2";
   });
   document.querySelectorAll('.chap').forEach(c=>c.classList.toggle('on',c.dataset.t===tabId));
@@ -570,28 +571,34 @@ function goChapter(id){
   document.getElementById('main').scrollIntoView({behavior:'smooth'});
 }
 
-/* ========== API HANDLERS ========== */
+/* ========== API HANDLERS WITH SCAN ANIMATION ========== */
 async function handleAudit(event){
   event.preventDefault();
   const coaInput=document.getElementById('coa-file'),poInput=document.getElementById('po-file');
   const btnText=document.getElementById('btn-text'),submitBtn=document.getElementById('submit-btn');
   const card=document.getElementById('result-card');
   if(!coaInput.files[0]) return alert('Please select a Certificate of Analysis PDF.');
-  btnText.innerText='Executing 5-Pillar Research AI Audit...';
-  submitBtn.disabled=true; card.classList.add('run');
+
+  btnText.innerText='Scanning Dossier with AI Engine...';
+  submitBtn.disabled=true; 
+  card.classList.add('run'); // Triggers laser scan animation on the result card!
+
   const formData=new FormData();
   formData.append('file',coaInput.files[0]);
   if(poInput.files[0]) formData.append('po_file',poInput.files[0]);
+
   try{
     const response=await fetch(`${API_BASE}/api/v1/extract-coa`,{method:'POST',body:formData});
     if(!response.ok){const errData=await response.json();throw new Error(errData.detail||'Audit execution failed.')}
     const result=await response.json();
     renderAuditResult(result);
     loadLedger();
-  }catch(err){alert('Audit Error: '+err.message)}
-  finally{
+  }catch(err){
+    alert('Audit Error: '+err.message);
+  }finally{
     btnText.innerText='Execute 5-Pillar Research AI Audit';
-    submitBtn.disabled=false; card.classList.remove('run');
+    submitBtn.disabled=false; 
+    card.classList.remove('run'); // Stops laser scan animation
   }
 }
 
