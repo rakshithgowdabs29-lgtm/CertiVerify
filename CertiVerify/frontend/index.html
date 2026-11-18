@@ -87,9 +87,6 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 .scan.run::before{content:"";position:absolute;left:0;right:0;height:120px;top:-120px;background:linear-gradient(transparent,rgba(6,182,212,.18),transparent);animation:scan 1.4s linear infinite;z-index:5;pointer-events:none}
 @keyframes scan{to{top:100%}}
 
-/* reveal */
-.reveal{opacity:0;transform:translateY(50px);transition:opacity .9s,transform .9s cubic-bezier(.2,.8,.2,1)}
-.reveal.in{opacity:1;transform:none}
 .pillar{transition:transform .35s,border-color .35s,background .35s}
 .pillar:hover{transform:translateY(-8px);background:rgba(6,40,60,.6)}
 
@@ -309,12 +306,12 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
         <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
           <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">04</div>
           <h3 class="text-sm font-bold text-white mb-2 font-mono">Tamper Screening</h3>
-          <p class="text-xs text-slate-400 leading-relaxed font-sans">Generates a unique SHA-256 cryptographic dossier hash seal for every audited batch, archiving immutable records in PostgreSQL.</p>
+          <p class="text-xs text-slate-400 leading-relaxed font-sans">Generates a unique SHA-256 cryptographic dossier hash seal for every audited batch, archiving immutable records in PostgreSQL[cite: 5, 8].</p>
         </div>
         <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40 md:col-span-2">
           <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">05</div>
           <h3 class="text-sm font-bold text-white mb-2 font-mono">Batch Anomaly Screening</h3>
-          <p class="text-xs text-slate-400 leading-relaxed font-sans">Compares like-for-like batches against historical database records in PostgreSQL to flag unusual statistical drift or deviations for QA investigation.</p>
+          <p class="text-xs text-slate-400 leading-relaxed font-sans">Compares like-for-like batches against historical database records in PostgreSQL to flag unusual statistical drift or deviations for QA investigation[cite: 5, 8].</p>
         </div>
       </div>
     </div>
@@ -421,7 +418,7 @@ new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{
 new MutationObserver(()=>{const c=document.getElementById('result-card');c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')})
   .observe(document.getElementById('res-title'),{childList:true,characterData:true,subtree:true});
 
-/* ========== TAB CONTROLLER (original logic kept) ========== */
+/* ========== TAB CONTROLLER ========== */
 function switchTab(tabId){
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
   document.getElementById(`tab-${tabId}`).classList.add('active');
@@ -440,7 +437,7 @@ function goChapter(id){
   document.getElementById('main').scrollIntoView({behavior:'smooth'});
 }
 
-/* ========== API HANDLERS (unchanged) ========== */
+/* ========== API HANDLERS ========== */
 window.addEventListener('DOMContentLoaded',()=>{loadLedger()});
 
 async function handleAudit(event){
