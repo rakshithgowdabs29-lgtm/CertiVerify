@@ -1,589 +1,583 @@
 <!DOCTYPE html>
 <html lang="en" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CertiVerify AI — Cinematic Regulatory Compliance Suite</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Three.js for 3D Immersive Background Animation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- FontAwesome Icons -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts: Outfit & Space Grotesk -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Outfit', 'sans-serif'],
-                        mono: ['Space Grotesk', 'monospace'],
-                    },
-                }
-            }
-        }
-    </script>
-    <style>
-        body { background-color: #020408; color: #f3f4f6; overflow-x: hidden; font-family: 'Outfit', sans-serif; }
-        #canvas-container { position: fixed; top: 0; left: 0; width: 100vw; height: 100vh; z-index: -1; pointer-events: none; }
-        
-        /* Cinematic Glassmorphism */
-        .cinematic-glass {
-            background: rgba(8, 13, 26, 0.75);
-            backdrop-filter: blur(24px);
-            -webkit-backdrop-filter: blur(24px);
-            border: 1px solid rgba(6, 182, 212, 0.15);
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(255, 255, 255, 0.05);
-        }
-        
-        .cinematic-glass-hover:hover {
-            border-color: rgba(6, 182, 212, 0.4);
-            box-shadow: 0 25px 60px rgba(6, 182, 212, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.1);
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CertiVerify AI — Cinematic Regulatory Compliance Suite</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script>
+tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Outfit','sans-serif'],mono:['Space Grotesk','monospace']}}}}
+</script>
+<style>
+:root{--cy:#06b6d4;--amb:#ff7a1a;--bg:#020408}
+html{scroll-behavior:smooth}
+body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',sans-serif}
+@media (hover:hover){body,button,a,input{cursor:none}}
+#canvas-container{position:fixed;inset:0;z-index:-1;pointer-events:none}
 
-        .glow-text {
-            text-shadow: 0 0 30px rgba(6, 182, 212, 0.4);
-        }
+/* intro */
+#intro{position:fixed;inset:0;z-index:200;background:#020408;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform 1s cubic-bezier(.77,0,.18,1)}
+#intro.out{transform:translateY(-100%)}
+#intro h1{font-size:clamp(2.5rem,9vw,7rem);font-weight:900;letter-spacing:.02em;display:flex;overflow:hidden}
+#intro h1 span{display:inline-block;transform:translateY(110%);animation:rise .9s cubic-bezier(.2,.9,.2,1) forwards}
+#intro .bar{width:min(300px,60vw);height:2px;background:#0b1626;margin-top:28px;overflow:hidden}
+#intro .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--cy),var(--amb));animation:load 1.6s ease forwards}
+@keyframes rise{to{transform:none}}
+@keyframes load{to{width:100%}}
 
-        .tab-content { display: none; opacity: 0; transition: opacity 0.4s ease-in-out; }
-        .tab-content.active { display: block; opacity: 1; }
+/* cursor + progress */
+#cur-dot,#cur-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:300;border-radius:50%;transform:translate(-50%,-50%)}
+#cur-dot{width:6px;height:6px;background:var(--cy)}
+#cur-ring{width:38px;height:38px;border:1px solid rgba(6,182,212,.6);transition:width .25s,height .25s,background .25s,border-color .25s}
+#cur-ring.hov{width:68px;height:68px;background:rgba(6,182,212,.12);border-color:var(--amb)}
+@media (hover:none){#cur-dot,#cur-ring{display:none}}
+#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:150;background:linear-gradient(90deg,var(--cy),var(--amb))}
 
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar { width: 6px; height: 6px; }
-        ::-webkit-scrollbar-track { background: #020408; }
-        ::-webkit-scrollbar-thumb { background: #0e7490; border-radius: 3px; }
-        ::-webkit-scrollbar-thumb:hover { background: #06b6d4; }
-    </style>
+/* glass */
+.cinematic-glass{background:rgba(8,13,26,.72);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);border:1px solid rgba(6,182,212,.15);box-shadow:0 20px 50px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.05)}
+.cinematic-glass-hover{transition:border-color .3s,box-shadow .3s,transform .2s ease-out}
+.cinematic-glass-hover:hover{border-color:rgba(6,182,212,.45);box-shadow:0 25px 60px rgba(6,182,212,.12),inset 0 1px 0 rgba(255,255,255,.1)}
+.glow-text{text-shadow:0 0 30px rgba(6,182,212,.4)}
+.tilt{transform-style:preserve-3d;will-change:transform}
+
+/* hero */
+#hero{position:relative;min-height:88vh;display:flex;flex-direction:column;justify-content:center;padding:0 2rem;overflow:hidden}
+.moon{position:absolute;right:8%;top:14%;width:clamp(160px,24vw,340px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle at 35% 35%,#ffb066,var(--amb) 45%,#8a1d00 100%);box-shadow:0 0 120px 30px rgba(255,122,26,.35);animation:float 8s ease-in-out infinite;will-change:transform}
+@keyframes float{50%{margin-top:-18px}}
+.hero-line{font-weight:900;line-height:.88;letter-spacing:-.03em;font-size:clamp(3.2rem,13vw,11rem);text-transform:uppercase;will-change:transform}
+.hero-line.outline{color:transparent;-webkit-text-stroke:2px rgba(243,244,246,.85)}
+.hero-line.fill{background:linear-gradient(90deg,#fff,var(--cy) 60%,#3b82f6);-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero-sub{max-width:34rem;color:#94a3b8;font-size:1rem;line-height:1.6;margin-top:1.5rem}
+.chapters{display:flex;gap:2.2rem;margin-top:2.6rem;flex-wrap:wrap}
+.chap{font-family:'Space Grotesk';font-size:2.2rem;font-weight:600;color:#475569;transition:color .3s,transform .3s;position:relative;background:none;border:0;padding:0}
+.chap small{display:block;font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;color:#64748b;margin-top:2px;transition:color .3s}
+.chap:hover,.chap.on{color:#fff;transform:translateY(-6px)}
+.chap.on small,.chap:hover small{color:var(--cy)}
+.chap.on::after{content:"";position:absolute;left:0;right:0;bottom:-10px;height:2px;background:var(--amb)}
+.scroll-hint{position:absolute;bottom:22px;left:2rem;font:600 .65rem 'Space Grotesk';letter-spacing:.3em;color:#64748b;display:flex;align-items:center;gap:12px}
+.scroll-hint i{width:50px;height:1px;background:#64748b;position:relative;overflow:hidden}
+.scroll-hint i::after{content:"";position:absolute;inset:0;background:var(--cy);animation:slide 1.6s infinite}
+@keyframes slide{from{transform:translateX(-100%)}to{transform:translateX(100%)}}
+
+/* tabs */
+.tab-content{display:none}
+.tab-content.active{display:block}
+.tab-content.active>*{animation:enter .7s cubic-bezier(.2,.8,.2,1) both}
+.tab-content.active>*:nth-child(2){animation-delay:.12s}
+.tab-content.active>*:nth-child(3){animation-delay:.24s}
+@keyframes enter{from{opacity:0;transform:translateY(40px) scale(.98);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
+
+/* dynamic rows stagger */
+#ledger-list>div,#full-ledger-tbody tr,#audit-trail-tbody tr,#parameters-table-body tr,#res-capa-list li{animation:rowin .5s ease both}
+#ledger-list>div:nth-child(n),#full-ledger-tbody tr:nth-child(n),#audit-trail-tbody tr:nth-child(n),#parameters-table-body tr:nth-child(n){animation-delay:calc(var(--i,0)*45ms)}
+@keyframes rowin{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
+.flash{animation:flash .9s ease}
+@keyframes flash{0%{box-shadow:0 0 0 0 rgba(6,182,212,.7)}100%{box-shadow:0 0 0 24px rgba(6,182,212,0)}}
+
+/* button states */
+#submit-btn{position:relative;overflow:hidden}
+#submit-btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);transition:left .7s}
+#submit-btn:hover::after{left:130%}
+#submit-btn:disabled{opacity:.85;animation:pulse 1s infinite}
+@keyframes pulse{50%{filter:brightness(1.5)}}
+.scan{position:relative;overflow:hidden}
+.scan.run::before{content:"";position:absolute;left:0;right:0;height:120px;top:-120px;background:linear-gradient(transparent,rgba(6,182,212,.18),transparent);animation:scan 1.4s linear infinite;z-index:5;pointer-events:none}
+@keyframes scan{to{top:100%}}
+
+/* reveal */
+.reveal{opacity:0;transform:translateY(50px);transition:opacity .9s,transform .9s cubic-bezier(.2,.8,.2,1)}
+.reveal.in{opacity:1;transform:none}
+.pillar{transition:transform .35s,border-color .35s,background .35s}
+.pillar:hover{transform:translateY(-8px);background:rgba(6,40,60,.6)}
+
+::-webkit-scrollbar{width:6px;height:6px}
+::-webkit-scrollbar-track{background:#020408}
+::-webkit-scrollbar-thumb{background:#0e7490;border-radius:3px}
+::-webkit-scrollbar-thumb:hover{background:var(--cy)}
+@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}.moon{animation:none}}
+</style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
 
-    <!-- 3D Cinematic Background Canvas -->
-    <div id="canvas-container"></div>
+<div id="intro">
+  <h1 id="intro-title"></h1>
+  <div class="bar"><i></i></div>
+</div>
+<div id="progress"></div>
+<div id="cur-dot"></div><div id="cur-ring"></div>
 
-    <!-- Atmospheric Ambient Lighting Gradients -->
-    <div class="fixed top-0 left-1/4 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
-    <div class="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-blue-600/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+<div id="canvas-container"></div>
+<div class="fixed top-0 left-1/4 w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
+<div class="fixed bottom-0 right-1/4 w-[600px] h-[600px] bg-orange-600/10 rounded-full blur-[140px] pointer-events-none -z-10"></div>
 
-    <!-- Header / Cinematic Navigation Bar -->
-    <header class="cinematic-glass border-b border-cyan-950/80 sticky top-0 z-50 px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
-        <div class="flex items-center space-x-3.5">
-            <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 border border-cyan-400/30">
-                <i class="fa-solid fa-cube text-white text-lg"></i>
-            </div>
+<!-- Header -->
+<header class="cinematic-glass border-b border-cyan-950/80 sticky top-0 z-50 px-8 py-4 flex flex-col md:flex-row justify-between items-center gap-4">
+  <div class="flex items-center space-x-3.5">
+    <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-cyan-500 via-blue-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/30 border border-cyan-400/30">
+      <i class="fa-solid fa-cube text-white text-lg"></i>
+    </div>
+    <div>
+      <h1 class="font-extrabold text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-500 font-mono glow-text">CERTIVERIFY.AI</h1>
+      <p class="text-[9px] text-cyan-400/60 tracking-[0.25em] uppercase font-bold">Cinematic Regulatory Compliance Suite</p>
+    </div>
+  </div>
+
+  <nav class="flex items-center space-x-1.5 bg-slate-950/90 p-1.5 rounded-2xl border border-slate-800/80 shadow-inner">
+    <button onclick="switchTab('portal')" id="nav-portal" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Compliance Portal</span></button>
+    <button onclick="switchTab('ledger')" id="nav-ledger" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2"><i class="fa-solid fa-layer-group"></i><span>Batch Ledger</span></button>
+    <button onclick="switchTab('audit')" id="nav-audit" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2"><i class="fa-solid fa-shield-halved"></i><span>Part 11 Audit Trail</span></button>
+    <button onclick="switchTab('research')" id="nav-research" class="magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2"><i class="fa-solid fa-atom"></i><span>5-Pillar Framework</span></button>
+  </nav>
+
+  <div class="flex items-center space-x-4">
+    <span class="text-xs px-3.5 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 flex items-center space-x-2 font-mono">
+      <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span><span>Rakshith Gowda BS (QA Lead)</span>
+    </span>
+    <button onclick="logout()" class="magnetic text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 px-3.5 py-2 rounded-xl border border-rose-500/30 transition font-semibold">Sign Out</button>
+  </div>
+</header>
+
+<!-- Cinematic Hero -->
+<section id="hero">
+  <div class="moon" id="moon"></div>
+  <div class="relative z-10 max-w-7xl w-full mx-auto">
+    <div class="hero-line outline" id="h1">Certify</div>
+    <div class="hero-line fill" id="h2">Every Batch.</div>
+    <p class="hero-sub">Upload a Certificate of Analysis and get a pharmacopeia check, cross-document match and a tamper-proof SHA-256 seal in seconds.</p>
+    <div class="chapters">
+      <button class="chap on" data-t="portal" onclick="goChapter('portal')">01<small>Portal</small></button>
+      <button class="chap" data-t="ledger" onclick="goChapter('ledger')">02<small>Ledger</small></button>
+      <button class="chap" data-t="audit" onclick="goChapter('audit')">03<small>Audit trail</small></button>
+      <button class="chap" data-t="research" onclick="goChapter('research')">04<small>Framework</small></button>
+    </div>
+  </div>
+  <div class="scroll-hint">SCROLL TO ENTER<i></i></div>
+</section>
+
+<main id="main" class="max-w-7xl w-full mx-auto p-8 flex-grow">
+
+  <!-- TAB 1 -->
+  <div id="tab-portal" class="tab-content active grid grid-cols-1 lg:grid-cols-12 gap-8">
+    <div class="lg:col-span-5 space-y-6">
+      <div class="tilt cinematic-glass rounded-3xl p-7 relative overflow-hidden cinematic-glass-hover">
+        <div class="absolute top-0 right-0 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+        <h2 class="text-base font-bold text-cyan-300 mb-5 flex items-center font-mono tracking-wide"><i class="fa-solid fa-file-arrow-up mr-2.5 text-cyan-400 text-lg"></i> 01. MULTI-DOCUMENT DOSSIER</h2>
+        <form id="audit-form" onsubmit="handleAudit(event)" class="space-y-5">
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase">Certificate of Analysis (CoA PDF) *</label>
+            <input type="file" id="coa-file" accept=".pdf" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cyan-950 file:text-cyan-300 hover:file:bg-cyan-900 border border-slate-700/80 rounded-2xl bg-slate-900/80 transition shadow-inner focus:border-cyan-400 outline-none">
+          </div>
+          <div class="space-y-1.5">
+            <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase">Purchase Order / Spec Sheet (Optional PO PDF)</label>
+            <input type="file" id="po-file" accept=".pdf" class="w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 border border-slate-700/80 rounded-2xl bg-slate-900/80 transition shadow-inner focus:border-cyan-400 outline-none">
+          </div>
+          <button type="submit" id="submit-btn" class="magnetic w-full py-3.5 px-5 bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs rounded-2xl shadow-xl shadow-cyan-500/25 transition flex items-center justify-center space-x-2.5 tracking-wider uppercase font-mono">
+            <i class="fa-solid fa-microchip text-sm"></i><span id="btn-text">Execute 5-Pillar Research AI Audit</span>
+          </button>
+        </form>
+      </div>
+
+      <div class="tilt cinematic-glass rounded-3xl p-7 cinematic-glass-hover">
+        <div class="flex justify-between items-center mb-5">
+          <h2 class="text-base font-bold text-cyan-300 flex items-center font-mono tracking-wide"><i class="fa-solid fa-database mr-2.5 text-cyan-400 text-lg"></i> 02. VERIFIED BATCH LEDGER (<span id="ledger-count">0</span>)</h2>
+          <button onclick="loadLedger()" class="text-xs text-cyan-400 hover:text-cyan-300 transition p-2 rounded-xl bg-cyan-950/40 border border-cyan-500/20 hover:rotate-180 duration-500"><i class="fa-solid fa-rotate"></i></button>
+        </div>
+        <div id="ledger-list" class="space-y-3 max-h-[320px] overflow-y-auto pr-1">
+          <p class="text-xs text-slate-500 text-center py-8 font-mono">Initializing PostgreSQL stream...</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="lg:col-span-7">
+      <div id="result-card" class="scan tilt cinematic-glass rounded-3xl p-8 h-full flex flex-col justify-between relative overflow-hidden cinematic-glass-hover">
+        <div class="absolute bottom-0 right-0 w-80 h-80 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
+        <div class="space-y-6">
+          <div class="flex justify-between items-start border-b border-slate-800/80 pb-5">
             <div>
-                <h1 class="font-extrabold text-lg tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-cyan-300 via-cyan-400 to-blue-500 font-mono glow-text">CERTIVERIFY.AI</h1>
-                <p class="text-[9px] text-cyan-400/60 tracking-[0.25em] uppercase font-bold">Cinematic Regulatory Compliance Suite</p>
+              <span class="text-[10px] uppercase font-extrabold tracking-[0.2em] text-cyan-400 px-3 py-1.5 bg-cyan-950/80 rounded-lg border border-cyan-500/30 font-mono" id="res-engine">CertiVerify 5-Pillar Engine</span>
+              <h2 class="text-2xl font-extrabold text-white mt-3 font-mono tracking-tight" id="res-title">Awaiting Dossier Inspection</h2>
+              <p class="text-xs text-slate-400 mt-1 font-mono" id="res-supplier">Upload a Certificate of Analysis to trigger immersive USP/ICH compliance parsing.</p>
             </div>
-        </div>
-
-        <!-- Multi-Tab Navigation -->
-        <nav class="flex items-center space-x-1.5 bg-slate-950/90 p-1.5 rounded-2xl border border-slate-800/80 shadow-inner">
-            <button onclick="switchTab('portal')" id="nav-portal" class="px-5 py-2 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2">
-                <i class="fa-solid fa-wand-magic-sparkles"></i><span>Compliance Portal</span>
-            </button>
-            <button onclick="switchTab('ledger')" id="nav-ledger" class="px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2">
-                <i class="fa-solid fa-layer-group"></i><span>Batch Ledger</span>
-            </button>
-            <button onclick="switchTab('audit')" id="nav-audit" class="px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2">
-                <i class="fa-solid fa-shield-halved"></i><span>Part 11 Audit Trail</span>
-            </button>
-            <button onclick="switchTab('research')" id="nav-research" class="px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2">
-                <i class="fa-solid fa-atom"></i><span>5-Pillar Framework</span>
-            </button>
-        </nav>
-
-        <div class="flex items-center space-x-4">
-            <span class="text-xs px-3.5 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 flex items-center space-x-2 font-mono">
-                <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-                <span>Rakshith Gowda BS (QA Lead)</span>
-            </span>
-            <button onclick="logout()" class="text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 px-3.5 py-2 rounded-xl border border-rose-500/30 transition font-semibold">Sign Out</button>
-        </div>
-    </header>
-
-    <!-- Main Content Area -->
-    <main class="max-w-7xl w-full mx-auto p-8 flex-grow">
-        
-        <!-- TAB 1: COMPLIANCE PORTAL -->
-        <div id="tab-portal" class="tab-content active grid grid-cols-1 lg:grid-cols-12 gap-8">
-            <!-- Left Column: Upload & Ledger preview -->
-            <div class="lg:col-span-5 space-y-6">
-                <div class="cinematic-glass rounded-3xl p-7 relative overflow-hidden cinematic-glass-hover transition duration-300">
-                    <div class="absolute top-0 right-0 w-40 h-40 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
-                    <h2 class="text-base font-bold text-cyan-300 mb-5 flex items-center font-mono tracking-wide">
-                        <i class="fa-solid fa-file-arrow-up mr-2.5 text-cyan-400 text-lg"></i> 01. MULTI-DOCUMENT DOSSIER
-                    </h2>
-                    <form id="audit-form" onsubmit="handleAudit(event)" class="space-y-5">
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase">Certificate of Analysis (CoA PDF) *</label>
-                            <input type="file" id="coa-file" accept=".pdf" required class="w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-cyan-950 file:text-cyan-300 hover:file:bg-cyan-900 border border-slate-700/80 rounded-2xl bg-slate-900/80 cursor-pointer transition shadow-inner">
-                        </div>
-                        <div class="space-y-1.5">
-                            <label class="block text-xs font-semibold text-slate-300 tracking-wider uppercase">Purchase Order / Spec Sheet (Optional PO PDF)</label>
-                            <input type="file" id="po-file" accept=".pdf" class="w-full text-xs text-slate-400 file:mr-4 file:py-2.5 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-bold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700 border border-slate-700/80 rounded-2xl bg-slate-900/80 cursor-pointer transition shadow-inner">
-                        </div>
-                        <button type="submit" id="submit-btn" class="w-full py-3.5 px-5 bg-gradient-to-r from-cyan-500 via-blue-600 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white font-bold text-xs rounded-2xl shadow-xl shadow-cyan-500/25 transition transform active:scale-98 flex items-center justify-center space-x-2.5 tracking-wider uppercase font-mono">
-                            <i class="fa-solid fa-microchip text-sm"></i>
-                            <span id="btn-text">Execute 5-Pillar Research AI Audit</span>
-                        </button>
-                    </form>
-                </div>
-
-                <div class="cinematic-glass rounded-3xl p-7 cinematic-glass-hover transition duration-300">
-                    <div class="flex justify-between items-center mb-5">
-                        <h2 class="text-base font-bold text-cyan-300 flex items-center font-mono tracking-wide">
-                            <i class="fa-solid fa-database mr-2.5 text-cyan-400 text-lg"></i> 02. VERIFIED BATCH LEDGER (<span id="ledger-count">0</span>)
-                        </h2>
-                        <button onclick="loadLedger()" class="text-xs text-cyan-400 hover:text-cyan-300 transition p-2 rounded-xl bg-cyan-950/40 border border-cyan-500/20"><i class="fa-solid fa-rotate"></i></button>
-                    </div>
-                    <div id="ledger-list" class="space-y-3 max-h-[320px] overflow-y-auto pr-1">
-                        <p class="text-xs text-slate-500 text-center py-8 font-mono">Initializing PostgreSQL stream...</p>
-                    </div>
-                </div>
+            <div class="text-right">
+              <div id="res-verdict-badge" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs tracking-wider uppercase font-mono bg-slate-900 text-slate-400 border border-slate-800">IDLE</div>
+              <p class="text-[11px] text-slate-400 mt-1.5 font-mono" id="res-risk">Risk Score: -- | Confidence: --</p>
             </div>
+          </div>
 
-            <!-- Right Column: Cinematic Inspector & Results -->
-            <div class="lg:col-span-7">
-                <div class="cinematic-glass rounded-3xl p-8 h-full flex flex-col justify-between relative overflow-hidden cinematic-glass-hover transition duration-300">
-                    <div class="absolute bottom-0 right-0 w-80 h-80 bg-blue-600/10 rounded-full blur-[100px] pointer-events-none"></div>
-                    
-                    <div class="space-y-6">
-                        <!-- Header Result -->
-                        <div class="flex justify-between items-start border-b border-slate-800/80 pb-5">
-                            <div>
-                                <span class="text-[10px] uppercase font-extrabold tracking-[0.2em] text-cyan-400 px-3 py-1.5 bg-cyan-950/80 rounded-lg border border-cyan-500/30 font-mono" id="res-engine">CertiVerify 5-Pillar Engine</span>
-                                <h2 class="text-2xl font-extrabold text-white mt-3 font-mono tracking-tight" id="res-title">Awaiting Dossier Inspection</h2>
-                                <p class="text-xs text-slate-400 mt-1 font-mono" id="res-supplier">Upload a Certificate of Analysis to trigger immersive USP/ICH compliance parsing.</p>
-                            </div>
-                            <div class="text-right">
-                                <div id="res-verdict-badge" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs tracking-wider uppercase font-mono bg-slate-900 text-slate-400 border border-slate-800">IDLE</div>
-                                <p class="text-[11px] text-slate-400 mt-1.5 font-mono" id="res-risk">Risk Score: -- | Confidence: --</p>
-                            </div>
-                        </div>
+          <div class="bg-slate-900/80 border border-cyan-500/25 rounded-2xl p-4 shadow-inner">
+            <h3 class="text-xs font-bold text-cyan-300 mb-1.5 flex items-center font-mono uppercase tracking-wider"><i class="fa-solid fa-brain mr-2 text-cyan-400 text-sm"></i> AI Inspector & Research Insights</h3>
+            <p class="text-xs text-slate-300 leading-relaxed font-sans" id="res-summary">System primed for zero-downtime deterministic and cloud AI regulatory validation against global monographs.</p>
+          </div>
 
-                        <!-- AI Findings -->
-                        <div class="bg-slate-900/80 border border-cyan-500/25 rounded-2xl p-4.5 shadow-inner">
-                            <h3 class="text-xs font-bold text-cyan-300 mb-1.5 flex items-center font-mono uppercase tracking-wider">
-                                <i class="fa-solid fa-brain mr-2 text-cyan-400 text-sm"></i> AI Inspector & Research Insights
-                            </h3>
-                            <p class="text-xs text-slate-300 leading-relaxed font-sans" id="res-summary">System primed for zero-downtime deterministic and cloud AI regulatory validation against global monographs.</p>
-                        </div>
-
-                        <!-- Monograph Table -->
-                        <div>
-                            <h3 class="text-xs font-bold text-cyan-300 mb-2.5 flex items-center justify-between font-mono uppercase tracking-wider">
-                                <span><i class="fa-solid fa-flask mr-2 text-cyan-400"></i> Analytical Monograph Verification (USP / ICH Q3D)</span>
-                            </h3>
-                            <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
-                                <table class="w-full text-left text-xs">
-                                    <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider font-mono">
-                                        <tr>
-                                            <th class="p-3">Parameter</th>
-                                            <th class="p-3">Specification Limit</th>
-                                            <th class="p-3">Measured Result</th>
-                                            <th class="p-3">Confidence</th>
-                                            <th class="p-3 text-right">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="parameters-table-body" class="divide-y divide-slate-900 bg-slate-950/40">
-                                        <tr><td colspan="5" class="p-6 text-center text-slate-500 font-mono">No extraction parameters loaded.</td></tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
-
-                        <!-- CAPA Directives -->
-                        <div class="bg-blue-950/20 border border-blue-500/25 rounded-2xl p-4.5 shadow-inner">
-                            <h3 class="text-xs font-bold text-blue-300 mb-2 flex items-center font-mono uppercase tracking-wider">
-                                <i class="fa-solid fa-shield-check mr-2 text-blue-400 text-sm"></i> Automated CAPA & ERP Disposition Directives
-                            </h3>
-                            <ul id="res-capa-list" class="list-disc list-inside text-xs text-slate-300 space-y-1.5 font-sans">
-                                <li>Pending batch dossier upload...</li>
-                            </ul>
-                        </div>
-                    </div>
-
-                    <!-- Hash Footer -->
-                    <div class="mt-8 pt-4 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-slate-500 font-mono">
-                        <span id="res-hash" class="truncate max-w-[70%]">SHA-256 Dossier Seal: ----------------------------------------</span>
-                        <span class="text-cyan-400 font-bold">FDA 21 CFR Part 11</span>
-                    </div>
-                </div>
+          <div>
+            <h3 class="text-xs font-bold text-cyan-300 mb-2.5 flex items-center justify-between font-mono uppercase tracking-wider"><span><i class="fa-solid fa-flask mr-2 text-cyan-400"></i> Analytical Monograph Verification (USP / ICH Q3D)</span></h3>
+            <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider font-mono">
+                  <tr><th class="p-3">Parameter</th><th class="p-3">Specification Limit</th><th class="p-3">Measured Result</th><th class="p-3">Confidence</th><th class="p-3 text-right">Status</th></tr>
+                </thead>
+                <tbody id="parameters-table-body" class="divide-y divide-slate-900 bg-slate-950/40">
+                  <tr><td colspan="5" class="p-6 text-center text-slate-500 font-mono">No extraction parameters loaded.</td></tr>
+                </tbody>
+              </table>
             </div>
+          </div>
+
+          <div class="bg-blue-950/20 border border-blue-500/25 rounded-2xl p-4 shadow-inner">
+            <h3 class="text-xs font-bold text-blue-300 mb-2 flex items-center font-mono uppercase tracking-wider"><i class="fa-solid fa-shield-check mr-2 text-blue-400 text-sm"></i> Automated CAPA & ERP Disposition Directives</h3>
+            <ul id="res-capa-list" class="list-disc list-inside text-xs text-slate-300 space-y-1.5 font-sans"><li>Pending batch dossier upload...</li></ul>
+          </div>
         </div>
-
-        <!-- TAB 2: FULL-PAGE BATCH LEDGER -->
-        <div id="tab-ledger" class="tab-content space-y-6">
-            <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover transition duration-300">
-                <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
-                    <div>
-                        <h2 class="text-xl font-bold text-white flex items-center font-mono tracking-tight">
-                            <i class="fa-solid fa-database mr-3 text-cyan-400"></i> Immutable PostgreSQL Batch Ledger
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-1 font-mono">Decentralized enterprise database recording tamper-evident pharmaceutical batches.</p>
-                    </div>
-                    <button onclick="loadFullLedger()" class="px-5 py-2.5 bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 rounded-2xl text-xs font-bold transition flex items-center space-x-2 font-mono uppercase">
-                        <i class="fa-solid fa-rotate"></i><span>Refresh Records</span>
-                    </button>
-                </div>
-                <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
-                    <table class="w-full text-left text-xs font-mono">
-                        <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider">
-                            <tr>
-                                <th class="p-3.5">Batch ID</th>
-                                <th class="p-3.5">Material Name</th>
-                                <th class="p-3.5">Supplier</th>
-                                <th class="p-3.5">Risk Score</th>
-                                <th class="p-3.5">Timestamp (UTC)</th>
-                                <th class="p-3.5">Status / Verdict</th>
-                            </tr>
-                        </thead>
-                        <tbody id="full-ledger-tbody" class="divide-y divide-slate-900 bg-slate-950/40">
-                            <tr><td colspan="6" class="p-8 text-center text-slate-500">Querying ledger records...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+        <div class="mt-8 pt-4 border-t border-slate-800/80 flex justify-between items-center text-[11px] text-slate-500 font-mono">
+          <span id="res-hash" class="truncate max-w-[70%]">SHA-256 Dossier Seal: ----------------------------------------</span>
+          <span class="text-cyan-400 font-bold">FDA 21 CFR Part 11</span>
         </div>
+      </div>
+    </div>
+  </div>
 
-        <!-- TAB 3: FDA PART 11 AUDIT TRAIL -->
-        <div id="tab-audit" class="tab-content space-y-6">
-            <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover transition duration-300">
-                <div class="flex justify-between items-center mb-8">
-                    <div>
-                        <h2 class="text-xl font-bold text-white flex items-center font-mono tracking-tight">
-                            <i class="fa-solid fa-list-check mr-3 text-cyan-400"></i> FDA 21 CFR Part 11 Immutable Audit Trail
-                        </h2>
-                        <p class="text-xs text-slate-400 mt-1 font-mono">Secure append-only compliance logs tracking user authentication and document audits.</p>
-                    </div>
-                    <button onclick="loadAuditTrail()" class="px-5 py-2.5 bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 rounded-2xl text-xs font-bold transition flex items-center space-x-2 font-mono uppercase">
-                        <i class="fa-solid fa-rotate"></i><span>Refresh Logs</span>
-                    </button>
-                </div>
-                <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
-                    <table class="w-full text-left text-xs font-mono">
-                        <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider">
-                            <tr>
-                                <th class="p-3.5">Log ID</th>
-                                <th class="p-3.5">Timestamp (UTC)</th>
-                                <th class="p-3.5">User Email</th>
-                                <th class="p-3.5">Action Type</th>
-                                <th class="p-3.5">Event Details</th>
-                            </tr>
-                        </thead>
-                        <tbody id="audit-trail-tbody" class="divide-y divide-slate-900 bg-slate-950/40">
-                            <tr><td colspan="5" class="p-8 text-center text-slate-500">Reading secure audit trails...</td></tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+  <!-- TAB 2 -->
+  <div id="tab-ledger" class="tab-content space-y-6">
+    <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center font-mono tracking-tight"><i class="fa-solid fa-database mr-3 text-cyan-400"></i> Immutable PostgreSQL Batch Ledger</h2>
+          <p class="text-xs text-slate-400 mt-1 font-mono">Decentralized enterprise database recording tamper-evident pharmaceutical batches.</p>
         </div>
+        <button onclick="loadFullLedger()" class="magnetic px-5 py-2.5 bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 rounded-2xl text-xs font-bold transition flex items-center space-x-2 font-mono uppercase"><i class="fa-solid fa-rotate"></i><span>Refresh Records</span></button>
+      </div>
+      <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider">
+            <tr><th class="p-3.5">Batch ID</th><th class="p-3.5">Material Name</th><th class="p-3.5">Supplier</th><th class="p-3.5">Risk Score</th><th class="p-3.5">Timestamp (UTC)</th><th class="p-3.5">Status / Verdict</th></tr>
+          </thead>
+          <tbody id="full-ledger-tbody" class="divide-y divide-slate-900 bg-slate-950/40">
+            <tr><td colspan="6" class="p-8 text-center text-slate-500">Querying ledger records...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-        <!-- TAB 4: 5-PILLAR RESEARCH FRAMEWORK -->
-        <div id="tab-research" class="tab-content space-y-6">
-            <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover transition duration-300">
-                <h2 class="text-xl font-bold text-white mb-2 flex items-center font-mono tracking-tight">
-                    <i class="fa-solid fa-atom mr-3 text-cyan-400"></i> CertiVerify 5-Pillar Research Architecture
-                </h2>
-                <p class="text-xs text-slate-400 mb-8 font-mono">Detailed breakdown of the advanced AI and regulatory research innovations engineered into the platform.</p>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40 transition">
-                        <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">01</div>
-                        <h3 class="text-sm font-bold text-white mb-2 font-mono">Confidence-Aware Extraction</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed font-sans">Extracts chemical assay values, heavy metal counts, and batch identifiers while estimating field-level confidence percentages for human verification.</p>
-                    </div>
-                    <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40 transition">
-                        <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">02</div>
-                        <h3 class="text-sm font-bold text-white mb-2 font-mono">Context-Aware Validation</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed font-sans">Validates extracted values against authorized USP, EP, and ICH Q3D pharmacopeia monographs and threshold limits before deciding pass/fail status.</p>
-                    </div>
-                    <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40 transition">
-                        <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">03</div>
-                        <h3 class="text-sm font-bold text-white mb-2 font-mono">Cross-Document Consistency</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed font-sans">Cross-examines data points across linked multi-document dossiers, such as matching Certificate of Analysis (CoA) records against Purchase Orders (POs).</p>
-                    </div>
-                    <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40 transition">
-                        <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">04</div>
-                        <h3 class="text-sm font-bold text-white mb-2 font-mono">Tamper Screening</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed font-sans">Generates a unique SHA-256 cryptographic dossier hash seal for every audited batch, archiving immutable records in PostgreSQL[cite: 5, 8].</p>
-                    </div>
-                    <div class="p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40 transition md:col-span-2">
-                        <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">05</div>
-                        <h3 class="text-sm font-bold text-white mb-2 font-mono">Batch Anomaly Screening</h3>
-                        <p class="text-xs text-slate-400 leading-relaxed font-sans">Compares like-for-like batches against historical database records in PostgreSQL to flag unusual statistical drift or deviations for QA investigation[cite: 5, 8].</p>
-                    </div>
-                </div>
-            </div>
+  <!-- TAB 3 -->
+  <div id="tab-audit" class="tab-content space-y-6">
+    <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover">
+      <div class="flex justify-between items-center mb-8">
+        <div>
+          <h2 class="text-xl font-bold text-white flex items-center font-mono tracking-tight"><i class="fa-solid fa-list-check mr-3 text-cyan-400"></i> FDA 21 CFR Part 11 Immutable Audit Trail</h2>
+          <p class="text-xs text-slate-400 mt-1 font-mono">Secure append-only compliance logs tracking user authentication and document audits.</p>
         </div>
+        <button onclick="loadAuditTrail()" class="magnetic px-5 py-2.5 bg-cyan-950/80 border border-cyan-500/30 text-cyan-300 hover:bg-cyan-900 rounded-2xl text-xs font-bold transition flex items-center space-x-2 font-mono uppercase"><i class="fa-solid fa-rotate"></i><span>Refresh Logs</span></button>
+      </div>
+      <div class="overflow-x-auto rounded-2xl border border-slate-800/80 shadow-inner">
+        <table class="w-full text-left text-xs font-mono">
+          <thead class="bg-slate-950/90 text-slate-400 uppercase text-[10px] tracking-wider">
+            <tr><th class="p-3.5">Log ID</th><th class="p-3.5">Timestamp (UTC)</th><th class="p-3.5">User Email</th><th class="p-3.5">Action Type</th><th class="p-3.5">Event Details</th></tr>
+          </thead>
+          <tbody id="audit-trail-tbody" class="divide-y divide-slate-900 bg-slate-950/40">
+            <tr><td colspan="5" class="p-8 text-center text-slate-500">Reading secure audit trails...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
 
-    </main>
+  <!-- TAB 4 -->
+  <div id="tab-research" class="tab-content space-y-6">
+    <div class="cinematic-glass rounded-3xl p-8 cinematic-glass-hover">
+      <h2 class="text-xl font-bold text-white mb-2 flex items-center font-mono tracking-tight"><i class="fa-solid fa-atom mr-3 text-cyan-400"></i> CertiVerify 5-Pillar Research Architecture</h2>
+      <p class="text-xs text-slate-400 mb-8 font-mono">Detailed breakdown of the advanced AI and regulatory research innovations engineered into the platform.</p>
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
+          <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">01</div>
+          <h3 class="text-sm font-bold text-white mb-2 font-mono">Confidence-Aware Extraction</h3>
+          <p class="text-xs text-slate-400 leading-relaxed font-sans">Extracts chemical assay values, heavy metal counts, and batch identifiers while estimating field-level confidence percentages for human verification.</p>
+        </div>
+        <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
+          <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">02</div>
+          <h3 class="text-sm font-bold text-white mb-2 font-mono">Context-Aware Validation</h3>
+          <p class="text-xs text-slate-400 leading-relaxed font-sans">Validates extracted values against authorized USP, EP, and ICH Q3D pharmacopeia monographs and threshold limits before deciding pass/fail status.</p>
+        </div>
+        <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
+          <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">03</div>
+          <h3 class="text-sm font-bold text-white mb-2 font-mono">Cross-Document Consistency</h3>
+          <p class="text-xs text-slate-400 leading-relaxed font-sans">Cross-examines data points across linked multi-document dossiers, such as matching Certificate of Analysis (CoA) records against Purchase Orders (POs).</p>
+        </div>
+        <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40">
+          <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">04</div>
+          <h3 class="text-sm font-bold text-white mb-2 font-mono">Tamper Screening</h3>
+          <p class="text-xs text-slate-400 leading-relaxed font-sans">Generates a unique SHA-256 cryptographic dossier hash seal for every audited batch, archiving immutable records in PostgreSQL.</p>
+        </div>
+        <div class="pillar p-6 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/40 md:col-span-2">
+          <div class="w-10 h-10 rounded-xl bg-cyan-950 text-cyan-400 flex items-center justify-center font-mono font-bold text-xs mb-4 border border-cyan-500/30 shadow-md">05</div>
+          <h3 class="text-sm font-bold text-white mb-2 font-mono">Batch Anomaly Screening</h3>
+          <p class="text-xs text-slate-400 leading-relaxed font-sans">Compares like-for-like batches against historical database records in PostgreSQL to flag unusual statistical drift or deviations for QA investigation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</main>
 
-    <!-- Footer -->
-    <footer class="text-center py-6 text-xs text-slate-500 border-t border-slate-900 font-mono">
-        CertiVerify Enterprise AI &bull; Dayananda Sagar Academy of Technology and Management (DSATM)
-    </footer>
+<footer class="text-center py-6 text-xs text-slate-500 border-t border-slate-900 font-mono">
+  CertiVerify Enterprise AI &bull; Dayananda Sagar Academy of Technology and Management (DSATM)
+</footer>
 
-    <!-- JavaScript Application Logic -->
-    <script>
-        const API_BASE = "https://certiverify-backend-loxl.onrender.com";
+<script>
+const API_BASE = "https://certiverify-backend-loxl.onrender.com";
 
-        // --- Three.js 3D Atmospheric Background Animation ---
-        const container = document.getElementById('canvas-container');
-        const scene = new THREE.Scene();
-        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-        const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-        renderer.setSize(window.innerWidth, window.innerHeight);
-        container.appendChild(renderer.domElement);
+/* ========== INTRO ========== */
+(function(){
+  const t=document.getElementById('intro-title');
+  'CERTIVERIFY'.split('').forEach((c,i)=>{const s=document.createElement('span');s.textContent=c;s.style.animationDelay=(i*70)+'ms';t.appendChild(s)});
+  window.addEventListener('load',()=>setTimeout(()=>{document.getElementById('intro').classList.add('out')},1900));
+  setTimeout(()=>document.getElementById('intro').classList.add('out'),4000);
+})();
 
-        const particleCount = 1000;
-        const geometry = new THREE.BufferGeometry();
-        const positions = new Float32Array(particleCount * 3);
+/* ========== THREE.JS CINEMATIC BACKGROUND ========== */
+const container=document.getElementById('canvas-container');
+const scene=new THREE.Scene();
+const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
+const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.setSize(innerWidth,innerHeight);
+container.appendChild(renderer.domElement);
 
-        for (let i = 0; i < particleCount * 3; i++) {
-            positions[i] = (Math.random() - 0.5) * 50;
-        }
+const particleCount=1400, geometry=new THREE.BufferGeometry(), positions=new Float32Array(particleCount*3);
+for(let i=0;i<particleCount*3;i++) positions[i]=(Math.random()-0.5)*60;
+geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
+const particleSystem=new THREE.Points(geometry,new THREE.PointsMaterial({color:0x06b6d4,size:0.1,transparent:true,opacity:0.8}));
+scene.add(particleSystem);
 
-        geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        const material = new THREE.PointsMaterial({ color: 0x06b6d4, size: 0.1, transparent: true, opacity: 0.8 });
-        const particleSystem = new THREE.Points(geometry, material);
-        scene.add(particleSystem);
+const core=new THREE.Mesh(new THREE.IcosahedronGeometry(4,1),new THREE.MeshBasicMaterial({color:0x06b6d4,wireframe:true,transparent:true,opacity:0.22}));
+core.position.set(-9,2,-6); scene.add(core);
+const ring=new THREE.Mesh(new THREE.TorusGeometry(6,0.03,8,120),new THREE.MeshBasicMaterial({color:0xff7a1a,transparent:true,opacity:0.5}));
+ring.position.copy(core.position); ring.rotation.x=1.2; scene.add(ring);
+const knot=new THREE.Mesh(new THREE.TorusKnotGeometry(2.2,0.04,160,8),new THREE.MeshBasicMaterial({color:0x3b82f6,transparent:true,opacity:0.35}));
+knot.position.set(11,-4,-8); scene.add(knot);
+camera.position.z=20;
 
-        camera.position.z = 20;
+let mx=0,my=0,sy=0;
+addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*2;my=(e.clientY/innerHeight-.5)*2});
+function animate(){
+  requestAnimationFrame(animate);
+  particleSystem.rotation.y+=0.0008; particleSystem.rotation.x+=0.0003;
+  core.rotation.y+=0.004; core.rotation.x+=0.002;
+  ring.rotation.z+=0.006; knot.rotation.x+=0.006; knot.rotation.y+=0.004;
+  camera.position.x+=(mx*2.5-camera.position.x)*0.04;
+  camera.position.y+=(-my*1.8-sy*0.004-camera.position.y)*0.04;
+  camera.lookAt(0,0,0);
+  renderer.render(scene,camera);
+}
+animate();
+addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 
-        function animate() {
-            requestAnimationFrame(animate);
-            particleSystem.rotation.y += 0.0008;
-            particleSystem.rotation.x += 0.0003;
-            renderer.render(scene, camera);
-        }
-        animate();
+/* ========== CURSOR, PROGRESS, PARALLAX ========== */
+const dot=document.getElementById('cur-dot'),rg=document.getElementById('cur-ring');
+let cx=0,cy=0,rx=0,ry=0;
+addEventListener('mousemove',e=>{cx=e.clientX;cy=e.clientY;dot.style.left=cx+'px';dot.style.top=cy+'px'});
+(function loop(){rx+=(cx-rx)*.15;ry+=(cy-ry)*.15;rg.style.left=rx+'px';rg.style.top=ry+'px';requestAnimationFrame(loop)})();
+document.addEventListener('mouseover',e=>{rg.classList.toggle('hov',!!e.target.closest('a,button,input,.chap,#ledger-list>div'))});
 
-        window.addEventListener('resize', () => {
-            camera.aspect = window.innerWidth / window.innerHeight;
-            camera.updateProjectionMatrix();
-            renderer.setSize(window.innerWidth, window.innerHeight);
-        });
+const h1=document.getElementById('h1'),h2=document.getElementById('h2'),moon=document.getElementById('moon');
+addEventListener('scroll',()=>{
+  sy=scrollY;
+  const max=document.documentElement.scrollHeight-innerHeight;
+  document.getElementById('progress').style.width=(sy/max*100)+'%';
+  if(sy<innerHeight*1.2){
+    h1.style.transform=`translateX(${sy*-0.35}px)`;
+    h2.style.transform=`translateX(${sy*0.35}px)`;
+    moon.style.transform=`translateY(${sy*0.4}px) scale(${1+sy*0.0006})`;
+    h1.style.opacity=h2.style.opacity=Math.max(0,1-sy/(innerHeight*0.9));
+  }
+},{passive:true});
 
-        // --- Multi-Tab Navigation Controller ---
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
-            document.getElementById(`tab-${tabId}`).classList.add('active');
+/* ========== TILT + MAGNETIC ========== */
+if(matchMedia('(hover:hover)').matches){
+  document.querySelectorAll('.tilt').forEach(el=>{
+    el.addEventListener('mousemove',e=>{
+      const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
+      el.style.transform=`perspective(1100px) rotateY(${x*3}deg) rotateX(${-y*3}deg)`;
+    });
+    el.addEventListener('mouseleave',()=>el.style.transform='');
+  });
+  document.querySelectorAll('.magnetic').forEach(el=>{
+    el.addEventListener('mousemove',e=>{
+      const r=el.getBoundingClientRect();
+      el.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.18}px,${(e.clientY-r.top-r.height/2)*.28}px)`;
+    });
+    el.addEventListener('mouseleave',()=>el.style.transform='');
+  });
+}
 
-            const navButtons = {
-                'portal': document.getElementById('nav-portal'),
-                'ledger': document.getElementById('nav-ledger'),
-                'audit': document.getElementById('nav-audit'),
-                'research': document.getElementById('nav-research')
-            };
+/* stagger index for dynamic rows */
+new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{
+  if(n.nodeType===1&&n.parentElement) n.style.setProperty('--i',Array.prototype.indexOf.call(n.parentElement.children,n));
+}))).observe(document.body,{childList:true,subtree:true});
 
-            Object.keys(navButtons).forEach(key => {
-                const btn = navButtons[key];
-                if (key === tabId) {
-                    btn.className = "px-5 py-2 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2";
-                } else {
-                    btn.className = "px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2";
-                }
-            });
+/* flash result card when a new result is rendered */
+new MutationObserver(()=>{const c=document.getElementById('result-card');c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')})
+  .observe(document.getElementById('res-title'),{childList:true,characterData:true,subtree:true});
 
-            if (tabId === 'ledger') loadFullLedger();
-            if (tabId === 'audit') loadAuditTrail();
-        }
+/* ========== TAB CONTROLLER (original logic kept) ========== */
+function switchTab(tabId){
+  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+  document.getElementById(`tab-${tabId}`).classList.add('active');
+  const navButtons={portal:document.getElementById('nav-portal'),ledger:document.getElementById('nav-ledger'),audit:document.getElementById('nav-audit'),research:document.getElementById('nav-research')};
+  Object.keys(navButtons).forEach(key=>{
+    navButtons[key].className = key===tabId
+      ? "magnetic px-5 py-2 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2"
+      : "magnetic px-5 py-2 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2";
+  });
+  document.querySelectorAll('.chap').forEach(c=>c.classList.toggle('on',c.dataset.t===tabId));
+  if(tabId==='ledger') loadFullLedger();
+  if(tabId==='audit') loadAuditTrail();
+}
+function goChapter(id){
+  switchTab(id);
+  document.getElementById('main').scrollIntoView({behavior:'smooth'});
+}
 
-        // --- API Handlers ---
-        window.addEventListener('DOMContentLoaded', () => {
-            loadLedger();
-        });
+/* ========== API HANDLERS (unchanged) ========== */
+window.addEventListener('DOMContentLoaded',()=>{loadLedger()});
 
-        async function handleAudit(event) {
-            event.preventDefault();
-            const coaInput = document.getElementById('coa-file');
-            const poInput = document.getElementById('po-file');
-            const btnText = document.getElementById('btn-text');
-            const submitBtn = document.getElementById('submit-btn');
+async function handleAudit(event){
+  event.preventDefault();
+  const coaInput=document.getElementById('coa-file'),poInput=document.getElementById('po-file');
+  const btnText=document.getElementById('btn-text'),submitBtn=document.getElementById('submit-btn');
+  const card=document.getElementById('result-card');
+  if(!coaInput.files[0]) return alert('Please select a Certificate of Analysis PDF.');
+  btnText.innerText='Executing 5-Pillar Research AI Audit...';
+  submitBtn.disabled=true; card.classList.add('run');
+  const formData=new FormData();
+  formData.append('file',coaInput.files[0]);
+  if(poInput.files[0]) formData.append('po_file',poInput.files[0]);
+  try{
+    const response=await fetch(`${API_BASE}/api/v1/extract-coa`,{method:'POST',body:formData});
+    if(!response.ok){const errData=await response.json();throw new Error(errData.detail||'Audit execution failed.')}
+    const result=await response.json();
+    renderAuditResult(result);
+    loadLedger();
+  }catch(err){alert('Audit Error: '+err.message)}
+  finally{
+    btnText.innerText='Execute 5-Pillar Research AI Audit';
+    submitBtn.disabled=false; card.classList.remove('run');
+  }
+}
 
-            if (!coaInput.files[0]) return alert('Please select a Certificate of Analysis PDF.');
+async function loadLedger(){
+  try{
+    const res=await fetch(`${API_BASE}/api/v1/ledger`);
+    const records=await res.json();
+    const ledgerList=document.getElementById('ledger-list');
+    document.getElementById('ledger-count').innerText=records.length;
+    if(records.length===0){ledgerList.innerHTML='<p class="text-xs text-slate-500 text-center py-6 font-mono">No batches audited yet.</p>';return}
+    ledgerList.innerHTML='';
+    records.forEach(r=>{
+      const isCompliant=r.status==='COMPLIANT'||r.status==='PASS';
+      const badgeClass=isCompliant?'bg-emerald-950/80 text-emerald-300 border-emerald-500/30':'bg-rose-950/80 text-rose-300 border-rose-500/30';
+      const div=document.createElement('div');
+      div.className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/50 hover:translate-x-1.5 cursor-pointer transition flex justify-between items-center group";
+      div.onclick=()=>renderAuditResult(r);
+      div.innerHTML=`
+        <div>
+          <p class="text-xs font-bold text-white font-mono group-hover:text-cyan-300 transition">${r.batch_id}</p>
+          <p class="text-[10px] text-slate-400 font-mono">${r.filename} &bull; ${r.supplier}</p>
+        </div>
+        <span class="text-[10px] px-2.5 py-1 rounded-xl border font-bold font-mono ${badgeClass}">${r.status}</span>`;
+      ledgerList.appendChild(div);
+    });
+  }catch(err){console.error('Failed to load ledger:',err)}
+}
 
-            btnText.innerText = 'Executing 5-Pillar Research AI Audit...';
-            submitBtn.disabled = true;
+async function loadFullLedger(){
+  try{
+    const res=await fetch(`${API_BASE}/api/v1/ledger`);
+    const records=await res.json();
+    const tbody=document.getElementById('full-ledger-tbody');
+    tbody.innerHTML='';
+    if(records.length===0){tbody.innerHTML='<tr><td colspan="6" class="p-8 text-center text-slate-500 font-mono">No batch records found in database.</td></tr>';return}
+    records.forEach(r=>{
+      const isCompliant=r.status==='COMPLIANT'||r.status==='PASS';
+      const badgeClass=isCompliant?'bg-emerald-950/80 text-emerald-300 border-emerald-500/30':'bg-rose-950/80 text-rose-300 border-rose-500/30';
+      const tr=document.createElement('tr');
+      tr.className="hover:bg-slate-900/60 transition";
+      tr.innerHTML=`
+        <td class="p-3.5 font-bold text-white font-mono">${r.batch_id}</td>
+        <td class="p-3.5 text-slate-200 font-sans">${r.material_name}</td>
+        <td class="p-3.5 text-slate-400 font-sans">${r.supplier}</td>
+        <td class="p-3.5 text-cyan-400 font-mono font-bold">${r.risk_score}/100</td>
+        <td class="p-3.5 text-slate-400 font-mono text-[11px]">${r.timestamp}</td>
+        <td class="p-3.5"><span class="px-3 py-1 rounded-xl border text-[10px] font-bold font-mono ${badgeClass}">${r.status}</span></td>`;
+      tbody.appendChild(tr);
+    });
+  }catch(err){console.error('Failed to load full ledger:',err)}
+}
 
-            const formData = new FormData();
-            formData.append('file', coaInput.files[0]);
-            if (poInput.files[0]) {
-                formData.append('po_file', poInput.files[0]);
-            }
+async function loadAuditTrail(){
+  try{
+    const res=await fetch(`${API_BASE}/api/v1/audit-trail`);
+    const logs=await res.json();
+    const tbody=document.getElementById('audit-trail-tbody');
+    tbody.innerHTML='';
+    if(logs.length===0){tbody.innerHTML='<tr><td colspan="5" class="p-8 text-center text-slate-500 font-mono">No audit trail records found.</td></tr>';return}
+    logs.forEach(l=>{
+      const tr=document.createElement('tr');
+      tr.className="hover:bg-slate-900/60 transition";
+      tr.innerHTML=`
+        <td class="p-3.5 font-mono text-cyan-400 font-bold">#${l.id}</td>
+        <td class="p-3.5 text-slate-400 font-mono text-[11px]">${l.timestamp}</td>
+        <td class="p-3.5 text-slate-300 font-mono">${l.user}</td>
+        <td class="p-3.5 font-bold text-slate-200 font-mono">${l.action}</td>
+        <td class="p-3.5 text-slate-400 font-sans">${l.details}</td>`;
+      tbody.appendChild(tr);
+    });
+  }catch(err){console.error('Failed to load audit trail:',err)}
+}
 
-            try {
-                const response = await fetch(`${API_BASE}/api/v1/extract-coa`, {
-                    method: 'POST',
-                    body: formData
-                });
+function renderAuditResult(r){
+  document.getElementById('res-engine').innerText=r.ai_engine||'CertiVerify 5-Pillar Engine';
+  document.getElementById('res-title').innerText=`${r.batch_id} — ${r.material_name||'Material'}`;
+  document.getElementById('res-supplier').innerText=`Supplier: ${r.supplier} | Audited: ${r.timestamp}`;
+  const isCompliant=r.status==='COMPLIANT'||r.status==='PASS';
+  const verdictBadge=document.getElementById('res-verdict-badge');
+  verdictBadge.innerText=r.verdict;
+  verdictBadge.className=`px-3.5 py-2 rounded-2xl font-extrabold text-xs tracking-wider uppercase font-mono border ${isCompliant?'bg-emerald-950/80 text-emerald-300 border-emerald-500/30':'bg-rose-950/80 text-rose-300 border-rose-500/30'}`;
+  document.getElementById('res-risk').innerText=`Risk Score: ${r.risk_score}/100 | Confidence: ${r.confidence_score}%`;
+  document.getElementById('res-summary').innerText=r.summary;
 
-                if (!response.ok) {
-                    const errData = await response.json();
-                    throw new Error(errData.detail || 'Audit execution failed.');
-                }
+  const tbody=document.getElementById('parameters-table-body');
+  tbody.innerHTML='';
+  const params=r.parameters||r.test_results||[];
+  if(params.length===0){
+    tbody.innerHTML='<tr><td colspan="5" class="p-6 text-center text-slate-500 font-mono">No parameters available.</td></tr>';
+  }else{
+    params.forEach(p=>{
+      const pass=p.status==='PASS';
+      const tr=document.createElement('tr');
+      tr.className="hover:bg-slate-900/40 transition";
+      tr.innerHTML=`
+        <td class="p-3 font-semibold text-slate-200 font-sans">${p.parameter}</td>
+        <td class="p-3 text-slate-400 font-mono text-xs">${p.specification}</td>
+        <td class="p-3 text-slate-200 font-mono text-xs">${p.result}</td>
+        <td class="p-3 text-cyan-400 font-mono text-xs font-bold">${p.confidence||'99.5%'}</td>
+        <td class="p-3 text-right"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono ${pass?'bg-emerald-950 text-emerald-400 border border-emerald-500/30':'bg-rose-950 text-rose-400 border border-rose-500/30'}">${p.status}</span></td>`;
+      tbody.appendChild(tr);
+    });
+  }
+  const capaList=document.getElementById('res-capa-list');
+  capaList.innerHTML='';
+  const capas=r.capa_recommendations||r.deviations||['All parameters verified against USP monographs.'];
+  capas.forEach(c=>{const li=document.createElement('li');li.innerText=c;capaList.appendChild(li)});
+  document.getElementById('res-hash').innerText=`SHA-256 Dossier Seal: ${r.sha256_hash}`;
+}
 
-                const result = await response.json();
-                renderAuditResult(result);
-                loadLedger();
-            } catch (err) {
-                alert('Audit Error: ' + err.message);
-            } finally {
-                btnText.innerText = 'Execute 5-Pillar Research AI Audit';
-                submitBtn.disabled = false;
-            }
-        }
-
-        async function loadLedger() {
-            try {
-                const res = await fetch(`${API_BASE}/api/v1/ledger`);
-                const records = await res.json();
-                const ledgerList = document.getElementById('ledger-list');
-                document.getElementById('ledger-count').innerText = records.length;
-
-                if (records.length === 0) {
-                    ledgerList.innerHTML = '<p class="text-xs text-slate-500 text-center py-6 font-mono">No batches audited yet.</p>';
-                    return;
-                }
-
-                ledgerList.innerHTML = '';
-                records.forEach(r => {
-                    const isCompliant = r.status === 'COMPLIANT' || r.status === 'PASS';
-                    const badgeClass = isCompliant ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/30' : 'bg-rose-950/80 text-rose-300 border-rose-500/30';
-                    
-                    const div = document.createElement('div');
-                    div.className = "p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/50 cursor-pointer transition flex justify-between items-center group";
-                    div.onclick = () => renderAuditResult(r);
-                    div.innerHTML = `
-                        <div>
-                            <p class="text-xs font-bold text-white font-mono group-hover:text-cyan-300 transition">${r.batch_id}</p>
-                            <p class="text-[10px] text-slate-400 font-mono">${r.filename} &bull; ${r.supplier}</p>
-                        </div>
-                        <span class="text-[10px] px-2.5 py-1 rounded-xl border font-bold font-mono ${badgeClass}">${r.status}</span>
-                    `;
-                    ledgerList.appendChild(div);
-                });
-            } catch (err) {
-                console.error('Failed to load ledger:', err);
-            }
-        }
-
-        async function loadFullLedger() {
-            try {
-                const res = await fetch(`${API_BASE}/api/v1/ledger`);
-                const records = await res.json();
-                const tbody = document.getElementById('full-ledger-tbody');
-                tbody.innerHTML = '';
-
-                if (records.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500 font-mono">No batch records found in database.</td></tr>';
-                    return;
-                }
-
-                records.forEach(r => {
-                    const isCompliant = r.status === 'COMPLIANT' || r.status === 'PASS';
-                    const badgeClass = isCompliant ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/30' : 'bg-rose-950/80 text-rose-300 border-rose-500/30';
-                    
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-900/60 transition";
-                    tr.innerHTML = `
-                        <td class="p-3.5 font-bold text-white font-mono">${r.batch_id}</td>
-                        <td class="p-3.5 text-slate-200 font-sans">${r.material_name}</td>
-                        <td class="p-3.5 text-slate-400 font-sans">${r.supplier}</td>
-                        <td class="p-3.5 text-cyan-400 font-mono font-bold">${r.risk_score}/100</td>
-                        <td class="p-3.5 text-slate-400 font-mono text-[11px]">${r.timestamp}</td>
-                        <td class="p-3.5"><span class="px-3 py-1 rounded-xl border text-[10px] font-bold font-mono ${badgeClass}">${r.status}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error('Failed to load full ledger:', err);
-            }
-        }
-
-        async function loadAuditTrail() {
-            try {
-                const res = await fetch(`${API_BASE}/api/v1/audit-trail`);
-                const logs = await res.json();
-                const tbody = document.getElementById('audit-trail-tbody');
-                tbody.innerHTML = '';
-
-                if (logs.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500 font-mono">No audit trail records found.</td></tr>';
-                    return;
-                }
-
-                logs.forEach(l => {
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-900/60 transition";
-                    tr.innerHTML = `
-                        <td class="p-3.5 font-mono text-cyan-400 font-bold">#${l.id}</td>
-                        <td class="p-3.5 text-slate-400 font-mono text-[11px]">${l.timestamp}</td>
-                        <td class="p-3.5 text-slate-300 font-mono">${l.user}</td>
-                        <td class="p-3.5 font-bold text-slate-200 font-mono">${l.action}</td>
-                        <td class="p-3.5 text-slate-400 font-sans">${l.details}</td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            } catch (err) {
-                console.error('Failed to load audit trail:', err);
-            }
-        }
-
-        function renderAuditResult(r) {
-            document.getElementById('res-engine').innerText = r.ai_engine || 'CertiVerify 5-Pillar Engine';
-            document.getElementById('res-title').innerText = `${r.batch_id} — ${r.material_name || 'Material'}`;
-            document.getElementById('res-supplier').innerText = `Supplier: ${r.supplier} | Audited: ${r.timestamp}`;
-            
-            const isCompliant = r.status === 'COMPLIANT' || r.status === 'PASS';
-            const verdictBadge = document.getElementById('res-verdict-badge');
-            verdictBadge.innerText = r.verdict;
-            verdictBadge.className = `px-3.5 py-2 rounded-2xl font-extrabold text-xs tracking-wider uppercase font-mono border ${isCompliant ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/30' : 'bg-rose-950/80 text-rose-300 border-rose-500/30'}`;
-
-            document.getElementById('res-risk').innerText = `Risk Score: ${r.risk_score}/100 | Confidence: ${r.confidence_score}%`;
-            document.getElementById('res-summary').innerText = r.summary;
-
-            const tbody = document.getElementById('parameters-table-body');
-            tbody.innerHTML = '';
-            const params = r.parameters || r.test_results || [];
-            
-            if (params.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500 font-mono">No parameters available.</td></tr>';
-            } else {
-                params.forEach(p => {
-                    const pass = p.status === 'PASS';
-                    const tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-900/40 transition";
-                    tr.innerHTML = `
-                        <td class="p-3 font-semibold text-slate-200 font-sans">${p.parameter}</td>
-                        <td class="p-3 text-slate-400 font-mono text-xs">${p.specification}</td>
-                        <td class="p-3 text-slate-200 font-mono text-xs">${p.result}</td>
-                        <td class="p-3 text-cyan-400 font-mono text-xs font-bold">${p.confidence || '99.5%'}</td>
-                        <td class="p-3 text-right"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono ${pass ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30' : 'bg-rose-950 text-rose-400 border border-rose-500/30'}">${p.status}</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            }
-
-            const capaList = document.getElementById('res-capa-list');
-            capaList.innerHTML = '';
-            const capas = r.capa_recommendations || r.deviations || ['All parameters verified against USP monographs.'];
-            capas.forEach(c => {
-                const li = document.createElement('li');
-                li.innerText = c;
-                capaList.appendChild(li);
-            });
-
-            document.getElementById('res-hash').innerText = `SHA-256 Dossier Seal: ${r.sha256_hash}`;
-        }
-
-        function logout() {
-            alert('Signed out successfully from CertiVerify Enterprise session.');
-            window.location.reload();
-        }
-    </script>
+function logout(){
+  alert('Signed out successfully from CertiVerify Enterprise session.');
+  window.location.reload();
+}
+</script>
 </body>
 </html>
