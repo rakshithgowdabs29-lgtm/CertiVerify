@@ -15,8 +15,12 @@ tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Outfit','san
 :root{--cy:#06b6d4;--amb:#ff7a1a;--bg:#020408}
 html{scroll-behavior:smooth}
 body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',sans-serif}
-@media (hover:hover){body,button,a,input{cursor:none}}
+@media (hover:hover){body,button,a,input,select{cursor:none}}
 #canvas-container{position:fixed;inset:0;z-index:-1;pointer-events:none}
+
+/* Auth Modal Overlay */
+#auth-modal{position:fixed;inset:0;z-index:400;background:rgba(2,4,8,0.9);backdrop-filter:blur(20px);display:flex;align-items:center;justify-content:center;transition:opacity 0.4s ease}
+#auth-modal.hidden-modal{opacity:0;pointer-events:none}
 
 /* intro */
 #intro{position:fixed;inset:0;z-index:200;background:#020408;display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform 1s cubic-bezier(.77,0,.18,1)}
@@ -29,7 +33,7 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 @keyframes load{to{width:100%}}
 
 /* cursor + progress */
-#cur-dot,#cur-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:300;border-radius:50%;transform:translate(-50%,-50%)}
+#cur-dot,#cur-ring{position:fixed;top:0;left:0;pointer-events:none;z-index:500;border-radius:50%;transform:translate(-50%,-50%)}
 #cur-dot{width:6px;height:6px;background:var(--cy)}
 #cur-ring{width:38px;height:38px;border:1px solid rgba(6,182,212,.6);transition:width .25s,height .25s,background .25s,border-color .25s}
 #cur-ring.hov{width:68px;height:68px;background:rgba(6,182,212,.12);border-color:var(--amb)}
@@ -66,23 +70,8 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 .tab-content{display:none}
 .tab-content.active{display:block}
 .tab-content.active>*{animation:enter .7s cubic-bezier(.2,.8,.2,1) both}
-.tab-content.active>*:nth-child(2){animation-delay:.12s}
-.tab-content.active>*:nth-child(3){animation-delay:.24s}
 @keyframes enter{from{opacity:0;transform:translateY(40px) scale(.98);filter:blur(8px)}to{opacity:1;transform:none;filter:none}}
 
-/* dynamic rows stagger */
-#ledger-list>div,#full-ledger-tbody tr,#audit-trail-tbody tr,#parameters-table-body tr,#res-capa-list li{animation:rowin .5s ease both}
-#ledger-list>div:nth-child(n),#full-ledger-tbody tr:nth-child(n),#audit-trail-tbody tr:nth-child(n),#parameters-table-body tr:nth-child(n){animation-delay:calc(var(--i,0)*45ms)}
-@keyframes rowin{from{opacity:0;transform:translateX(-24px)}to{opacity:1;transform:none}}
-.flash{animation:flash .9s ease}
-@keyframes flash{0%{box-shadow:0 0 0 0 rgba(6,182,212,.7)}100%{box-shadow:0 0 0 24px rgba(6,182,212,0)}}
-
-/* button states */
-#submit-btn{position:relative;overflow:hidden}
-#submit-btn::after{content:"";position:absolute;top:0;left:-60%;width:40%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.35),transparent);transform:skewX(-20deg);transition:left .7s}
-#submit-btn:hover::after{left:130%}
-#submit-btn:disabled{opacity:.85;animation:pulse 1s infinite}
-@keyframes pulse{50%{filter:brightness(1.5)}}
 .scan{position:relative;overflow:hidden}
 .scan.run::before{content:"";position:absolute;left:0;right:0;height:120px;top:-120px;background:linear-gradient(transparent,rgba(6,182,212,.18),transparent);animation:scan 1.4s linear infinite;z-index:5;pointer-events:none}
 @keyframes scan{to{top:100%}}
@@ -93,11 +82,64 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 ::-webkit-scrollbar{width:6px;height:6px}
 ::-webkit-scrollbar-track{background:#020408}
 ::-webkit-scrollbar-thumb{background:#0e7490;border-radius:3px}
-::-webkit-scrollbar-thumb:hover{background:var(--cy)}
-@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}.moon{animation:none}}
 </style>
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-cyan-500 selection:text-black">
+
+<!-- AUTHENTICATION & REGISTRATION MODAL -->
+<div id="auth-modal" class="hidden-modal">
+  <div class="cinematic-glass rounded-3xl p-8 max-w-md w-full mx-4 shadow-2xl relative overflow-hidden border border-cyan-500/30">
+    <div class="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-3xl pointer-events-none"></div>
+    
+    <div class="text-center mb-6">
+      <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center mx-auto mb-3 shadow-lg shadow-cyan-500/30">
+        <i class="fa-solid fa-shield-halved text-white text-xl"></i>
+      </div>
+      <h2 id="auth-modal-title" class="text-xl font-extrabold text-white font-mono tracking-wider">Welcome to CertiVerify</h2>
+      <p id="auth-modal-sub" class="text-xs text-slate-400 mt-1">Sign in with your account or create a new profile.</p>
+    </div>
+
+    <!-- Toggle Mode -->
+    <div class="flex bg-slate-950 p-1 rounded-xl mb-6 border border-slate-800">
+      <button type="button" onclick="setAuthMode('login')" id="mode-login-btn" class="flex-1 py-2 text-xs font-bold rounded-lg transition bg-cyan-600 text-white">Sign In</button>
+      <button type="button" onclick="setAuthMode('register')" id="mode-reg-btn" class="flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white">Create Account</button>
+    </div>
+
+    <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+      <div id="reg-fields" class="space-y-4 hidden">
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 uppercase font-mono mb-1">Full Name *</label>
+          <input type="text" id="reg-name" placeholder="Rakshith Gowda BS" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 uppercase font-mono mb-1">Company / Institution Name *</label>
+          <input type="text" id="reg-company" placeholder="DSATM / Enterprise" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
+        </div>
+        <div>
+          <label class="block text-[11px] font-semibold text-slate-300 uppercase font-mono mb-1">Account Role *</label>
+          <select id="reg-role" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
+            <option value="Senior QA Officer">Senior QA Compliance Officer</option>
+            <option value="Student / Researcher">Student / Researcher</option>
+            <option value="Visitor">Visitor / Auditor</option>
+          </select>
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-300 uppercase font-mono mb-1">Email Address *</label>
+        <input type="email" id="auth-email" required placeholder="name@domain.com" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
+      </div>
+      <div>
+        <label class="block text-[11px] font-semibold text-slate-300 uppercase font-mono mb-1">Password *</label>
+        <input type="password" id="auth-pass" required placeholder="••••••••" class="w-full text-xs px-3.5 py-2.5 bg-slate-900 border border-slate-700/80 rounded-xl text-white outline-none focus:border-cyan-400">
+      </div>
+
+      <button type="submit" id="auth-submit-btn" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-bold text-xs rounded-xl shadow-lg shadow-cyan-500/25 transition uppercase font-mono tracking-wider">
+        Sign In to Workspace
+      </button>
+    </form>
+  </div>
+</div>
 
 <div id="intro">
   <h1 id="intro-title"></h1>
@@ -131,7 +173,7 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 
   <div class="flex items-center space-x-4">
     <span class="text-xs px-3.5 py-2 rounded-xl bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 flex items-center space-x-2 font-mono">
-      <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span><span>Rakshith Gowda BS (QA Lead)</span>
+      <span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span><span id="current-user-badge">Loading Profile...</span>
     </span>
     <button onclick="logout()" class="magnetic text-xs bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 px-3.5 py-2 rounded-xl border border-rose-500/30 transition font-semibold">Sign Out</button>
   </div>
@@ -324,6 +366,101 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 
 <script>
 const API_BASE = "https://certiverify-backend-loxl.onrender.com";
+let currentAuthMode = 'login';
+
+/* ========== AUTHENTICATION & SESSION MANAGEMENT ========== */
+window.addEventListener('DOMContentLoaded', () => {
+    checkUserSession();
+    loadLedger();
+});
+
+function checkUserSession() {
+    const savedUser = localStorage.getItem('certi_user');
+    if (!savedUser) {
+        document.getElementById('auth-modal').classList.remove('hidden-modal');
+    } else {
+        const user = JSON.parse(savedUser);
+        document.getElementById('current-user-badge').innerText = `${user.name} (${user.company})`;
+    }
+}
+
+function setAuthMode(mode) {
+    currentAuthMode = mode;
+    const regFields = document.getElementById('reg-fields');
+    const title = document.getElementById('auth-modal-title');
+    const sub = document.getElementById('auth-modal-sub');
+    const submitBtn = document.getElementById('auth-submit-btn');
+    const loginBtn = document.getElementById('mode-login-btn');
+    const regBtn = document.getElementById('mode-reg-btn');
+
+    if (mode === 'register') {
+        regFields.classList.remove('hidden');
+        title.innerText = 'Create New Profile';
+        sub.innerText = 'Enter your institution & role details to start auditing.';
+        submitBtn.innerText = 'Register & Open Workspace';
+        regBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-cyan-600 text-white";
+        loginBtn.className = "flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white";
+    } else {
+        regFields.classList.add('hidden');
+        title.innerText = 'Welcome Back to CertiVerify';
+        sub.innerText = 'Sign in with your credentials to access your session ledger.';
+        submitBtn.innerText = 'Sign In to Workspace';
+        loginBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-cyan-600 text-white";
+        regBtn.className = "flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white";
+    }
+}
+
+async function handleAuthSubmit(e) {
+    e.preventDefault();
+    const email = document.getElementById('auth-email').value;
+    const password = document.getElementById('auth-pass').value;
+
+    if (currentAuthMode === 'register') {
+        const name = document.getElementById('reg-name').value;
+        const company = document.getElementById('reg-company').value;
+        const role = document.getElementById('reg-role').value;
+
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ name, email, password, company_or_college: company, role })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Registration failed.');
+            }
+            alert('Registration successful! Please sign in.');
+            setAuthMode('login');
+        } catch (err) {
+            alert('Error: ' + err.message);
+        }
+    } else {
+        try {
+            const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ email, password, role: 'Senior QA Compliance Officer' })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || 'Login failed.');
+            }
+            const data = await res.json();
+            localStorage.setItem('certi_user', JSON.stringify(data.user));
+            document.getElementById('current-user-badge').innerText = `${data.user.name} (${data.user.company})`;
+            document.getElementById('auth-modal').classList.add('hidden-modal');
+            loadLedger();
+        } catch (err) {
+            alert('Login Error: ' + err.message);
+        }
+    }
+}
+
+function logout() {
+    localStorage.removeItem('certi_user');
+    window.location.reload();
+}
 
 /* ========== INTRO ========== */
 (function(){
@@ -371,12 +508,12 @@ function animate(){
 animate();
 addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
 
-/* ========== CURSOR, PROGRESS, PARALLAX ========== */
+/* ========== CURSOR, PROGRESS ========== */
 const dot=document.getElementById('cur-dot'),rg=document.getElementById('cur-ring');
 let cx=0,cy=0,rx=0,ry=0;
 addEventListener('mousemove',e=>{cx=e.clientX;cy=e.clientY;dot.style.left=cx+'px';dot.style.top=cy+'px'});
 (function loop(){rx+=(cx-rx)*.15;ry+=(cy-ry)*.15;rg.style.left=rx+'px';rg.style.top=ry+'px';requestAnimationFrame(loop)})();
-document.addEventListener('mouseover',e=>{rg.classList.toggle('hov',!!e.target.closest('a,button,input,.chap,#ledger-list>div'))});
+document.addEventListener('mouseover',e=>{rg.classList.toggle('hov',!!e.target.closest('a,button,input,select,.chap,#ledger-list>div'))});
 
 const h1=document.getElementById('h1'),h2=document.getElementById('h2'),moon=document.getElementById('moon');
 addEventListener('scroll',()=>{
@@ -409,15 +546,6 @@ if(matchMedia('(hover:hover)').matches){
   });
 }
 
-/* stagger index for dynamic rows */
-new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{
-  if(n.nodeType===1&&n.parentElement) n.style.setProperty('--i',Array.prototype.indexOf.call(n.parentElement.children,n));
-}))).observe(document.body,{childList:true,subtree:true});
-
-/* flash result card when a new result is rendered */
-new MutationObserver(()=>{const c=document.getElementById('result-card');c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')})
-  .observe(document.getElementById('res-title'),{childList:true,characterData:true,subtree:true});
-
 /* ========== TAB CONTROLLER ========== */
 function switchTab(tabId){
   document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
@@ -438,8 +566,6 @@ function goChapter(id){
 }
 
 /* ========== API HANDLERS ========== */
-window.addEventListener('DOMContentLoaded',()=>{loadLedger()});
-
 async function handleAudit(event){
   event.preventDefault();
   const coaInput=document.getElementById('coa-file'),poInput=document.getElementById('po-file');
@@ -572,7 +698,7 @@ function renderAuditResult(r){
 }
 
 function logout(){
-  alert('Signed out successfully from CertiVerify Enterprise session.');
+  localStorage.removeItem('certi_user');
   window.location.reload();
 }
 </script>
