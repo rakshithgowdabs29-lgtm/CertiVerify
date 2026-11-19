@@ -187,10 +187,10 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
   <div class="scroll-hint">SCROLL TO ENTER APP WINDOW<i></i></div>
 </section>
 
-<!-- CONTAINED APP WORKSPACE (INSIDE CONTAINER VIEW) -->
+<!-- CONTAINED APP WORKSPACE -->
 <main id="main" class="max-w-7xl w-full mx-auto p-4 md:p-8 flex-grow">
   <div class="app-container p-6 md:p-8">
-    
+
     <!-- Internal App Navigation Tabs -->
     <nav class="flex items-center space-x-1.5 bg-slate-950/90 p-1.5 rounded-2xl border border-cyan-500/30 shadow-inner mb-8 overflow-x-auto">
       <button onclick="switchTab('portal')" id="nav-portal" class="magnetic px-5 py-2.5 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2 whitespace-nowrap"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Compliance Portal</span></button>
@@ -371,254 +371,310 @@ body{background:var(--bg);color:#f3f4f6;overflow-x:hidden;font-family:'Outfit',s
 const API_BASE = "https://certiverify-backend-loxl.onrender.com";
 let currentAuthMode = 'login';
 
+/* ========== INTRO (GUARANTEED DISMISS) ========== */
+(function(){
+  const t = document.getElementById('intro-title');
+  'CERTIVERIFY'.split('').forEach((c, i) => {
+    const s = document.createElement('span');
+    s.textContent = c;
+    s.style.animationDelay = (i * 70) + 'ms';
+    t.appendChild(s);
+  });
+  const hideIntro = () => document.getElementById('intro').classList.add('out');
+  window.addEventListener('load', () => setTimeout(hideIntro, 1500));
+  setTimeout(hideIntro, 2500);
+})();
+
 /* ========== AUTHENTICATION & SESSION MANAGEMENT ========== */
 window.addEventListener('DOMContentLoaded', () => {
-    checkUserSession();
-    loadLedger();
+  checkUserSession();
+  loadLedger();
 });
 
 function checkUserSession() {
-    const savedUser = localStorage.getItem('certi_user');
-    if (!savedUser) {
-        document.getElementById('auth-modal').classList.remove('hidden-modal');
-    } else {
-        const user = JSON.parse(savedUser);
-        document.getElementById('current-user-badge').innerText = `${user.name} (${user.company})`;
+  const savedUser = localStorage.getItem('certi_user');
+  if (!savedUser) {
+    document.getElementById('auth-modal').classList.remove('hidden-modal');
+  } else {
+    try {
+      const user = JSON.parse(savedUser);
+      document.getElementById('current-user-badge').innerText = `${user.name} (${user.company})`;
+    } catch {
+      document.getElementById('auth-modal').classList.remove('hidden-modal');
     }
+  }
 }
 
 function setAuthMode(mode) {
-    currentAuthMode = mode;
-    const regFields = document.getElementById('reg-fields');
-    const title = document.getElementById('auth-modal-title');
-    const sub = document.getElementById('auth-modal-sub');
-    const submitBtn = document.getElementById('auth-submit-btn');
-    const loginBtn = document.getElementById('mode-login-btn');
-    const regBtn = document.getElementById('mode-reg-btn');
+  currentAuthMode = mode;
+  const regFields = document.getElementById('reg-fields');
+  const title = document.getElementById('auth-modal-title');
+  const sub = document.getElementById('auth-modal-sub');
+  const submitBtn = document.getElementById('auth-submit-btn');
+  const loginBtn = document.getElementById('mode-login-btn');
+  const regBtn = document.getElementById('mode-reg-btn');
 
-    if (mode === 'register') {
-        regFields.classList.remove('hidden');
-        title.innerText = 'Create New Profile';
-        sub.innerText = 'Enter your institution & role details to start auditing.';
-        submitBtn.innerText = 'Register & Open Workspace';
-        regBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-md";
-        loginBtn.className = "flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white";
-    } else {
-        regFields.classList.add('hidden');
-        title.innerText = 'Welcome Back to CertiVerify';
-        sub.innerText = 'Sign in with your registered credentials to access your session ledger.';
-        submitBtn.innerText = 'Sign In to Workspace';
-        loginBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-md";
-        regBtn.className = "flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white";
-    }
+  if (mode === 'register') {
+    regFields.classList.remove('hidden');
+    title.innerText = 'Create New Profile';
+    sub.innerText = 'Enter your institution & role details to start auditing.';
+    submitBtn.innerText = 'Register & Open Workspace';
+    regBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-md";
+    loginBtn.className = "flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white";
+  } else {
+    regFields.classList.add('hidden');
+    title.innerText = 'Welcome Back to CertiVerify';
+    sub.innerText = 'Sign in with your registered credentials to access your session ledger.';
+    submitBtn.innerText = 'Sign In to Workspace';
+    loginBtn.className = "flex-1 py-2 text-xs font-bold rounded-lg transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-md";
+    regBtn.className = "flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white";
+  }
 }
 
 async function handleAuthSubmit(e) {
-    e.preventDefault();
-    const email = document.getElementById('auth-email').value.trim().toLowerCase();
-    const password = document.getElementById('auth-pass').value;
+  e.preventDefault();
+  const email = document.getElementById('auth-email').value.trim().toLowerCase();
+  const password = document.getElementById('auth-pass').value;
 
-    if (currentAuthMode === 'register') {
-        const name = document.getElementById('reg-name').value.trim();
-        const company = document.getElementById('reg-company').value.trim();
-        const role = document.getElementById('reg-role').value;
+  if (currentAuthMode === 'register') {
+    const name = document.getElementById('reg-name').value.trim();
+    const company = document.getElementById('reg-company').value.trim();
+    const role = document.getElementById('reg-role').value;
 
-        if (!name || !company || !email || !password) {
-            alert('Please fill in all required registration fields.');
-            return;
-        }
-
-        try {
-            const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ name, email, password, company_or_college: company, role })
-            });
-            if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.detail || 'Registration failed.');
-            }
-            alert('Account created successfully! Please sign in with your credentials.');
-            setAuthMode('login');
-        } catch (err) {
-            alert('Registration Error: ' + err.message);
-        }
-    } else {
-        try {
-            const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({ email, password, role: 'Senior QA Compliance Officer' })
-            });
-            if (!res.ok) {
-                const err = await res.json();
-                throw new Error(err.detail || 'Authentication failed.');
-            }
-            const data = await res.json();
-            localStorage.setItem('certi_user', JSON.stringify(data.user));
-            document.getElementById('current-user-badge').innerText = `${data.user.name} (${data.user.company})`;
-            document.getElementById('auth-modal').classList.add('hidden-modal');
-            loadLedger();
-        } catch (err) {
-            alert('Login Denied: ' + err.message);
-        }
+    if (!name || !company || !email || !password) {
+      alert('Please fill in all required registration fields.');
+      return;
     }
+
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password, company_or_college: company, role })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Registration failed.');
+      }
+      alert('Account created successfully! Please sign in with your credentials.');
+      setAuthMode('login');
+    } catch (err) {
+      alert('Registration Error: ' + err.message);
+    }
+  } else {
+    try {
+      const res = await fetch(`${API_BASE}/api/v1/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password, role: 'Senior QA Compliance Officer' })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.detail || 'Authentication failed.');
+      }
+      const data = await res.json();
+      localStorage.setItem('certi_user', JSON.stringify(data.user));
+      document.getElementById('current-user-badge').innerText = `${data.user.name} (${data.user.company})`;
+      document.getElementById('auth-modal').classList.add('hidden-modal');
+      loadLedger();
+    } catch (err) {
+      alert('Login Denied: ' + err.message);
+    }
+  }
 }
 
 function logout() {
-    localStorage.removeItem('certi_user');
-    window.location.reload();
+  localStorage.removeItem('certi_user');
+  window.location.reload();
 }
-
-/* ========== INTRO ========== */
-(function(){
-  const t=document.getElementById('intro-title');
-  'CERTIVERIFY'.split('').forEach((c,i)=>{const s=document.createElement('span');s.textContent=c;s.style.animationDelay=(i*70)+'ms';t.appendChild(s)});
-  window.addEventListener('load',()=>setTimeout(()=>{document.getElementById('intro').classList.add('out')},1900));
-  setTimeout(()=>document.getElementById('intro').classList.add('out'),4000);
-})();
 
 /* ========== THREE.JS CINEMATIC BACKGROUND ========== */
-const container=document.getElementById('canvas-container');
-const scene=new THREE.Scene();
-const camera=new THREE.PerspectiveCamera(75,innerWidth/innerHeight,0.1,1000);
-const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});
-renderer.setPixelRatio(Math.min(devicePixelRatio,2));
-renderer.setSize(innerWidth,innerHeight);
-container.appendChild(renderer.domElement);
+(function() {
+  if (typeof THREE === 'undefined') return;
+  const container = document.getElementById('canvas-container');
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(75, innerWidth / innerHeight, 0.1, 1000);
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+  renderer.setSize(innerWidth, innerHeight);
+  container.appendChild(renderer.domElement);
 
-const particleCount=1400, geometry=new THREE.BufferGeometry(), positions=new Float32Array(particleCount*3);
-for(let i=0;i<particleCount*3;i++) positions[i]=(Math.random()-0.5)*60;
-geometry.setAttribute('position',new THREE.BufferAttribute(positions,3));
-const particleSystem=new THREE.Points(geometry,new THREE.PointsMaterial({color:0x00f0ff,size:0.12,transparent:true,opacity:0.85}));
-scene.add(particleSystem);
+  const particleCount = 1400;
+  const geometry = new THREE.BufferGeometry();
+  const positions = new Float32Array(particleCount * 3);
+  for (let i = 0; i < particleCount * 3; i++) positions[i] = (Math.random() - 0.5) * 60;
+  geometry.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  const particleSystem = new THREE.Points(geometry, new THREE.PointsMaterial({ color: 0x00f0ff, size: 0.12, transparent: true, opacity: 0.85 }));
+  scene.add(particleSystem);
 
-const core=new THREE.Mesh(new THREE.IcosahedronGeometry(4,1),new THREE.MeshBasicMaterial({color:0x00f0ff,wireframe:true,transparent:true,opacity:0.25}));
-core.position.set(-9,2,-6); scene.add(core);
-const ring=new THREE.Mesh(new THREE.TorusGeometry(6,0.03,8,120),new THREE.MeshBasicMaterial({color:0xff7a1a,transparent:true,opacity:0.6}));
-ring.position.copy(core.position); ring.rotation.x=1.2; scene.add(ring);
-const knot=new THREE.Mesh(new THREE.TorusKnotGeometry(2.2,0.04,160,8),new THREE.MeshBasicMaterial({color:0xa855f7,transparent:true,opacity:0.45}));
-knot.position.set(11,-4,-8); scene.add(knot);
-camera.position.z=20;
+  const core = new THREE.Mesh(new THREE.IcosahedronGeometry(4, 1), new THREE.MeshBasicMaterial({ color: 0x00f0ff, wireframe: true, transparent: true, opacity: 0.25 }));
+  core.position.set(-9, 2, -6);
+  scene.add(core);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(6, 0.03, 8, 120), new THREE.MeshBasicMaterial({ color: 0xff7a1a, transparent: true, opacity: 0.6 }));
+  ring.position.copy(core.position);
+  ring.rotation.x = 1.2;
+  scene.add(ring);
+  const knot = new THREE.Mesh(new THREE.TorusKnotGeometry(2.2, 0.04, 160, 8), new THREE.MeshBasicMaterial({ color: 0xa855f7, transparent: true, opacity: 0.45 }));
+  knot.position.set(11, -4, -8);
+  scene.add(knot);
+  camera.position.z = 20;
 
-let mx=0,my=0,sy=0;
-addEventListener('mousemove',e=>{mx=(e.clientX/innerWidth-.5)*2;my=(e.clientY/innerHeight-.5)*2});
-function animate(){
-  requestAnimationFrame(animate);
-  particleSystem.rotation.y+=0.0008; particleSystem.rotation.x+=0.0003;
-  core.rotation.y+=0.004; core.rotation.x+=0.002;
-  ring.rotation.z+=0.006; knot.rotation.x+=0.006; knot.rotation.y+=0.004;
-  camera.position.x+=(mx*2.5-camera.position.x)*0.04;
-  camera.position.y+=(-my*1.8-sy*0.004-camera.position.y)*0.04;
-  camera.lookAt(0,0,0);
-  renderer.render(scene,camera);
-}
-animate();
-addEventListener('resize',()=>{camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();renderer.setSize(innerWidth,innerHeight)});
+  let mx = 0, my = 0, sy = 0;
+  addEventListener('mousemove', e => { mx = (e.clientX / innerWidth - 0.5) * 2; my = (e.clientY / innerHeight - 0.5) * 2; });
+  addEventListener('scroll', () => { sy = scrollY; }, { passive: true });
 
-/* ========== CURSOR, PROGRESS ========== */
-const dot=document.getElementById('cur-dot'),rg=document.getElementById('cur-ring');
-let cx=0,cy=0,rx=0,ry=0;
-addEventListener('mousemove',e=>{cx=e.clientX;cy=e.clientY;dot.style.left=cx+'px';dot.style.top=cy+'px'});
-(function loop(){rx+=(cx-rx)*.15;ry+=(cy-ry)*.15;rg.style.left=rx+'px';rg.style.top=ry+'px';requestAnimationFrame(loop)})();
-document.addEventListener('mouseover',e=>{rg.classList.toggle('hov',!!e.target.closest('a,button,input,select,.chap,#ledger-list>div'))});
-
-const h1=document.getElementById('h1'),h2=document.getElementById('h2'),moon=document.getElementById('moon');
-addEventListener('scroll',()=>{
-  sy=scrollY;
-  const max=document.documentElement.scrollHeight-innerHeight;
-  document.getElementById('progress'].style.width=(sy/max*100)+'%';
-  if(sy<innerHeight*1.2){
-    h1.style.transform=`translateX(${sy*-0.35}px)`;
-    h2.style.transform=`translateX(${sy*0.35}px)`;
-    moon.style.transform=`translateY(${sy*0.4}px) scale(${1+sy*0.0006})`;
-    h1.style.opacity=h2.style.opacity=Math.max(0,1-sy/(innerHeight*0.9));
+  function animate() {
+    requestAnimationFrame(animate);
+    particleSystem.rotation.y += 0.0008;
+    particleSystem.rotation.x += 0.0003;
+    core.rotation.y += 0.004;
+    core.rotation.x += 0.002;
+    ring.rotation.z += 0.006;
+    knot.rotation.x += 0.006;
+    knot.rotation.y += 0.004;
+    camera.position.x += (mx * 2.5 - camera.position.x) * 0.04;
+    camera.position.y += (-my * 1.8 - sy * 0.004 - camera.position.y) * 0.04;
+    camera.lookAt(0, 0, 0);
+    renderer.render(scene, camera);
   }
-},{passive:true});
+  animate();
+
+  addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+  });
+})();
+
+/* ========== CURSOR, PROGRESS & PARALLAX ========== */
+(function() {
+  const dot = document.getElementById('cur-dot');
+  const rg = document.getElementById('cur-ring');
+  let cx = 0, cy = 0, rx = 0, ry = 0;
+  addEventListener('mousemove', e => { cx = e.clientX; cy = e.clientY; if (dot) { dot.style.left = cx + 'px'; dot.style.top = cy + 'px'; } });
+  (function loop() {
+    rx += (cx - rx) * 0.15;
+    ry += (cy - ry) * 0.15;
+    if (rg) { rg.style.left = rx + 'px'; rg.style.top = ry + 'px'; }
+    requestAnimationFrame(loop);
+  })();
+  document.addEventListener('mouseover', e => {
+    if (rg) rg.classList.toggle('hov', !!e.target.closest('a,button,input,select,.chap,#ledger-list>div'));
+  });
+
+  const h1 = document.getElementById('h1');
+  const h2 = document.getElementById('h2');
+  const moon = document.getElementById('moon');
+  const prog = document.getElementById('progress');
+  addEventListener('scroll', () => {
+    const sy = scrollY;
+    const max = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    if (prog) prog.style.width = (sy / max * 100) + '%';
+    if (sy < innerHeight * 1.2) {
+      if (h1) { h1.style.transform = `translateX(${sy * -0.35}px)`; h1.style.opacity = Math.max(0, 1 - sy / (innerHeight * 0.9)); }
+      if (h2) { h2.style.transform = `translateX(${sy * 0.35}px)`; h2.style.opacity = Math.max(0, 1 - sy / (innerHeight * 0.9)); }
+      if (moon) moon.style.transform = `translateY(${sy * 0.4}px) scale(${1 + sy * 0.0006})`;
+    }
+  }, { passive: true });
+})();
 
 /* ========== TILT + MAGNETIC ========== */
-if(matchMedia('(hover:hover)').matches){
-  document.querySelectorAll('.tilt').forEach(el=>{
-    el.addEventListener('mousemove',e=>{
-      const r=el.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
-      el.style.transform=`perspective(1100px) rotateY(${x*3}deg) rotateX(${-y*3}deg)`;
+if (matchMedia('(hover:hover)').matches) {
+  document.querySelectorAll('.tilt').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      const r = el.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+      el.style.transform = `perspective(1100px) rotateY(${x * 3}deg) rotateX(${-y * 3}deg)`;
     });
-    el.addEventListener('mouseleave',()=>el.style.transform='');
+    el.addEventListener('mouseleave', () => el.style.transform = '');
   });
-  document.querySelectorAll('.magnetic').forEach(el=>{
-    el.addEventListener('mousemove',e=>{
-      const r=el.getBoundingClientRect();
-      el.style.transform=`translate(${(e.clientX-r.left-r.width/2)*.18}px,${(e.clientY-r.top-r.height/2)*.28}px)`;
+  document.querySelectorAll('.magnetic').forEach(el => {
+    el.addEventListener('mousemove', e => {
+      const r = el.getBoundingClientRect();
+      el.style.transform = `translate(${(e.clientX - r.left - r.width / 2) * 0.18}px,${(e.clientY - r.top - r.height / 2) * 0.28}px)`;
     });
-    el.addEventListener('mouseleave',()=>el.style.transform='');
+    el.addEventListener('mouseleave', () => el.style.transform = '');
   });
 }
 
 /* ========== TAB CONTROLLER ========== */
-function switchTab(tabId){
-  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
+function switchTab(tabId) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
   document.getElementById(`tab-${tabId}`).classList.add('active');
-  const navButtons={portal:document.getElementById('nav-portal'),ledger:document.getElementById('nav-ledger'),audit:document.getElementById('nav-audit'),research:document.getElementById('nav-research')};
-  Object.keys(navButtons).forEach(key=>{
-    navButtons[key].className = key===tabId
+  const navButtons = {
+    portal: document.getElementById('nav-portal'),
+    ledger: document.getElementById('nav-ledger'),
+    audit: document.getElementById('nav-audit'),
+    research: document.getElementById('nav-research')
+  };
+  Object.keys(navButtons).forEach(key => {
+    navButtons[key].className = key === tabId
       ? "magnetic px-5 py-2.5 rounded-xl text-xs font-semibold transition bg-gradient-to-r from-cyan-500 to-purple-600 text-white shadow-lg shadow-cyan-500/25 flex items-center space-x-2 whitespace-nowrap"
       : "magnetic px-5 py-2.5 rounded-xl text-xs font-semibold transition text-slate-400 hover:text-white hover:bg-slate-900 flex items-center space-x-2 whitespace-nowrap";
   });
-  document.querySelectorAll('.chap').forEach(c=>c.classList.toggle('on',c.dataset.t===tabId));
-  if(tabId==='ledger') loadFullLedger();
-  if(tabId==='audit') loadAuditTrail();
+  document.querySelectorAll('.chap').forEach(c => c.classList.toggle('on', c.dataset.t === tabId));
+  if (tabId === 'ledger') loadFullLedger();
+  if (tabId === 'audit') loadAuditTrail();
 }
-function goChapter(id){
+
+function goChapter(id) {
   switchTab(id);
-  document.getElementById('main').scrollIntoView({behavior:'smooth'});
+  document.getElementById('main').scrollIntoView({ behavior: 'smooth' });
 }
 
 /* ========== API HANDLERS WITH SCAN ANIMATION ========== */
-async function handleAudit(event){
+async function handleAudit(event) {
   event.preventDefault();
-  const coaInput=document.getElementById('coa-file'),poInput=document.getElementById('po-file');
-  const btnText=document.getElementById('btn-text'),submitBtn=document.getElementById('submit-btn');
-  const card=document.getElementById('result-card');
-  if(!coaInput.files[0]) return alert('Please select a Certificate of Analysis PDF.');
+  const coaInput = document.getElementById('coa-file');
+  const poInput = document.getElementById('po-file');
+  const btnText = document.getElementById('btn-text');
+  const submitBtn = document.getElementById('submit-btn');
+  const card = document.getElementById('result-card');
+  if (!coaInput.files[0]) return alert('Please select a Certificate of Analysis PDF.');
 
-  btnText.innerText='Scanning Dossier with AI Engine...';
-  submitBtn.disabled=true; 
+  btnText.innerText = 'Scanning Dossier with AI Engine...';
+  submitBtn.disabled = true;
   card.classList.add('run');
 
-  const formData=new FormData();
-  formData.append('file',coaInput.files[0]);
-  if(poInput.files[0]) formData.append('po_file',poInput.files[0]);
+  const formData = new FormData();
+  formData.append('file', coaInput.files[0]);
+  if (poInput.files[0]) formData.append('po_file', poInput.files[0]);
 
-  try{
-    const response=await fetch(`${API_BASE}/api/v1/extract-coa`,{method:'POST',body:formData});
-    if(!response.ok){const errData=await response.json();throw new Error(errData.detail||'Audit execution failed.')}
-    const result=await response.json();
+  try {
+    const response = await fetch(`${API_BASE}/api/v1/extract-coa`, { method: 'POST', body: formData });
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.detail || 'Audit execution failed.');
+    }
+    const result = await response.json();
     renderAuditResult(result);
     loadLedger();
-  }catch(err){
-    alert('Audit Error: '+err.message);
-  }finally{
-    btnText.innerText='Execute 5-Pillar Research AI Audit';
-    submitBtn.disabled=false; 
+  } catch (err) {
+    alert('Audit Error: ' + err.message);
+  } finally {
+    btnText.innerText = 'Execute 5-Pillar Research AI Audit';
+    submitBtn.disabled = false;
     card.classList.remove('run');
   }
 }
 
-async function loadLedger(){
-  try{
-    const res=await fetch(`${API_BASE}/api/v1/ledger`);
-    const records=await res.json();
-    const ledgerList=document.getElementById('ledger-list');
-    document.getElementById('ledger-count').innerText=records.length;
-    if(records.length===0){ledgerList.innerHTML='<p class="text-xs text-slate-500 text-center py-6 font-mono">No batches audited yet.</p>';return}
-    ledgerList.innerHTML='';
-    records.forEach(r=>{
-      const isCompliant=r.status==='COMPLIANT'||r.status==='PASS';
-      const badgeClass=isCompliant?'bg-emerald-950/80 text-emerald-300 border-emerald-500/30':'bg-rose-950/80 text-rose-300 border-rose-500/30';
-      const div=document.createElement('div');
-      div.className="p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/50 hover:translate-x-1.5 cursor-pointer transition flex justify-between items-center group";
-      div.onclick=()=>renderAuditResult(r);
-      div.innerHTML=`
+async function loadLedger() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/ledger`);
+    const records = await res.json();
+    const ledgerList = document.getElementById('ledger-list');
+    document.getElementById('ledger-count').innerText = records.length;
+    if (records.length === 0) {
+      ledgerList.innerHTML = '<p class="text-xs text-slate-500 text-center py-6 font-mono">No batches audited yet.</p>';
+      return;
+    }
+    ledgerList.innerHTML = '';
+    records.forEach(r => {
+      const isCompliant = r.status === 'COMPLIANT' || r.status === 'PASS';
+      const badgeClass = isCompliant ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/30' : 'bg-rose-950/80 text-rose-300 border-rose-500/30';
+      const div = document.createElement('div');
+      div.className = "p-3.5 rounded-2xl bg-slate-900/60 border border-slate-800/80 hover:border-cyan-500/50 hover:translate-x-1.5 cursor-pointer transition flex justify-between items-center group";
+      div.onclick = () => renderAuditResult(r);
+      div.innerHTML = `
         <div>
           <p class="text-xs font-bold text-white font-mono group-hover:text-cyan-300 transition">${r.batch_id}</p>
           <p class="text-[10px] text-slate-400 font-mono">${r.filename} &bull; ${r.supplier}</p>
@@ -626,22 +682,27 @@ async function loadLedger(){
         <span class="text-[10px] px-2.5 py-1 rounded-xl border font-bold font-mono ${badgeClass}">${r.status}</span>`;
       ledgerList.appendChild(div);
     });
-  }catch(err){console.error('Failed to load ledger:',err)}
+  } catch (err) {
+    console.error('Failed to load ledger:', err);
+  }
 }
 
-async function loadFullLedger(){
-  try{
-    const res=await fetch(`${API_BASE}/api/v1/ledger`);
-    const records=await res.json();
-    const tbody=document.getElementById('full-ledger-tbody');
-    tbody.innerHTML='';
-    if(records.length===0){tbody.innerHTML='<tr><td colspan="6" class="p-8 text-center text-slate-500 font-mono">No batch records found in database.</td></tr>';return}
-    records.forEach(r=>{
-      const isCompliant=r.status==='COMPLIANT'||r.status==='PASS';
-      const badgeClass=isCompliant?'bg-emerald-950/80 text-emerald-300 border-emerald-500/30':'bg-rose-950/80 text-rose-300 border-rose-500/30';
-      const tr=document.createElement('tr');
-      tr.className="hover:bg-slate-900/60 transition";
-      tr.innerHTML=`
+async function loadFullLedger() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/ledger`);
+    const records = await res.json();
+    const tbody = document.getElementById('full-ledger-tbody');
+    tbody.innerHTML = '';
+    if (records.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500 font-mono">No batch records found in database.</td></tr>';
+      return;
+    }
+    records.forEach(r => {
+      const isCompliant = r.status === 'COMPLIANT' || r.status === 'PASS';
+      const badgeClass = isCompliant ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/30' : 'bg-rose-950/80 text-rose-300 border-rose-500/30';
+      const tr = document.createElement('tr');
+      tr.className = "hover:bg-slate-900/60 transition";
+      tr.innerHTML = `
         <td class="p-3.5 font-bold text-white font-mono">${r.batch_id}</td>
         <td class="p-3.5 text-slate-200 font-sans">${r.material_name}</td>
         <td class="p-3.5 text-slate-400 font-sans">${r.supplier}</td>
@@ -650,20 +711,25 @@ async function loadFullLedger(){
         <td class="p-3.5"><span class="px-3 py-1 rounded-xl border text-[10px] font-bold font-mono ${badgeClass}">${r.status}</span></td>`;
       tbody.appendChild(tr);
     });
-  }catch(err){console.error('Failed to load full ledger:',err)}
+  } catch (err) {
+    console.error('Failed to load full ledger:', err);
+  }
 }
 
-async function loadAuditTrail(){
-  try{
-    const res=await fetch(`${API_BASE}/api/v1/audit-trail`);
-    const logs=await res.json();
-    const tbody=document.getElementById('audit-trail-tbody');
-    tbody.innerHTML='';
-    if(logs.length===0){tbody.innerHTML='<tr><td colspan="5" class="p-8 text-center text-slate-500 font-mono">No audit trail records found.</td></tr>';return}
-    logs.forEach(l=>{
-      const tr=document.createElement('tr');
-      tr.className="hover:bg-slate-900/60 transition";
-      tr.innerHTML=`
+async function loadAuditTrail() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/audit-trail`);
+    const logs = await res.json();
+    const tbody = document.getElementById('audit-trail-tbody');
+    tbody.innerHTML = '';
+    if (logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500 font-mono">No audit trail records found.</td></tr>';
+      return;
+    }
+    logs.forEach(l => {
+      const tr = document.createElement('tr');
+      tr.className = "hover:bg-slate-900/60 transition";
+      tr.innerHTML = `
         <td class="p-3.5 font-mono text-cyan-400 font-bold">#${l.id}</td>
         <td class="p-3.5 text-slate-400 font-mono text-[11px]">${l.timestamp}</td>
         <td class="p-3.5 text-slate-300 font-mono">${l.user}</td>
@@ -671,49 +737,46 @@ async function loadAuditTrail(){
         <td class="p-3.5 text-slate-400 font-sans">${l.details}</td>`;
       tbody.appendChild(tr);
     });
-  }catch(err){console.error('Failed to load audit trail:',err)}
+  } catch (err) {
+    console.error('Failed to load audit trail:', err);
+  }
 }
 
-function renderAuditResult(r){
-  document.getElementById('res-engine').innerText=r.ai_engine||'CertiVerify 5-Pillar Engine';
-  document.getElementById('res-title').innerText=`${r.batch_id} — ${r.material_name||'Material'}`;
-  document.getElementById('res-supplier').innerText=`Supplier: ${r.supplier} | Audited: ${r.timestamp}`;
-  const isCompliant=r.status==='COMPLIANT'||r.status==='PASS';
-  const verdictBadge=document.getElementById('res-verdict-badge');
-  verdictBadge.innerText=r.verdict;
-  verdictBadge.className=`px-3.5 py-2 rounded-2xl font-extrabold text-xs tracking-wider uppercase font-mono border ${isCompliant?'bg-emerald-950/80 text-emerald-300 border-emerald-500/30':'bg-rose-950/80 text-rose-300 border-rose-500/30'}`;
-  document.getElementById('res-risk').innerText=`Risk Score: ${r.risk_score}/100 | Confidence: ${r.confidence_score}%`;
-  document.getElementById('res-summary').innerText=r.summary;
+function renderAuditResult(r) {
+  document.getElementById('res-engine').innerText = r.ai_engine || 'CertiVerify 5-Pillar Engine';
+  document.getElementById('res-title').innerText = `${r.batch_id} — ${r.material_name || 'Material'}`;
+  document.getElementById('res-supplier').innerText = `Supplier: ${r.supplier} | Audited: ${r.timestamp}`;
+  const isCompliant = r.status === 'COMPLIANT' || r.status === 'PASS';
+  const verdictBadge = document.getElementById('res-verdict-badge');
+  verdictBadge.innerText = r.verdict;
+  verdictBadge.className = `px-3.5 py-2 rounded-2xl font-extrabold text-xs tracking-wider uppercase font-mono border ${isCompliant ? 'bg-emerald-950/80 text-emerald-300 border-emerald-500/30' : 'bg-rose-950/80 text-rose-300 border-rose-500/30'}`;
+  document.getElementById('res-risk').innerText = `Risk Score: ${r.risk_score}/100 | Confidence: ${r.confidence_score}%`;
+  document.getElementById('res-summary').innerText = r.summary;
 
-  const tbody=document.getElementById('parameters-table-body');
-  tbody.innerHTML='';
-  const params=r.parameters||r.test_results||[];
-  if(params.length===0){
-    tbody.innerHTML='<tr><td colspan="5" class="p-6 text-center text-slate-500 font-mono">No parameters available.</td></tr>';
-  }else{
-    params.forEach(p=>{
-      const pass=p.status==='PASS';
-      const tr=document.createElement('tr');
-      tr.className="hover:bg-slate-900/40 transition";
-      tr.innerHTML=`
+  const tbody = document.getElementById('parameters-table-body');
+  tbody.innerHTML = '';
+  const params = r.parameters || r.test_results || [];
+  if (params.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center text-slate-500 font-mono">No parameters available.</td></tr>';
+  } else {
+    params.forEach(p => {
+      const pass = p.status === 'PASS';
+      const tr = document.createElement('tr');
+      tr.className = "hover:bg-slate-900/40 transition";
+      tr.innerHTML = `
         <td class="p-3 font-semibold text-slate-200 font-sans">${p.parameter}</td>
         <td class="p-3 text-slate-400 font-mono text-xs">${p.specification}</td>
         <td class="p-3 text-slate-200 font-mono text-xs">${p.result}</td>
-        <td class="p-3 text-cyan-400 font-mono text-xs font-bold">${p.confidence||'99.5%'}</td>
-        <td class="p-3 text-right"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono ${pass?'bg-emerald-950 text-emerald-400 border border-emerald-500/30':'bg-rose-950 text-rose-400 border border-rose-500/30'}">${p.status}</span></td>`;
+        <td class="p-3 text-cyan-400 font-mono text-xs font-bold">${p.confidence || '99.5%'}</td>
+        <td class="p-3 text-right"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold font-mono ${pass ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30' : 'bg-rose-950 text-rose-400 border border-rose-500/30'}">${p.status}</span></td>`;
       tbody.appendChild(tr);
     });
   }
-  const capaList=document.getElementById('res-capa-list');
-  capaList.innerHTML='';
-  const capas=r.capa_recommendations||r.deviations||['All parameters verified against USP monographs.'];
-  capas.forEach(c=>{const li=document.createElement('li');li.innerText=c;capaList.appendChild(li)});
-  document.getElementById('res-hash').innerText=`SHA-256 Dossier Seal: ${r.sha256_hash}`;
-}
-
-function logout(){
-  localStorage.removeItem('certi_user');
-  window.location.reload();
+  const capaList = document.getElementById('res-capa-list');
+  capaList.innerHTML = '';
+  const capas = r.capa_recommendations || r.deviations || ['All parameters verified against USP monographs.'];
+  capas.forEach(c => { const li = document.createElement('li'); li.innerText = c; capaList.appendChild(li); });
+  document.getElementById('res-hash').innerText = `SHA-256 Dossier Seal: ${r.sha256_hash}`;
 }
 </script>
 </body>
