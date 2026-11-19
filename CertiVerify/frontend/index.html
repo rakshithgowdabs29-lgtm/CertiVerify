@@ -5,701 +5,1778 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CertiVerify AI — Compliance Audits in Seconds</title>
 <script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script>
-tailwind.config={darkMode:'class',theme:{extend:{fontFamily:{sans:['Inter','sans-serif'],display:['Sora','sans-serif']}}}}
+tailwind.config = {
+  darkMode: 'class',
+  theme: {
+    extend: {
+      fontFamily: {
+        sans: ['Inter', 'sans-serif'],
+        display: ['Sora', 'sans-serif']
+      }
+    }
+  }
+};
 </script>
 <style>
-:root{--v:#7c5cff;--p:#ff5fa2;--a:#ffb84d;--bg:#07060d}
-html{scroll-behavior:smooth}
-body{background:var(--bg);color:#e7e5f2;font-family:'Inter',sans-serif;overflow-x:hidden;-webkit-font-smoothing:antialiased}
-h1,h2,h3,.font-display{font-family:'Sora',sans-serif}
-::selection{background:var(--v);color:#fff}
+:root {
+  --v: #7c5cff;
+  --p: #ff5fa2;
+  --a: #ffb84d;
+  --b: #2f6bff;
+  --bg: #07060d;
+  --glass: rgba(18, 15, 34, 0.64);
+  --border: rgba(255, 255, 255, 0.1);
+}
 
-/* ---------- auth modal ---------- */
-#auth-modal{position:fixed;inset:0;z-index:400;background:rgba(7,6,13,0.92);backdrop-filter:blur(24px);-webkit-backdrop-filter:blur(24px);display:flex;align-items:center;justify-content:center;transition:opacity .4s ease,visibility .4s ease}
-#auth-modal.hidden-modal{opacity:0;visibility:hidden;pointer-events:none}
+* {
+  box-sizing: border-box;
+}
 
-/* ---------- background ---------- */
-.aurora{position:fixed;inset:0;z-index:-3;overflow:hidden;background:var(--bg)}
-.aurora i{position:absolute;border-radius:50%;filter:blur(110px);opacity:.55;will-change:transform}
-.aurora i:nth-child(1){width:620px;height:620px;background:var(--v);top:-180px;left:-120px;animation:drift1 18s ease-in-out infinite}
-.aurora i:nth-child(2){width:560px;height:560px;background:var(--p);top:20%;right:-160px;opacity:.38;animation:drift2 22s ease-in-out infinite}
-.aurora i:nth-child(3){width:520px;height:520px;background:#2f6bff;bottom:-200px;left:30%;opacity:.35;animation:drift1 26s ease-in-out infinite reverse}
-.aurora i:nth-child(4){width:340px;height:340px;background:var(--a);bottom:10%;right:12%;opacity:.18;animation:drift2 20s ease-in-out infinite}
-@keyframes drift1{50%{transform:translate(120px,90px) scale(1.15)}}
-@keyframes drift2{50%{transform:translate(-110px,70px) scale(.9)}}
-.gridbg{position:fixed;inset:0;z-index:-2;background-image:linear-gradient(rgba(255,255,255,.045) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.045) 1px,transparent 1px);background-size:64px 64px;-webkit-mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,#000 30%,transparent 80%);mask-image:radial-gradient(ellipse 70% 60% at 50% 30%,#000 30%,transparent 80%)}
-.grain{position:fixed;inset:0;z-index:-1;pointer-events:none;opacity:.07;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>")}
-#glow{position:fixed;width:520px;height:520px;border-radius:50%;pointer-events:none;z-index:-1;background:radial-gradient(circle,rgba(124,92,255,.22),transparent 65%);transform:translate(-50%,-50%);left:50%;top:30%}
-#progress{position:fixed;top:0;left:0;height:3px;width:0;z-index:200;background:linear-gradient(90deg,var(--v),var(--p),var(--a))}
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: #e7e5f2;
+  font-family: 'Inter', sans-serif;
+  overflow: hidden;
+  -webkit-font-smoothing: antialiased;
+}
 
-/* ---------- loader ---------- */
-#loader{position:fixed;inset:0;z-index:300;background:var(--bg);display:flex;align-items:center;justify-content:center;transition:opacity .7s,visibility .7s}
-#loader.out{opacity:0;visibility:hidden}
-#loader .lg{width:72px;height:72px;border-radius:22px;background:linear-gradient(135deg,var(--v),var(--p));display:flex;align-items:center;justify-content:center;font-size:28px;color:#fff;animation:pop 1.2s ease infinite;box-shadow:0 0 80px rgba(124,92,255,.7)}
-@keyframes pop{50%{transform:scale(1.15) rotate(8deg)}}
+@media (hover: hover) {
+  body, button, a, input, select {
+    cursor: none;
+  }
+}
 
-/* ---------- nav ---------- */
-#nav{position:fixed;top:16px;left:50%;transform:translateX(-50%);z-index:100;width:min(1180px,calc(100% - 24px));padding:10px 14px;border-radius:22px;display:flex;align-items:center;justify-content:space-between;gap:12px;background:rgba(14,12,26,.55);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(22px);-webkit-backdrop-filter:blur(22px);transition:background .3s,box-shadow .3s}
-#nav.sc{background:rgba(10,8,20,.85);box-shadow:0 20px 60px rgba(0,0,0,.5)}
-.logo-mark{width:38px;height:38px;border-radius:12px;background:linear-gradient(135deg,var(--v),var(--p));display:flex;align-items:center;justify-content:center;color:#fff;box-shadow:0 8px 24px rgba(124,92,255,.5)}
-.navbtn{padding:9px 14px;border-radius:14px;font-size:13px;font-weight:600;display:flex;align-items:center;gap:8px;transition:all .25s;color:#a8a4c2}
-.navbtn:hover{color:#fff;background:rgba(255,255,255,.07)}
-.navbtn.act{color:#fff;background:linear-gradient(135deg,var(--v),#9b5cff 60%,var(--p));box-shadow:0 8px 26px rgba(124,92,255,.45)}
+h1, h2, h3, .font-display {
+  font-family: 'Sora', sans-serif;
+}
 
-/* ---------- hero ---------- */
-#hero{min-height:100vh;padding:150px 24px 70px;display:flex;align-items:center}
-.hero-wrap{max-width:1180px;margin:0 auto;width:100%;display:grid;grid-template-columns:1.05fr .95fr;gap:48px;align-items:center}
-@media(max-width:1000px){.hero-wrap{grid-template-columns:1fr}}
-.pill{display:inline-flex;align-items:center;gap:8px;padding:7px 14px;border-radius:999px;font-size:12px;font-weight:600;color:#cfc8ff;background:rgba(124,92,255,.14);border:1px solid rgba(124,92,255,.35)}
-.pill b{width:7px;height:7px;border-radius:50%;background:#3df5a8;box-shadow:0 0 12px #3df5a8;animation:blink 1.6s infinite}
-@keyframes blink{50%{opacity:.3}}
-.h-title{font-size:clamp(2.6rem,6.2vw,5.2rem);font-weight:800;line-height:1.02;letter-spacing:-.035em}
-.grad{background:linear-gradient(100deg,#fff 0%,#c9b8ff 30%,var(--p) 65%,var(--a) 100%);background-size:200% auto;-webkit-background-clip:text;background-clip:text;color:transparent;animation:shine 6s linear infinite}
-@keyframes shine{to{background-position:200% center}}
-.btn-p{position:relative;overflow:hidden;padding:15px 26px;border-radius:16px;font-weight:700;font-size:14px;color:#fff;background:linear-gradient(135deg,var(--v),#9b5cff 55%,var(--p));box-shadow:0 14px 40px rgba(124,92,255,.5);transition:transform .2s,box-shadow .3s}
-.btn-p:hover{box-shadow:0 18px 56px rgba(255,95,162,.5)}
-.btn-p::after{content:"";position:absolute;top:0;left:-70%;width:45%;height:100%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.4),transparent);transform:skewX(-20deg);transition:left .7s}
-.btn-p:hover::after{left:140%}
-.btn-p:disabled{opacity:.8;animation:pulse 1s infinite}
-@keyframes pulse{50%{filter:brightness(1.35)}}
-.btn-g{padding:15px 26px;border-radius:16px;font-weight:600;font-size:14px;color:#e7e5f2;border:1px solid rgba(255,255,255,.14);background:rgba(255,255,255,.04);transition:all .25s}
-.btn-g:hover{background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.3)}
+::selection {
+  background: var(--v);
+  color: #fff;
+}
 
-/* hero mockup */
-.stage{position:relative;perspective:1400px;height:520px}
-@media(max-width:1000px){.stage{height:460px}}
-.mock{position:absolute;inset:30px 10px auto 10px;border-radius:26px;padding:20px;background:linear-gradient(160deg,rgba(30,26,56,.92),rgba(14,12,28,.92));border:1px solid rgba(255,255,255,.12);box-shadow:0 50px 120px rgba(0,0,0,.65),0 0 0 1px rgba(124,92,255,.15),0 0 90px rgba(124,92,255,.25);transform-style:preserve-3d;transition:transform .15s ease-out}
-.dots i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}
-.ring{width:132px;height:132px;transform:rotate(-90deg)}
-.ring circle{fill:none;stroke-width:11;stroke-linecap:round}
-.ring .bg{stroke:rgba(255,255,255,.08)}
-.ring .fg{stroke:url(#rg);stroke-dasharray:352;stroke-dashoffset:352;animation:fill 2.2s .8s cubic-bezier(.2,.8,.2,1) forwards}
-@keyframes fill{to{stroke-dashoffset:42}}
-.bar{height:8px;border-radius:99px;background:rgba(255,255,255,.07);overflow:hidden}
-.bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,var(--v),var(--p));animation:grow 1.8s cubic-bezier(.2,.8,.2,1) forwards}
-@keyframes grow{to{width:var(--w)}}
-.chip{position:absolute;padding:10px 14px;border-radius:16px;font-size:12px;font-weight:600;display:flex;align-items:center;gap:9px;background:rgba(20,17,38,.88);border:1px solid rgba(255,255,255,.13);backdrop-filter:blur(14px);box-shadow:0 20px 50px rgba(0,0,0,.5);transition:transform .15s ease-out;will-change:transform}
-.chip .fl{animation:bob 5s ease-in-out infinite}
-@keyframes bob{50%{transform:translateY(-12px)}}
+/* Persistent background layers */
+#three-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -4;
+  pointer-events: none;
+}
 
-/* ticker */
-.ticker{overflow:hidden;border-block:1px solid rgba(255,255,255,.07);background:rgba(255,255,255,.02);-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
-.ticker div{display:flex;gap:56px;width:max-content;padding:22px 0;animation:tick 32s linear infinite;font-family:'Sora';font-weight:600;color:#6f6a92;font-size:15px;white-space:nowrap}
-.ticker span i{margin-right:10px;color:var(--v)}
-@keyframes tick{to{transform:translateX(-50%)}}
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -3;
+  overflow: hidden;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 25%, rgba(124, 92, 255, 0.08), transparent 65%);
+}
 
-/* stats */
-.stat{padding:28px;border-radius:24px;text-align:left}
-.stat .n{font-family:'Sora';font-size:clamp(2.2rem,4vw,3.2rem);font-weight:800;letter-spacing:-.03em;background:linear-gradient(120deg,#fff,#b9a6ff);-webkit-background-clip:text;background-clip:text;color:transparent}
+.aurora i {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(115px);
+  opacity: 0.45;
+  will-change: transform;
+}
 
-/* contained desktop app window */
-.app-window{border-radius:32px;background:rgba(12,10,24,.88);border:1px solid rgba(124,92,255,.28);box-shadow:0 40px 110px rgba(0,0,0,.75),0 0 80px rgba(124,92,255,.15);backdrop-filter:blur(28px);-webkit-backdrop-filter:blur(28px);overflow:hidden}
+.aurora i:nth-child(1) {
+  width: 620px;
+  height: 620px;
+  background: var(--v);
+  top: -180px;
+  left: -120px;
+  animation: drift1 18s ease-in-out infinite;
+}
 
-/* cards w/ spotlight */
-.card{position:relative;border-radius:26px;background:rgba(18,15,34,.62);border:1px solid rgba(255,255,255,.09);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);box-shadow:0 30px 80px rgba(0,0,0,.45);overflow:hidden;transition:border-color .3s,transform .25s ease-out}
-.card::before{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .3s;background:radial-gradient(420px circle at var(--mx,50%) var(--my,50%),rgba(124,92,255,.2),transparent 60%)}
-.card:hover::before{opacity:1}
-.card:hover{border-color:rgba(124,92,255,.45)}
-.card>*{position:relative}
+.aurora i:nth-child(2) {
+  width: 560px;
+  height: 560px;
+  background: var(--p);
+  top: 18%;
+  right: -160px;
+  opacity: 0.34;
+  animation: drift2 22s ease-in-out infinite;
+}
 
-/* laser scan animation during PDF upload */
-.scan.run::after{content:"";position:absolute;left:0;right:0;height:4px;background:linear-gradient(90deg,transparent,var(--v),var(--p),var(--a),transparent);box-shadow:0 0 24px var(--v),0 0 48px var(--p);animation:scan 1.4s cubic-bezier(.4,0,.6,1) infinite;pointer-events:none;z-index:20}
-@keyframes scan{0%{top:0%}100%{top:100%}}
-.flash{animation:flash .9s ease}
-@keyframes flash{0%{box-shadow:0 0 0 0 rgba(124,92,255,.7)}100%{box-shadow:0 0 0 28px rgba(124,92,255,0)}}
+.aurora i:nth-child(3) {
+  width: 520px;
+  height: 520px;
+  background: var(--b);
+  bottom: -200px;
+  left: 28%;
+  opacity: 0.32;
+  animation: drift1 26s ease-in-out infinite reverse;
+}
 
-/* inputs */
-input[type=file]{font-size:12px;color:#a8a4c2;width:100%;padding:8px;border-radius:16px;background:rgba(255,255,255,.04);border:1px dashed rgba(255,255,255,.2);transition:all .25s;outline:none}
-input[type=file]:hover,input[type=file]:focus{border-color:var(--v);background:rgba(124,92,255,.08)}
-input[type=file]::file-selector-button{margin-right:14px;padding:9px 16px;border:0;border-radius:12px;font-weight:700;font-size:12px;color:#fff;background:linear-gradient(135deg,var(--v),var(--p));cursor:pointer}
+.aurora i:nth-child(4) {
+  width: 340px;
+  height: 340px;
+  background: var(--a);
+  bottom: 10%;
+  right: 12%;
+  opacity: 0.16;
+  animation: drift2 20s ease-in-out infinite;
+}
 
-/* tabs & internal scrolling */
-.tab-content{display:none;max-height:76vh;overflow-y:auto;padding-right:4px}
-.tab-content.active{display:block}
-.tab-content.active>*{animation:enter .7s cubic-bezier(.2,.8,.2,1) both}
-.tab-content.active>*:nth-child(2){animation-delay:.1s}
-@keyframes enter{from{opacity:0;transform:translateY(24px) scale(.99);filter:blur(6px)}to{opacity:1;transform:none;filter:none}}
-#ledger-list>div,#full-ledger-tbody tr,#audit-trail-tbody tr,#parameters-table-body tr,#res-capa-list li{animation:rowin .5s ease both;animation-delay:calc(var(--i,0)*45ms)}
-@keyframes rowin{from{opacity:0;transform:translateX(-22px)}to{opacity:1;transform:none}}
-table{border-collapse:collapse}
-thead th{font-weight:600;letter-spacing:.06em}
+@keyframes drift1 {
+  50% { transform: translate(110px, 80px) scale(1.12); }
+}
 
-/* reveal */
-.rv{opacity:0;transform:translateY(48px);transition:opacity .9s,transform .9s cubic-bezier(.2,.8,.2,1)}
-.rv.in{opacity:1;transform:none}
-.bento{transition:transform .35s}
-.bento:hover{transform:translateY(-8px)}
-.bnum{font-family:'Sora';font-weight:800;font-size:3.4rem;line-height:1;background:linear-gradient(135deg,var(--v),var(--p));-webkit-background-clip:text;background-clip:text;color:transparent;opacity:.9}
+@keyframes drift2 {
+  50% { transform: translate(-100px, 65px) scale(0.92); }
+}
 
-::-webkit-scrollbar{width:8px;height:8px}
-::-webkit-scrollbar-track{background:var(--bg)}
-::-webkit-scrollbar-thumb{background:#2c2552;border-radius:4px}
-::-webkit-scrollbar-thumb:hover{background:var(--v)}
-@media (prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+.gridbg {
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 35%, transparent 85%);
+  mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 35%, transparent 85%);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.065;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+}
+
+#spotlight {
+  position: fixed;
+  width: 540px;
+  height: 540px;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 1;
+  background: radial-gradient(circle, rgba(124, 92, 255, 0.18), rgba(255, 95, 162, 0.05) 45%, transparent 70%);
+  transform: translate(-50%, -50%);
+  left: 50%;
+  top: 40%;
+  transition: opacity 0.25s ease;
+}
+
+/* Custom Cursor */
+#cur-dot, #cur-ring {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  z-index: 900;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+#cur-dot {
+  width: 7px;
+  height: 7px;
+  background: #fff;
+  box-shadow: 0 0 12px var(--v);
+}
+
+#cur-ring {
+  width: 36px;
+  height: 36px;
+  border: 1.5px solid rgba(124, 92, 255, 0.65);
+  transition: width 0.22s ease, height 0.22s ease, background 0.22s ease, border-color 0.22s ease;
+}
+
+#cur-ring.hov {
+  width: 62px;
+  height: 62px;
+  background: rgba(255, 95, 162, 0.12);
+  border-color: var(--p);
+}
+
+@media (hover: none) {
+  #cur-dot, #cur-ring { display: none; }
+}
+
+/* First-visit Loader */
+#loader {
+  position: fixed;
+  inset: 0;
+  z-index: 800;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  transition: opacity 0.65s ease, visibility 0.65s ease;
+}
+
+#loader.out {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+#loader .lg {
+  width: 76px;
+  height: 76px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--v), var(--p));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 30px;
+  color: #fff;
+  animation: popPulse 1.25s ease infinite;
+  box-shadow: 0 0 80px rgba(124, 92, 255, 0.75);
+}
+
+@keyframes popPulse {
+  0%, 100% { transform: scale(1) rotate(0deg); }
+  50% { transform: scale(1.14) rotate(8deg); }
+}
+
+/* 700ms Page Curtain Wipe */
+#curtain {
+  position: fixed;
+  inset: 0;
+  z-index: 700;
+  pointer-events: none;
+  transform: translateY(100%);
+  opacity: 0;
+  background: linear-gradient(135deg, #120e28 0%, #261645 48%, #3c1538 100%);
+  border-top: 2px solid rgba(255, 95, 162, 0.55);
+  box-shadow: 0 -20px 80px rgba(124, 92, 255, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+#curtain.wipe-in {
+  animation: curtainIn 0.35s cubic-bezier(0.77, 0, 0.18, 1) forwards;
+}
+
+#curtain.wipe-out {
+  animation: curtainOut 0.35s cubic-bezier(0.77, 0, 0.18, 1) forwards;
+}
+
+@keyframes curtainIn {
+  0% { transform: translateY(100%); opacity: 0.7; }
+  100% { transform: translateY(0%); opacity: 1; }
+}
+
+@keyframes curtainOut {
+  0% { transform: translateY(0%); opacity: 1; }
+  100% { transform: translateY(-100%); opacity: 0.7; }
+}
+
+/* Full-screen Processing State during Audit */
+#audit-processing {
+  position: fixed;
+  inset: 0;
+  z-index: 650;
+  background: rgba(7, 6, 13, 0.88);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+#audit-processing.active {
+  display: flex;
+  animation: fadeInOverlay 0.25s ease forwards;
+}
+
+@keyframes fadeInOverlay {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.scan-beam {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, transparent, var(--v), var(--p), var(--a), transparent);
+  box-shadow: 0 0 28px var(--v), 0 0 60px var(--p);
+  animation: beamSweep 2.2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes beamSweep {
+  0% { top: 6%; opacity: 0.5; }
+  50% { top: 94%; opacity: 1; }
+  100% { top: 6%; opacity: 0.5; }
+}
+
+/* Floating Navigation Bar (Top on desktop, Bottom dock on mobile) */
+#nav {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 400;
+  width: min(1240px, calc(100% - 24px));
+  padding: 10px 14px;
+  border-radius: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  background: rgba(14, 12, 26, 0.68);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+}
+
+@media (max-width: 767px) {
+  #nav {
+    top: auto;
+    bottom: 12px;
+    width: calc(100% - 16px);
+    padding: 8px 10px;
+    border-radius: 24px;
+  }
+  .desktop-only-brand, .desktop-only-user {
+    display: none !important;
+  }
+}
+
+.logo-mark {
+  width: 36px;
+  height: 36px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--v), var(--p));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  box-shadow: 0 8px 24px rgba(124, 92, 255, 0.45);
+}
+
+.nav-pill-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+#nav-slider {
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--v), #9b5cff 55%, var(--p));
+  box-shadow: 0 6px 22px rgba(124, 92, 255, 0.5);
+  transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), width 0.36s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 0;
+  pointer-events: none;
+}
+
+.navbtn {
+  position: relative;
+  z-index: 1;
+  padding: 8px 13px;
+  border-radius: 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: #a8a4c2;
+  transition: color 0.22s ease;
+  white-space: nowrap;
+}
+
+.navbtn:hover {
+  color: #ffffff;
+}
+
+.navbtn.act {
+  color: #ffffff;
+}
+
+/* SPA Page Viewport (100vh, no page scroll) */
+#spa-viewport {
+  position: relative;
+  width: 100%;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.page-view {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100vh;
+  padding: 84px 24px 24px;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 10;
+}
+
+@media (max-width: 767px) {
+  .page-view {
+    padding: 18px 14px 86px;
+    overflow-y: auto;
+    justify-content: flex-start;
+  }
+}
+
+.page-view.active {
+  display: flex;
+}
+
+.page-view.entering .page-stagger {
+  animation: staggerUp 0.62s cubic-bezier(0.2, 0.85, 0.25, 1) both;
+  animation-delay: calc(var(--d, 0) * 65ms);
+}
+
+@keyframes staggerUp {
+  0% {
+    opacity: 0;
+    transform: translateY(26px) scale(0.985);
+    filter: blur(4px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+/* Glass Cards + Spotlight */
+.card {
+  position: relative;
+  border-radius: 26px;
+  background: var(--glass);
+  border: 1px solid var(--border);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+  transition: border-color 0.28s ease, transform 0.22s ease-out, box-shadow 0.28s ease;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.25s ease;
+  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(124, 92, 255, 0.22), rgba(255, 95, 162, 0.08) 45%, transparent 70%);
+}
+
+.card:hover::before {
+  opacity: 1;
+}
+
+.card:hover {
+  border-color: rgba(124, 92, 255, 0.45);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 35px rgba(124, 92, 255, 0.14);
+}
+
+.card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Buttons & Gradient Text */
+.pill-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #cfc8ff;
+  background: rgba(124, 92, 255, 0.14);
+  border: 1px solid rgba(124, 92, 255, 0.35);
+}
+
+.pill-badge b {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #3df5a8;
+  box-shadow: 0 0 12px #3df5a8;
+  animation: blinkDot 1.6s infinite;
+}
+
+@keyframes blinkDot {
+  50% { opacity: 0.35; }
+}
+
+.grad {
+  background: linear-gradient(100deg, #fff 0%, #c9b8ff 32%, var(--p) 68%, var(--a) 100%);
+  background-size: 200% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shineText 6s linear infinite;
+}
+
+@keyframes shineText {
+  to { background-position: 200% center; }
+}
+
+.btn-p {
+  position: relative;
+  overflow: hidden;
+  padding: 13px 24px;
+  border-radius: 16px;
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--v), #9b5cff 55%, var(--p));
+  box-shadow: 0 14px 38px rgba(124, 92, 255, 0.45);
+  transition: transform 0.2s ease, box-shadow 0.25s ease;
+}
+
+.btn-p:hover {
+  box-shadow: 0 18px 50px rgba(255, 95, 162, 0.45);
+}
+
+.btn-p::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -75%;
+  width: 45%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.65s ease;
+}
+
+.btn-p:hover::after {
+  left: 145%;
+}
+
+.btn-g {
+  padding: 13px 22px;
+  border-radius: 16px;
+  font-weight: 600;
+  font-size: 13.5px;
+  color: #e7e5f2;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+  transition: all 0.22s ease;
+}
+
+.btn-g:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+/* 3D Preview Card on HOME */
+.stage {
+  position: relative;
+  perspective: 1400px;
+  height: 450px;
+}
+
+.mock {
+  position: relative;
+  border-radius: 28px;
+  padding: 22px;
+  background: linear-gradient(160deg, rgba(32, 26, 62, 0.92), rgba(14, 12, 28, 0.92));
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow: 0 45px 110px rgba(0, 0, 0, 0.65), 0 0 85px rgba(124, 92, 255, 0.24);
+  transform-style: preserve-3d;
+  transition: transform 0.14s ease-out;
+}
+
+.dots i {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+}
+
+.ring {
+  width: 118px;
+  height: 118px;
+  transform: rotate(-90deg);
+}
+
+.ring circle {
+  fill: none;
+  stroke-width: 10;
+  stroke-linecap: round;
+}
+
+.ring .bg {
+  stroke: rgba(255, 255, 255, 0.08);
+}
+
+.ring .fg {
+  stroke: url(#rg);
+  stroke-dasharray: 314;
+  stroke-dashoffset: 314;
+  animation: ringFill 2s 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes ringFill {
+  to { stroke-dashoffset: 38; }
+}
+
+.bar {
+  height: 7px;
+  border-radius: 99px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.bar i {
+  display: block;
+  height: 100%;
+  width: 0;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--v), var(--p));
+  animation: barGrow 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+@keyframes barGrow {
+  to { width: var(--w); }
+}
+
+.chip-float {
+  position: absolute;
+  padding: 9px 14px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(20, 17, 38, 0.88);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
+  transition: transform 0.14s ease-out;
+  will-change: transform;
+}
+
+.chip-float .bob {
+  animation: bobFloat 5s ease-in-out infinite;
+}
+
+@keyframes bobFloat {
+  50% { transform: translateY(-9px); }
+}
+
+/* Dropzones on UPLOAD page */
+.dropzone {
+  position: relative;
+  border-radius: 20px;
+  padding: 16px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px dashed rgba(255, 255, 255, 0.18);
+  transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
+}
+
+.dropzone:hover, .dropzone.dragover {
+  border-color: var(--v);
+  background: rgba(124, 92, 255, 0.1);
+}
+
+input[type=file] {
+  font-size: 12px;
+  color: #b5b0cf;
+  width: 100%;
+  outline: none;
+}
+
+input[type=file]::file-selector-button {
+  margin-right: 12px;
+  padding: 8px 14px;
+  border: 0;
+  border-radius: 11px;
+  font-weight: 700;
+  font-size: 11.5px;
+  color: #fff;
+  background: linear-gradient(135deg, var(--v), var(--p));
+  cursor: pointer;
+}
+
+/* Scrollable inside cards & tables only */
+.inner-scroll {
+  overflow-y: auto;
+}
+
+.inner-scroll-x {
+  overflow: auto;
+}
+
+/* Animated rows */
+.anim-row {
+  animation: rowSlideIn 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 40ms);
+}
+
+@keyframes rowSlideIn {
+  from { opacity: 0; transform: translateX(-16px); }
+  to { opacity: 1; transform: translateX(0); }
+}
+
+.bnum {
+  font-family: 'Sora', sans-serif;
+  font-weight: 800;
+  font-size: 2.4rem;
+  line-height: 1;
+  background: linear-gradient(135deg, var(--v), var(--p), var(--a));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(7, 6, 13, 0.4);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2e2657;
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--v);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 </style>
 </head>
 <body>
 
-<!-- AUTHENTICATION & REGISTRATION MODAL -->
-<div id="auth-modal" class="hidden-modal">
-  <div class="card p-8 max-w-md w-full mx-4 border border-violet-500/40">
-    <div class="text-center mb-6">
-      <div class="logo-mark !w-12 !h-12 !rounded-2xl mx-auto mb-3 text-lg">
-        <i class="fa-solid fa-shield-halved"></i>
-      </div>
-      <h2 id="auth-modal-title" class="font-display text-xl font-extrabold text-white">Welcome to CertiVerify</h2>
-      <p id="auth-modal-sub" class="text-xs text-slate-400 mt-1">Sign in with your registered corporate account or create a profile.</p>
-    </div>
+<!-- First-visit Loader -->
+<div id="loader">
+  <div class="lg"><i class="fa-solid fa-shield-halved"></i></div>
+  <p class="text-xs font-medium tracking-widest uppercase text-slate-400">CertiVerify AI</p>
+</div>
 
-    <div class="flex bg-white/[.04] p-1 rounded-2xl mb-6 border border-white/10">
-      <button type="button" onclick="setAuthMode('login')" id="mode-login-btn" class="flex-1 py-2 text-xs font-bold rounded-xl transition bg-gradient-to-r from-violet-600 to-pink-500 text-white shadow-md">Sign In</button>
-      <button type="button" onclick="setAuthMode('register')" id="mode-reg-btn" class="flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white">Create Account</button>
-    </div>
-
-    <form id="auth-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
-      <div id="reg-fields" class="space-y-4 hidden">
-        <div>
-          <label class="block text-[11px] font-semibold text-violet-300 uppercase mb-1">Full Name *</label>
-          <input type="text" id="reg-name" placeholder="Rakshith Gowda BS" class="w-full text-xs px-3.5 py-2.5 bg-white/[.05] border border-white/15 rounded-xl text-white outline-none focus:border-violet-400">
-        </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-violet-300 uppercase mb-1">Company / Institution Name *</label>
-          <input type="text" id="reg-company" placeholder="DSATM / Enterprise" class="w-full text-xs px-3.5 py-2.5 bg-white/[.05] border border-white/15 rounded-xl text-white outline-none focus:border-violet-400">
-        </div>
-        <div>
-          <label class="block text-[11px] font-semibold text-violet-300 uppercase mb-1">Account Role *</label>
-          <select id="reg-role" class="w-full text-xs px-3.5 py-2.5 bg-[#120f22] border border-white/15 rounded-xl text-white outline-none focus:border-violet-400">
-            <option value="Senior QA Officer">Senior QA Compliance Officer</option>
-            <option value="Student / Researcher">Student / Researcher</option>
-            <option value="Visitor">Visitor / Auditor</option>
-          </select>
-        </div>
-      </div>
-
-      <div>
-        <label class="block text-[11px] font-semibold text-violet-300 uppercase mb-1">Email Address *</label>
-        <input type="email" id="auth-email" required placeholder="name@domain.com" class="w-full text-xs px-3.5 py-2.5 bg-white/[.05] border border-white/15 rounded-xl text-white outline-none focus:border-violet-400">
-      </div>
-      <div>
-        <label class="block text-[11px] font-semibold text-violet-300 uppercase mb-1">Password *</label>
-        <input type="password" id="auth-pass" required placeholder="••••••••" class="w-full text-xs px-3.5 py-2.5 bg-white/[.05] border border-white/15 rounded-xl text-white outline-none focus:border-violet-400">
-      </div>
-
-      <button type="submit" id="auth-submit-btn" class="btn-p w-full !py-3 text-xs uppercase tracking-wider">
-        Sign In to Workspace
-      </button>
-    </form>
+<!-- Page Transition Curtain (700ms total wipe) -->
+<div id="curtain" aria-hidden="true">
+  <div class="flex items-center gap-3 text-white font-display font-bold tracking-tight text-lg">
+    <span class="w-2.5 h-2.5 rounded-full bg-pink-400 animate-ping"></span>
+    <span id="curtain-label">CertiVerify AI</span>
   </div>
 </div>
 
-<div id="loader"><div class="lg"><i class="fa-solid fa-shield-halved"></i></div></div>
-<div id="progress"></div>
-<div class="aurora"><i></i><i></i><i></i><i></i></div>
-<div class="gridbg"></div><div class="grain"></div><div id="glow"></div>
-
-<!-- NAV -->
-<header id="nav">
-  <div class="flex items-center gap-3">
-    <div class="logo-mark"><i class="fa-solid fa-shield-halved"></i></div>
-    <div class="leading-tight">
-      <h1 class="font-display font-bold text-[15px] text-white tracking-tight">CertiVerify<span class="text-violet-400">.ai</span></h1>
-      <p class="text-[10px] text-slate-500 font-medium hidden sm:block">Regulatory Compliance Suite</p>
+<!-- Full-screen Upload & Audit Processing State -->
+<div id="audit-processing" aria-live="polite">
+  <div class="scan-beam"></div>
+  <div class="card max-w-md w-full p-8 text-center border border-violet-500/40">
+    <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-tr from-violet-600 via-pink-500 to-amber-400 flex items-center justify-center text-white text-2xl shadow-lg shadow-violet-500/40 animate-pulse">
+      <i class="fa-solid fa-microchip"></i>
+    </div>
+    <h3 class="font-display text-xl font-bold text-white">Running 5-Pillar Audit</h3>
+    <p id="proc-step-text" class="text-sm text-violet-300 font-medium mt-2">Extracting parameters</p>
+    <div class="mt-6 space-y-2 text-left text-xs">
+      <div id="step-0" class="flex items-center gap-2.5 text-white font-medium"><i class="fa-solid fa-circle-notch fa-spin text-violet-400"></i><span>Extracting parameters</span></div>
+      <div id="step-1" class="flex items-center gap-2.5 text-slate-500"><i class="fa-regular fa-circle"></i><span>Validating against USP / ICH Q3D</span></div>
+      <div id="step-2" class="flex items-center gap-2.5 text-slate-500"><i class="fa-regular fa-circle"></i><span>Cross-checking PO</span></div>
+      <div id="step-3" class="flex items-center gap-2.5 text-slate-500"><i class="fa-regular fa-circle"></i><span>Sealing with SHA-256</span></div>
     </div>
   </div>
+</div>
 
-  <nav class="flex items-center gap-1 p-1 rounded-2xl bg-white/[.04] border border-white/[.06]">
-    <button onclick="goChapter('portal')" id="nav-portal" class="navbtn act"><i class="fa-solid fa-wand-magic-sparkles"></i><span class="hidden md:inline">Compliance Portal</span></button>
-    <button onclick="goChapter('ledger')" id="nav-ledger" class="navbtn"><i class="fa-solid fa-layer-group"></i><span class="hidden md:inline">Batch Ledger</span></button>
-    <button onclick="goChapter('audit')" id="nav-audit" class="navbtn"><i class="fa-solid fa-shield-halved"></i><span class="hidden md:inline">Part 11 Audit Trail</span></button>
-    <button onclick="goChapter('research')" id="nav-research" class="navbtn"><i class="fa-solid fa-atom"></i><span class="hidden md:inline">5-Pillar Framework</span></button>
+<!-- Persistent Three.js Canvas + Aurora + Grid + Grain + Spotlight + Cursor -->
+<div id="three-bg"></div>
+<div class="aurora"><i></i><i></i><i></i><i></i></div>
+<div class="gridbg"></div>
+<div class="grain"></div>
+<div id="spotlight"></div>
+<div id="cur-dot"></div>
+<div id="cur-ring"></div>
+
+<!-- Persistent Floating Navigation -->
+<header id="nav">
+  <a href="#/home" class="desktop-only-brand flex items-center gap-3 shrink-0">
+    <div class="logo-mark"><i class="fa-solid fa-shield-halved text-sm"></i></div>
+    <div class="leading-tight">
+      <span class="font-display font-bold text-[15px] text-white tracking-tight block">CertiVerify<span class="text-violet-400">.ai</span></span>
+      <span class="text-[10px] text-slate-400 font-medium block">Compliance Suite</span>
+    </div>
+  </a>
+
+  <nav class="nav-pill-wrap mx-auto md:mx-0 overflow-x-auto max-w-full" aria-label="Primary Navigation">
+    <div id="nav-slider"></div>
+    <button type="button" data-route="home" onclick="navigateTo('home')" class="navbtn act"><i class="fa-solid fa-house"></i><span>Home</span></button>
+    <button type="button" data-route="upload" onclick="navigateTo('upload')" class="navbtn"><i class="fa-solid fa-file-arrow-up"></i><span>Upload</span></button>
+    <button type="button" data-route="ledger" onclick="navigateTo('ledger')" class="navbtn"><i class="fa-solid fa-table-list"></i><span>Ledger</span></button>
+    <button type="button" data-route="trail" onclick="navigateTo('trail')" class="navbtn"><i class="fa-solid fa-clock-rotate-left"></i><span>Audit Trail</span></button>
+    <button type="button" data-route="framework" onclick="navigateTo('framework')" class="navbtn"><i class="fa-solid fa-cubes"></i><span>Framework</span></button>
   </nav>
 
-  <div class="flex items-center gap-3">
-    <span class="hidden lg:flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-slate-300 font-medium">
-      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span id="current-user-badge">Loading Profile...</span>
+  <div class="desktop-only-user flex items-center gap-2.5 shrink-0">
+    <span class="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-slate-200 font-medium">
+      <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>Rakshith Gowda BS (QA Lead)
     </span>
-    <button onclick="logout()" class="text-xs px-3.5 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition font-semibold">Sign Out</button>
+    <button type="button" onclick="logout()" class="magnetic text-xs px-3.5 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition font-semibold">Sign Out</button>
   </div>
 </header>
 
-<!-- HERO -->
-<section id="hero">
-  <div class="hero-wrap">
-    <div>
-      <span class="pill rv"><b></b>FDA 21 CFR Part 11 ready</span>
-      <h2 class="h-title mt-6 rv" style="transition-delay:.1s">Certify every batch <span class="grad">before it ships.</span></h2>
-      <p class="mt-6 text-lg text-slate-400 max-w-xl leading-relaxed rv" style="transition-delay:.2s">CertiVerify AI reads your Certificates of Analysis, validates them against USP, EP and ICH Q3D, cross-checks purchase orders and seals every result with a SHA-256 hash.</p>
-      <div class="mt-9 flex flex-wrap gap-3 rv" style="transition-delay:.3s">
-        <button class="btn-p" onclick="goChapter('portal')">Start an audit <i class="fa-solid fa-arrow-right ml-2"></i></button>
-        <button class="btn-g" onclick="goChapter('research')">See how it works</button>
-      </div>
-      <div class="mt-10 flex items-center gap-3 text-xs text-slate-500 rv" style="transition-delay:.4s">
-        <div class="flex -space-x-2"><i class="w-7 h-7 rounded-full bg-gradient-to-br from-violet-500 to-pink-500 border-2 border-[#07060d]"></i><i class="w-7 h-7 rounded-full bg-gradient-to-br from-amber-400 to-pink-500 border-2 border-[#07060d]"></i><i class="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-violet-500 border-2 border-[#07060d]"></i></div>
-        Built for QA teams and regulated manufacturing
-      </div>
-    </div>
+<!-- SPA PAGES -->
+<div id="spa-viewport">
 
-    <!-- floating dashboard preview -->
-    <div class="stage rv" style="transition-delay:.25s" id="stage">
-      <div class="mock" id="mock" data-depth="1">
-        <div class="flex items-center justify-between mb-5">
-          <div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
-          <span class="text-[10px] text-slate-500 font-semibold tracking-wider">SAMPLE PREVIEW</span>
+  <!-- 1. HOME PAGE (Hero & 3D Preview Only — Upload lives on #/upload) -->
+  <section id="page-home" class="page-view active">
+    <div class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
+      <div class="lg:col-span-7 space-y-5">
+        <div class="page-stagger" style="--d:0">
+          <span class="pill-badge"><b></b>FDA 21 CFR Part 11 · USP · EP · ICH Q3D</span>
         </div>
-        <div class="flex items-center gap-5">
-          <div class="relative">
-            <svg class="ring" viewBox="0 0 132 132"><defs><linearGradient id="rg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7c5cff"/><stop offset="1" stop-color="#ff5fa2"/></linearGradient></defs><circle class="bg" cx="66" cy="66" r="56"/><circle class="fg" cx="66" cy="66" r="56"/></svg>
-            <div class="absolute inset-0 flex flex-col items-center justify-center"><span class="font-display text-3xl font-extrabold text-white" data-count="88">0</span><span class="text-[9px] text-slate-500 font-semibold tracking-widest">SCORE</span></div>
+        <h1 class="page-stagger font-display text-4xl sm:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.05] text-white" style="--d:1">
+          Certify every batch <span class="grad">before it ships.</span>
+        </h1>
+        <p class="page-stagger text-base sm:text-lg text-slate-300/90 max-w-xl leading-relaxed" style="--d:2">
+          Upload Certificates of Analysis and Purchase Orders to verify specifications, detect batch anomalies, and seal every decision with SHA-256.
+        </p>
+        <div class="page-stagger flex flex-wrap items-center gap-3.5 pt-2" style="--d:3">
+          <button type="button" onclick="navigateTo('upload')" class="magnetic btn-p inline-flex items-center gap-2">
+            <i class="fa-solid fa-file-arrow-up text-xs"></i>
+            <span>Upload &amp; Audit</span>
+          </button>
+          <button type="button" onclick="navigateTo('framework')" class="magnetic btn-g inline-flex items-center gap-2">
+            <span>How it works</span>
+          </button>
+        </div>
+        <div class="page-stagger grid grid-cols-3 gap-3 pt-4 max-w-lg" style="--d:4">
+          <div class="card p-3.5 rounded-2xl">
+            <div class="bnum text-2xl"><span data-count="5">5</span></div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Audit pillars</p>
           </div>
-          <div class="flex-1 min-w-0">
-            <p class="text-[10px] text-slate-500 font-semibold tracking-widest">BATCH</p>
-            <p class="font-display font-bold text-white text-lg truncate">BATCH-ENT-39388E</p>
-            <span class="inline-block mt-2 text-[10px] font-bold px-2.5 py-1 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">COMPLIANT</span>
+          <div class="card p-3.5 rounded-2xl">
+            <div class="bnum text-2xl"><span data-count="256">256</span></div>
+            <p class="text-[11px] text-slate-400 mt-0.5">SHA-256 seal</p>
+          </div>
+          <div class="card p-3.5 rounded-2xl">
+            <div class="bnum text-2xl">Part <span data-count="11">11</span></div>
+            <p class="text-[11px] text-slate-400 mt-0.5">Audit trail</p>
           </div>
         </div>
-        <div class="mt-6 space-y-4">
-          <div><div class="flex justify-between text-[11px] mb-1.5 text-slate-400 font-medium"><span>Assay</span><span class="text-white">99.2%</span></div><div class="bar"><i style="--w:92%"></i></div></div>
-          <div><div class="flex justify-between text-[11px] mb-1.5 text-slate-400 font-medium"><span>Heavy metals (ICH Q3D)</span><span class="text-white">Within limit</span></div><div class="bar"><i style="--w:74%;animation-delay:.2s"></i></div></div>
-          <div><div class="flex justify-between text-[11px] mb-1.5 text-slate-400 font-medium"><span>CoA ↔ PO consistency</span><span class="text-white">Matched</span></div><div class="bar"><i style="--w:96%;animation-delay:.4s"></i></div></div>
+      </div>
+
+      <div class="lg:col-span-5 page-stagger" style="--d:2">
+        <div id="hero-stage" class="stage flex items-center justify-center">
+          <div id="hero-mock" class="mock w-full max-w-md" data-depth="1">
+            <div class="flex items-center justify-between mb-4">
+              <div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
+              <span class="text-[10px] font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/[.06] text-slate-300 border border-white/10">Sample preview</span>
+            </div>
+            <div class="flex items-center gap-5">
+              <div class="relative shrink-0">
+                <svg class="ring" viewBox="0 0 118 118">
+                  <defs>
+                    <linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
+                      <stop offset="0%" stop-color="#7c5cff" />
+                      <stop offset="100%" stop-color="#ff5fa2" />
+                    </linearGradient>
+                  </defs>
+                  <circle class="bg" cx="59" cy="59" r="50" />
+                  <circle class="fg" cx="59" cy="59" r="50" />
+                </svg>
+                <div class="absolute inset-0 flex flex-col items-center justify-center">
+                  <span class="font-display text-2xl font-extrabold text-white" data-count="96">96</span>
+                  <span class="text-[9px] uppercase tracking-widest text-slate-400">Confidence</span>
+                </div>
+              </div>
+              <div class="min-w-0">
+                <p class="text-[11px] text-slate-400 uppercase tracking-wider">Release Readiness</p>
+                <p class="font-display text-lg font-bold text-white truncate mt-0.5">Amoxicillin API</p>
+                <span class="inline-block mt-2 text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">COMPLIANT</span>
+              </div>
+            </div>
+            <div class="mt-5 space-y-3">
+              <div>
+                <div class="flex justify-between text-xs mb-1 text-slate-300"><span>USP Assay Threshold</span><span>99.4%</span></div>
+                <div class="bar"><i style="--w:94%"></i></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1 text-slate-300"><span>ICH Q3D Heavy Metals</span><span>Low Risk</span></div>
+                <div class="bar"><i style="--w:88%"></i></div>
+              </div>
+              <div>
+                <div class="flex justify-between text-xs mb-1 text-slate-300"><span>PO Cross-Match</span><span>Verified</span></div>
+                <div class="bar"><i style="--w:98%"></i></div>
+              </div>
+            </div>
+            <div class="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
+              <span>SHA-256 Dossier Seal</span>
+              <span class="text-violet-300 font-medium">Immutable</span>
+            </div>
+          </div>
+
+          <div class="chip-float -top-2 right-1" data-depth="2.2">
+            <div class="bob flex items-center gap-2 text-emerald-300">
+              <i class="fa-solid fa-circle-check"></i><span>All parameters passed</span>
+            </div>
+          </div>
+          <div class="chip-float bottom-4 -left-2" data-depth="2.8">
+            <div class="bob flex items-center gap-2 text-violet-300" style="animation-delay:-2s">
+              <i class="fa-solid fa-shield-halved"></i><span>Tamper-proof seal</span>
+            </div>
+          </div>
+          <div class="chip-float -bottom-2 right-6" data-depth="1.8">
+            <div class="bob flex items-center gap-2 text-amber-300" style="animation-delay:-3.4s">
+              <i class="fa-solid fa-file-contract"></i><span>PO cross-verified</span>
+            </div>
+          </div>
         </div>
-        <div class="mt-6 pt-4 border-t border-white/10 text-[10px] text-slate-500 truncate">SHA-256 · 9f2c…b71e4a08d3c5</div>
       </div>
-      <div class="chip" style="top:0;right:-6px" data-depth="2.2"><div class="fl flex items-center gap-2"><i class="fa-solid fa-circle-check text-emerald-400"></i>All parameters passed</div></div>
-      <div class="chip" style="bottom:70px;left:-14px" data-depth="3"><div class="fl flex items-center gap-2" style="animation-delay:-2s"><i class="fa-solid fa-fingerprint text-violet-400"></i>Tamper-proof seal</div></div>
-      <div class="chip" style="bottom:6px;right:20px" data-depth="1.6"><div class="fl flex items-center gap-2" style="animation-delay:-3.5s"><i class="fa-solid fa-bolt text-amber-400"></i>Audit in seconds</div></div>
     </div>
-  </div>
-</section>
+  </section>
 
-<!-- TICKER -->
-<div class="ticker"><div>
-  <span><i class="fa-solid fa-diamond"></i>USP Monographs</span><span><i class="fa-solid fa-diamond"></i>European Pharmacopoeia</span><span><i class="fa-solid fa-diamond"></i>ICH Q3D</span><span><i class="fa-solid fa-diamond"></i>FDA 21 CFR Part 11</span><span><i class="fa-solid fa-diamond"></i>SHA-256 Sealing</span><span><i class="fa-solid fa-diamond"></i>PostgreSQL Ledger</span><span><i class="fa-solid fa-diamond"></i>CoA ↔ PO Matching</span><span><i class="fa-solid fa-diamond"></i>CAPA Directives</span>
-  <span><i class="fa-solid fa-diamond"></i>USP Monographs</span><span><i class="fa-solid fa-diamond"></i>European Pharmacopoeia</span><span><i class="fa-solid fa-diamond"></i>ICH Q3D</span><span><i class="fa-solid fa-diamond"></i>FDA 21 CFR Part 11</span><span><i class="fa-solid fa-diamond"></i>SHA-256 Sealing</span><span><i class="fa-solid fa-diamond"></i>PostgreSQL Ledger</span><span><i class="fa-solid fa-diamond"></i>CoA ↔ PO Matching</span><span><i class="fa-solid fa-diamond"></i>CAPA Directives</span>
-</div></div>
+  <!-- 2. UPLOAD PAGE (Dedicated Upload & Audit Workspace) -->
+  <section id="page-upload" class="page-view">
+    <div class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+      <div class="lg:col-span-7 card p-6 sm:p-7 flex flex-col justify-between page-stagger" style="--d:0">
+        <div>
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <span class="pill-badge text-[11px]">Dedicated Upload Workspace</span>
+              <h2 class="font-display text-2xl font-bold text-white mt-2">Upload Batch Dossier</h2>
+            </div>
+            <button type="button" onclick="navigateTo('home')" class="magnetic btn-g !py-1.5 !px-3.5 text-xs inline-flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-left text-[11px]"></i>
+              <span>Home</span>
+            </button>
+          </div>
 
-<!-- STATS -->
-<section class="max-w-6xl mx-auto px-6 pt-20 grid grid-cols-2 md:grid-cols-4 gap-4">
-  <div class="card stat rv"><div class="n"><span data-count="5">0</span></div><p class="text-sm text-slate-400 mt-1">Validation pillars</p></div>
-  <div class="card stat rv" style="transition-delay:.08s"><div class="n"><span data-count="256">0</span></div><p class="text-sm text-slate-400 mt-1">Bit SHA-256 seal</p></div>
-  <div class="card stat rv" style="transition-delay:.16s"><div class="n">Part <span data-count="11">0</span></div><p class="text-sm text-slate-400 mt-1">Audit trail logging</p></div>
-  <div class="card stat rv" style="transition-delay:.24s"><div class="n"><span data-count="3">0</span> in 1</div><p class="text-sm text-slate-400 mt-1">USP · EP · ICH Q3D</p></div>
-</section>
-
-<!-- CONTAINED DESKTOP APP WORKSPACE -->
-<main id="app" class="max-w-7xl w-full mx-auto px-6 pt-24 pb-10">
-  <div class="text-center mb-10 rv">
-    <span class="pill">Workspace</span>
-    <h2 class="font-display text-4xl md:text-5xl font-extrabold tracking-tight mt-5">Your compliance <span class="grad">command center</span></h2>
-    <p class="text-slate-400 mt-3">Upload a dossier, inspect the result, and review the immutable record.</p>
-  </div>
-
-  <div class="app-window p-5 md:p-8">
-    <!-- Window Top Chrome & Internal Tabs -->
-    <div class="flex flex-wrap items-center justify-between gap-4 pb-6 mb-6 border-b border-white/10">
-      <div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
-      <div class="flex items-center gap-1.5 p-1 rounded-2xl bg-white/[.04] border border-white/[.07] overflow-x-auto">
-        <button onclick="switchTab('portal')" id="win-portal" class="navbtn act"><i class="fa-solid fa-wand-magic-sparkles"></i><span>Compliance Portal</span></button>
-        <button onclick="switchTab('ledger')" id="win-ledger" class="navbtn"><i class="fa-solid fa-layer-group"></i><span>Batch Ledger</span></button>
-        <button onclick="switchTab('audit')" id="win-audit" class="navbtn"><i class="fa-solid fa-shield-halved"></i><span>Part 11 Audit Trail</span></button>
-        <button onclick="switchTab('research')" id="win-research" class="navbtn"><i class="fa-solid fa-atom"></i><span>5-Pillar Framework</span></button>
-      </div>
-      <span class="hidden sm:inline text-[11px] text-slate-500 font-medium">CertiVerify OS v2.4</span>
-    </div>
-
-    <!-- TAB 1 -->
-    <div id="tab-portal" class="tab-content active grid grid-cols-1 lg:grid-cols-12 gap-6">
-      <div class="lg:col-span-5 space-y-6">
-        <div class="card p-7">
-          <h2 class="font-display text-base font-bold text-white mb-5 flex items-center gap-3"><span class="w-9 h-9 rounded-xl bg-violet-500/15 text-violet-300 flex items-center justify-center"><i class="fa-solid fa-file-arrow-up"></i></span>01. Multi-Document Dossier</h2>
-          <form id="audit-form" onsubmit="handleAudit(event)" class="space-y-5">
-            <div class="space-y-2">
-              <label class="block text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Certificate of Analysis (CoA PDF) *</label>
+          <form id="audit-form" onsubmit="handleAudit(event)" class="space-y-4">
+            <div id="drop-coa" class="dropzone">
+              <label for="coa-file" class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-200 mb-2">
+                <span><i class="fa-solid fa-file-pdf text-pink-400 mr-2"></i>Certificate of Analysis (CoA PDF) *</span>
+                <span class="text-[11px] text-violet-300 font-normal normal-case">Required</span>
+              </label>
+              <p class="text-xs text-slate-400 mb-2.5">Drag and drop your CoA PDF here or browse from your device.</p>
               <input type="file" id="coa-file" accept=".pdf" required>
             </div>
-            <div class="space-y-2">
-              <label class="block text-[11px] font-semibold text-slate-400 tracking-wider uppercase">Purchase Order / Spec Sheet (Optional PO PDF)</label>
+
+            <div id="drop-po" class="dropzone">
+              <label for="po-file" class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-200 mb-2">
+                <span><i class="fa-solid fa-file-invoice text-violet-400 mr-2"></i>Purchase Order / Spec Sheet</span>
+                <span class="text-[11px] text-slate-400 font-normal normal-case">Optional</span>
+              </label>
+              <p class="text-xs text-slate-400 mb-2.5">Attach a PO PDF to cross-check quantities, supplier, and batch specs.</p>
               <input type="file" id="po-file" accept=".pdf">
             </div>
-            <button type="submit" id="submit-btn" class="btn-p w-full flex items-center justify-center gap-2.5 uppercase tracking-wider text-xs">
-              <i class="fa-solid fa-microchip"></i><span id="btn-text">Execute 5-Pillar Research AI Audit</span>
+
+            <button type="submit" id="submit-btn" class="magnetic btn-p w-full flex items-center justify-center gap-2.5 uppercase tracking-wider text-xs mt-2">
+              <i class="fa-solid fa-bolt"></i>
+              <span id="btn-text">Execute 5-Pillar Research AI Audit</span>
             </button>
           </form>
         </div>
-
-        <div class="card p-7">
-          <div class="flex justify-between items-center mb-5">
-            <h2 class="font-display text-base font-bold text-white flex items-center gap-3"><span class="w-9 h-9 rounded-xl bg-pink-500/15 text-pink-300 flex items-center justify-center"><i class="fa-solid fa-database"></i></span>02. Verified Batch Ledger (<span id="ledger-count">0</span>)</h2>
-            <button onclick="loadLedger()" class="w-9 h-9 rounded-xl bg-white/[.06] border border-white/10 text-slate-300 hover:text-white hover:rotate-180 transition duration-500"><i class="fa-solid fa-rotate"></i></button>
-          </div>
-          <div id="ledger-list" class="space-y-3 max-h-[280px] overflow-y-auto pr-1">
-            <p class="text-xs text-slate-500 text-center py-8">Initializing PostgreSQL stream...</p>
-          </div>
-        </div>
       </div>
 
-      <div class="lg:col-span-7">
-        <div id="result-card" class="card scan p-8 h-full flex flex-col justify-between">
-          <div class="space-y-6">
-            <div class="flex justify-between items-start gap-4 border-b border-white/10 pb-5">
-              <div class="min-w-0">
-                <span class="text-[10px] uppercase font-bold tracking-[0.18em] text-violet-300 px-3 py-1.5 bg-violet-500/15 rounded-lg border border-violet-500/30" id="res-engine">CertiVerify 5-Pillar Engine</span>
-                <h2 class="font-display text-2xl font-extrabold text-white mt-3 tracking-tight break-words" id="res-title">Awaiting Dossier Inspection</h2>
-                <p class="text-xs text-slate-400 mt-1" id="res-supplier">Upload a Certificate of Analysis to trigger immersive USP/ICH compliance parsing.</p>
-              </div>
-              <div class="text-right shrink-0">
-                <div id="res-verdict-badge" class="px-3.5 py-2 rounded-2xl font-extrabold text-xs tracking-wider uppercase bg-white/5 text-slate-400 border border-white/10">IDLE</div>
-                <p class="text-[11px] text-slate-400 mt-1.5" id="res-risk">Risk Score: -- | Confidence: --</p>
-              </div>
-            </div>
-
-            <div class="bg-white/[.04] border border-violet-500/25 rounded-2xl p-4">
-              <h3 class="text-xs font-bold text-violet-300 mb-1.5 flex items-center uppercase tracking-wider"><i class="fa-solid fa-brain mr-2"></i> AI Inspector & Research Insights</h3>
-              <p class="text-sm text-slate-300 leading-relaxed" id="res-summary">System primed for zero-downtime deterministic and cloud AI regulatory validation against global monographs.</p>
-            </div>
-
-            <div>
-              <h3 class="text-xs font-bold text-violet-300 mb-2.5 uppercase tracking-wider"><i class="fa-solid fa-flask mr-2"></i> Analytical Monograph Verification (USP / ICH Q3D)</h3>
-              <div class="overflow-x-auto rounded-2xl border border-white/10">
-                <table class="w-full text-left text-xs">
-                  <thead class="bg-white/[.05] text-slate-400 uppercase text-[10px]">
-                    <tr><th class="p-3">Parameter</th><th class="p-3">Specification Limit</th><th class="p-3">Measured Result</th><th class="p-3">Confidence</th><th class="p-3 text-right">Status</th></tr>
-                  </thead>
-                  <tbody id="parameters-table-body" class="divide-y divide-white/5">
-                    <tr><td colspan="5" class="p-6 text-center text-slate-500">No extraction parameters loaded.</td></tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            <div class="bg-pink-500/[.06] border border-pink-500/25 rounded-2xl p-4">
-              <h3 class="text-xs font-bold text-pink-300 mb-2 uppercase tracking-wider"><i class="fa-solid fa-shield-check mr-2"></i> Automated CAPA & ERP Disposition Directives</h3>
-              <ul id="res-capa-list" class="list-disc list-inside text-sm text-slate-300 space-y-1.5"><li>Pending batch dossier upload...</li></ul>
-            </div>
-          </div>
-          <div class="mt-8 pt-4 border-t border-white/10 flex justify-between items-center text-[11px] text-slate-500">
-            <span id="res-hash" class="truncate max-w-[70%]">SHA-256 Dossier Seal: ----------------------------------------</span>
-            <span class="text-violet-300 font-bold">FDA 21 CFR Part 11</span>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- TAB 2 -->
-    <div id="tab-ledger" class="tab-content space-y-6">
-      <div class="card p-8">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div class="lg:col-span-5 card p-6 flex flex-col page-stagger" style="--d:1">
+        <div class="flex items-center justify-between mb-4 shrink-0">
           <div>
-            <h2 class="font-display text-2xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-database text-violet-400"></i> Immutable PostgreSQL Batch Ledger</h2>
-            <p class="text-sm text-slate-400 mt-1">Decentralized enterprise database recording tamper-evident pharmaceutical batches.</p>
+            <h3 class="font-display text-base font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-clock-rotate-left text-violet-400"></i>
+              <span>Recent Batches</span>
+            </h3>
+            <p class="text-xs text-slate-400 mt-0.5">Select any batch to open its full result</p>
           </div>
-          <button onclick="loadFullLedger()" class="btn-g flex items-center gap-2 !py-2.5 !px-5 text-xs"><i class="fa-solid fa-rotate"></i><span>Refresh Records</span></button>
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-violet-500/15 text-violet-200 border border-violet-500/30">
+              <span id="ledger-count">0</span>
+            </span>
+            <button type="button" onclick="loadLedger()" aria-label="Refresh recent batches" class="magnetic w-8 h-8 rounded-xl bg-white/[.05] border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition">
+              <i class="fa-solid fa-rotate text-xs"></i>
+            </button>
+          </div>
         </div>
-        <div class="overflow-x-auto rounded-2xl border border-white/10">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-white/[.05] text-slate-400 uppercase text-[10px]">
-              <tr><th class="p-3.5">Batch ID</th><th class="p-3.5">Material Name</th><th class="p-3.5">Supplier</th><th class="p-3.5">Risk Score</th><th class="p-3.5">Timestamp (UTC)</th><th class="p-3.5">Status / Verdict</th></tr>
-            </thead>
-            <tbody id="full-ledger-tbody" class="divide-y divide-white/5">
-              <tr><td colspan="6" class="p-8 text-center text-slate-500">Querying ledger records...</td></tr>
-            </tbody>
-          </table>
+
+        <div id="ledger-list" class="inner-scroll space-y-2.5 flex-1 max-h-[340px] pr-1">
+          <p class="text-xs text-slate-500 text-center py-10">Loading ledger records...</p>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- TAB 3 -->
-    <div id="tab-audit" class="tab-content space-y-6">
-      <div class="card p-8">
-        <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+  <!-- 3. RESULT PAGE -->
+  <section id="page-result" class="page-view">
+    <div id="result-card" class="card max-w-6xl w-full mx-auto p-6 sm:p-7 flex flex-col justify-between max-h-[calc(100vh-112px)] page-stagger" style="--d:0">
+      <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-white/10 shrink-0">
+        <div class="min-w-0">
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="navigateTo('upload')" class="magnetic btn-g !py-1.5 !px-3.5 text-xs inline-flex items-center gap-1.5">
+              <i class="fa-solid fa-arrow-left text-[11px]"></i>
+              <span>Back to Upload</span>
+            </button>
+            <span id="res-engine" class="text-[11px] font-semibold px-3 py-1 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30">CertiVerify 5-Pillar Engine</span>
+          </div>
+          <h2 id="res-title" class="font-display text-xl sm:text-2xl font-extrabold text-white mt-2.5 truncate">Batch Audit Report</h2>
+          <p id="res-supplier" class="text-xs text-slate-400 mt-0.5 truncate">Select or run a batch audit to view detailed verification results.</p>
+        </div>
+
+        <div class="flex items-center gap-4 shrink-0">
+          <div class="relative w-16 h-16 flex items-center justify-center">
+            <svg class="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
+              <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="5" />
+              <circle id="risk-ring-circle" cx="32" cy="32" r="26" fill="none" stroke="url(#rg)" stroke-width="5" stroke-linecap="round" stroke-dasharray="163.36" stroke-dashoffset="163.36" style="transition: stroke-dashoffset 0.9s cubic-bezier(0.2, 0.85, 0.25, 1)" />
+            </svg>
+            <span id="risk-ring-label" class="absolute font-display text-xs font-bold text-white">--</span>
+          </div>
+          <div class="text-right">
+            <div id="res-verdict-badge" class="px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-white/[.05] text-slate-300 border border-white/10">PENDING</div>
+            <p id="res-risk" class="text-[11px] text-slate-400 mt-1.5">Risk Score: -- | Confidence: --</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="inner-scroll space-y-4 py-4 flex-1 pr-1">
+        <div class="p-4 rounded-2xl bg-white/[.035] border border-white/10">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-violet-300 mb-1">Compliance Summary</h3>
+          <p id="res-summary" class="text-sm text-slate-200 leading-relaxed">No audit report loaded yet.</p>
+        </div>
+
+        <div class="rounded-2xl border border-white/10 overflow-hidden">
+          <div class="inner-scroll-x max-h-48">
+            <table class="w-full text-left text-xs min-w-[540px]">
+              <thead class="bg-white/[.05] text-slate-400 uppercase text-[10px] sticky top-0 z-10">
+                <tr>
+                  <th class="p-3">Parameter</th>
+                  <th class="p-3">Specification</th>
+                  <th class="p-3">Result</th>
+                  <th class="p-3">Confidence</th>
+                  <th class="p-3 text-right">Status</th>
+                </tr>
+              </thead>
+              <tbody id="parameters-table-body" class="divide-y divide-white/[.06]">
+                <tr><td colspan="5" class="p-5 text-center text-slate-500">No parameter rows available.</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-pink-500/[.06] border border-pink-500/25">
+          <h3 class="text-xs font-bold uppercase tracking-wider text-pink-300 mb-1.5">CAPA &amp; Directives</h3>
+          <ul id="res-capa-list" class="list-disc list-inside text-xs sm:text-sm text-slate-200 space-y-1">
+            <li>Awaiting audit output.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-white/10 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400 shrink-0">
+        <span id="res-hash" class="truncate max-w-full sm:max-w-[75%]">SHA-256: --</span>
+        <span class="font-semibold text-violet-300">21 CFR Part 11</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4. LEDGER PAGE -->
+  <section id="page-ledger" class="page-view">
+    <div class="card max-w-6xl w-full mx-auto p-6 sm:p-7 flex flex-col max-h-[calc(100vh-112px)] page-stagger" style="--d:0">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10 shrink-0">
+        <div class="flex items-center gap-3">
           <div>
-            <h2 class="font-display text-2xl font-bold text-white flex items-center gap-3"><i class="fa-solid fa-list-check text-violet-400"></i> FDA 21 CFR Part 11 Immutable Audit Trail</h2>
-            <p class="text-sm text-slate-400 mt-1">Secure append-only compliance logs tracking user authentication and document audits.</p>
+            <h2 class="font-display text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
+              <span>Batch Ledger</span>
+              <span id="full-ledger-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-500/30">0</span>
+            </h2>
+            <p class="text-xs text-slate-400 mt-0.5">Click any batch row to open its full verification result.</p>
           </div>
-          <button onclick="loadAuditTrail()" class="btn-g flex items-center gap-2 !py-2.5 !px-5 text-xs"><i class="fa-solid fa-rotate"></i><span>Refresh Logs</span></button>
         </div>
-        <div class="overflow-x-auto rounded-2xl border border-white/10">
-          <table class="w-full text-left text-xs">
-            <thead class="bg-white/[.05] text-slate-400 uppercase text-[10px]">
-              <tr><th class="p-3.5">Log ID</th><th class="p-3.5">Timestamp (UTC)</th><th class="p-3.5">User Email</th><th class="p-3.5">Action Type</th><th class="p-3.5">Event Details</th></tr>
-            </thead>
-            <tbody id="audit-trail-tbody" class="divide-y divide-white/5">
-              <tr><td colspan="5" class="p-8 text-center text-slate-500">Reading secure audit trails...</td></tr>
-            </tbody>
-          </table>
+
+        <div class="flex items-center gap-2.5">
+          <div class="relative">
+            <i class="fa-solid fa-magnifying-glass text-xs text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
+            <input type="search" id="ledger-search" oninput="filterLedgerTable()" placeholder="Filter batch, material, supplier..." class="text-xs pl-8 pr-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-white placeholder-slate-500 focus:border-violet-400 outline-none w-48 sm:w-64">
+          </div>
+          <button type="button" onclick="loadFullLedger()" class="magnetic btn-g !py-2 !px-4 text-xs inline-flex items-center gap-2">
+            <i class="fa-solid fa-rotate"></i>
+            <span>Refresh</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="inner-scroll-x flex-1 mt-4 rounded-2xl border border-white/10">
+        <table class="w-full text-left text-xs min-w-[680px]">
+          <thead class="bg-white/[.05] text-slate-400 uppercase text-[10px] sticky top-0 z-10">
+            <tr>
+              <th class="p-3.5">Batch ID</th>
+              <th class="p-3.5">Material</th>
+              <th class="p-3.5">Supplier</th>
+              <th class="p-3.5">Risk Score</th>
+              <th class="p-3.5">Timestamp</th>
+              <th class="p-3.5 text-right">Status</th>
+            </tr>
+          </thead>
+          <tbody id="full-ledger-tbody" class="divide-y divide-white/[.06]">
+            <tr><td colspan="6" class="p-8 text-center text-slate-500">Loading batch ledger...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. AUDIT TRAIL PAGE -->
+  <section id="page-trail" class="page-view">
+    <div class="card max-w-6xl w-full mx-auto p-6 sm:p-7 flex flex-col max-h-[calc(100vh-112px)] page-stagger" style="--d:0">
+      <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10 shrink-0">
+        <div>
+          <span class="pill-badge text-[11px]">FDA 21 CFR Part 11</span>
+          <h2 class="font-display text-xl sm:text-2xl font-bold text-white mt-1.5">Compliance Audit Trail</h2>
+          <p class="text-xs text-slate-400 mt-0.5">Chronological record of system events and compliance actions.</p>
+        </div>
+        <button type="button" onclick="loadAuditTrail()" class="magnetic btn-g !py-2 !px-4 text-xs inline-flex items-center gap-2">
+          <i class="fa-solid fa-rotate"></i>
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      <div class="inner-scroll-x flex-1 mt-4 rounded-2xl border border-white/10">
+        <table class="w-full text-left text-xs min-w-[640px]">
+          <thead class="bg-white/[.05] text-slate-400 uppercase text-[10px] sticky top-0 z-10">
+            <tr>
+              <th class="p-3.5">Log ID</th>
+              <th class="p-3.5">Timestamp</th>
+              <th class="p-3.5">User</th>
+              <th class="p-3.5">Action</th>
+              <th class="p-3.5">Details</th>
+            </tr>
+          </thead>
+          <tbody id="audit-trail-tbody" class="divide-y divide-white/[.06]">
+            <tr><td colspan="5" class="p-8 text-center text-slate-500">Loading audit trail...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- 6. FRAMEWORK PAGE -->
+  <section id="page-framework" class="page-view">
+    <div class="max-w-6xl w-full mx-auto flex flex-col max-h-[calc(100vh-112px)]">
+      <div class="flex flex-wrap items-end justify-between gap-3 mb-4 shrink-0 page-stagger" style="--d:0">
+        <div>
+          <span class="pill-badge text-[11px]">Architecture</span>
+          <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-white mt-1.5">5-Pillar Compliance <span class="grad">Framework</span></h2>
+        </div>
+        <button type="button" onclick="navigateTo('upload')" class="magnetic btn-p !py-2.5 !px-5 text-xs">
+          <span>Upload Dossier</span>
+        </button>
+      </div>
+
+      <div class="inner-scroll grid grid-cols-1 md:grid-cols-6 gap-4 pr-1 pb-2">
+        <div class="card md:col-span-3 p-5 page-stagger" style="--d:1">
+          <div class="bnum">01</div>
+          <h3 class="font-display text-base font-bold text-white mt-2">Confidence-Aware Extraction</h3>
+          <p class="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed">Parses CoA and PO tables with field-level confidence scoring so uncertain readings are surfaced clearly.</p>
+        </div>
+
+        <div class="card md:col-span-3 p-5 page-stagger" style="--d:2">
+          <div class="bnum">02</div>
+          <h3 class="font-display text-base font-bold text-white mt-2">Context-Aware Validation</h3>
+          <p class="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed">Evaluates extracted analytical results against USP, EP, and ICH Q3D specification limits.</p>
+        </div>
+
+        <div class="card md:col-span-2 p-5 page-stagger" style="--d:3">
+          <div class="bnum">03</div>
+          <h3 class="font-display text-base font-bold text-white mt-2">Cross-Document Consistency</h3>
+          <p class="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed">Reconciles supplier certificates against purchase order terms to catch discrepancies early.</p>
+        </div>
+
+        <div class="card md:col-span-2 p-5 page-stagger" style="--d:4">
+          <div class="bnum">04</div>
+          <h3 class="font-display text-base font-bold text-white mt-2">Tamper Screening</h3>
+          <p class="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed">Generates a SHA-256 cryptographic seal for every dossier to protect record integrity.</p>
+        </div>
+
+        <div class="card md:col-span-2 p-5 page-stagger" style="--d:5">
+          <div class="bnum">05</div>
+          <h3 class="font-display text-base font-bold text-white mt-2">Batch Anomaly Screening</h3>
+          <p class="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed">Flags unusual batch deviations and guides corrective and preventive action (CAPA) directives.</p>
         </div>
       </div>
     </div>
+  </section>
 
-    <!-- TAB 4 -->
-    <div id="tab-research" class="tab-content space-y-6">
-      <div class="card p-8">
-        <h2 class="font-display text-2xl font-bold text-white mb-2 flex items-center gap-3"><i class="fa-solid fa-atom text-violet-400"></i> CertiVerify 5-Pillar Research Architecture</h2>
-        <p class="text-sm text-slate-400 mb-8">Detailed breakdown of the advanced AI and regulatory research innovations engineered into the platform.</p>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-5">
-          <div class="bento card lg:col-span-3 p-7"><div class="bnum">01</div><h3 class="font-display text-lg font-bold text-white mt-4 mb-2">Confidence-Aware Extraction</h3><p class="text-sm text-slate-400 leading-relaxed">Extracts chemical assay values, heavy metal counts, and batch identifiers while estimating field-level confidence percentages for human verification.</p></div>
-          <div class="bento card lg:col-span-3 p-7"><div class="bnum">02</div><h3 class="font-display text-lg font-bold text-white mt-4 mb-2">Context-Aware Validation</h3><p class="text-sm text-slate-400 leading-relaxed">Validates extracted values against authorized USP, EP, and ICH Q3D pharmacopeia monographs and threshold limits before deciding pass/fail status.</p></div>
-          <div class="bento card lg:col-span-2 p-7"><div class="bnum">03</div><h3 class="font-display text-lg font-bold text-white mt-4 mb-2">Cross-Document Consistency</h3><p class="text-sm text-slate-400 leading-relaxed">Cross-examines data points across linked multi-document dossiers, such as matching Certificate of Analysis (CoA) records against Purchase Orders (POs).</p></div>
-          <div class="bento card lg:col-span-2 p-7"><div class="bnum">04</div><h3 class="font-display text-lg font-bold text-white mt-4 mb-2">Tamper Screening</h3><p class="text-sm text-slate-400 leading-relaxed">Generates a unique SHA-256 cryptographic dossier hash seal for every audited batch, archiving immutable records in PostgreSQL.</p></div>
-          <div class="bento card lg:col-span-2 p-7"><div class="bnum">05</div><h3 class="font-display text-lg font-bold text-white mt-4 mb-2">Batch Anomaly Screening</h3><p class="text-sm text-slate-400 leading-relaxed">Compares like-for-like batches against historical database records in PostgreSQL to flag unusual statistical drift or deviations for QA investigation.</p></div>
-        </div>
-      </div>
-    </div>
-  </div>
-</main>
-
-<footer class="text-center py-8 text-xs text-slate-500 border-t border-white/5 mt-10">
-  CertiVerify Enterprise AI &bull; Dayananda Sagar Academy of Technology and Management (DSATM)
-</footer>
+</div>
 
 <script>
 const API_BASE = "https://certiverify-backend-loxl.onrender.com";
-let currentAuthMode = 'login';
 
-/* ========== LOADER ========== */
-addEventListener('load',()=>setTimeout(()=>{document.getElementById('loader').classList.add('out');revealAll()},900));
-setTimeout(()=>{document.getElementById('loader').classList.add('out');revealAll()},3000);
+const ROUTES = ["home", "upload", "result", "ledger", "trail", "framework"];
+const ROUTE_LABELS = {
+  home: "Home",
+  upload: "Upload Dossier",
+  result: "Audit Result",
+  ledger: "Batch Ledger",
+  trail: "Audit Trail",
+  framework: "5-Pillar Framework"
+};
 
-/* ========== AUTHENTICATION & SESSION MANAGEMENT ========== */
-window.addEventListener('DOMContentLoaded',()=>{
-  checkUserSession();
+let currentRoute = "home";
+let isTransitioning = false;
+let latestLedgerCache = [];
+let threeShiftTarget = { x: 0, y: 0, rot: 0 };
+let stepIntervalId = null;
+
+/* ========== HASH ROUTING & 700MS CURTAIN TRANSITION ========== */
+function parseHashRoute() {
+  const raw = (window.location.hash || "#/home").replace(/^#\/?/, "").split("?")[0].toLowerCase();
+  if (raw === "audit") return "upload";
+  return ROUTES.includes(raw) ? raw : "home";
+}
+
+function syncNavIndicator(route) {
+  const slider = document.getElementById("nav-slider");
+  const navWrap = document.querySelector(".nav-pill-wrap");
+  if (!slider || !navWrap) return;
+
+  const activeKey = route === "result" ? "upload" : route;
+  document.querySelectorAll(".navbtn").forEach(btn => {
+    btn.classList.toggle("act", btn.dataset.route === activeKey);
+  });
+
+  const activeBtn = navWrap.querySelector(`.navbtn[data-route="${activeKey}"]`);
+  if (activeBtn) {
+    const wrapRect = navWrap.getBoundingClientRect();
+    const btnRect = activeBtn.getBoundingClientRect();
+    const leftOffset = btnRect.left - wrapRect.left + navWrap.scrollLeft;
+    slider.style.width = `${btnRect.width}px`;
+    slider.style.transform = `translateX(${leftOffset - 4}px)`;
+  }
+}
+
+function triggerPageSideEffects(route) {
+  if (route === "ledger") {
+    loadFullLedger();
+  } else if (route === "trail") {
+    loadAuditTrail();
+  }
+}
+
+function performPageSwitch(targetRoute, animate = true) {
+  if (!ROUTES.includes(targetRoute)) targetRoute = "home";
+
+  const applyView = () => {
+    ROUTES.forEach(r => {
+      const el = document.getElementById(`page-${r}`);
+      if (!el) return;
+      el.classList.remove("active", "entering");
+      if (r === targetRoute) {
+        el.classList.add("active");
+        void el.offsetWidth;
+        el.classList.add("entering");
+        if (window.innerWidth < 768) el.scrollTop = 0;
+      }
+    });
+    currentRoute = targetRoute;
+    syncNavIndicator(targetRoute);
+    triggerPageSideEffects(targetRoute);
+
+    const idx = ROUTES.indexOf(targetRoute);
+    threeShiftTarget.x = (idx - 2.5) * 1.15;
+    threeShiftTarget.y = Math.sin(idx * 0.9) * 0.85;
+    threeShiftTarget.rot = idx * 0.45;
+  };
+
+  if (!animate || targetRoute === currentRoute) {
+    applyView();
+    return;
+  }
+
+  if (isTransitioning) {
+    applyView();
+    return;
+  }
+
+  isTransitioning = true;
+  const curtain = document.getElementById("curtain");
+  const curtainLabel = document.getElementById("curtain-label");
+  if (curtainLabel) curtainLabel.textContent = ROUTE_LABELS[targetRoute] || "CertiVerify AI";
+
+  curtain.classList.remove("wipe-in", "wipe-out");
+  void curtain.offsetWidth;
+  curtain.classList.add("wipe-in");
+
+  setTimeout(() => {
+    applyView();
+    curtain.classList.remove("wipe-in");
+    void curtain.offsetWidth;
+    curtain.classList.add("wipe-out");
+  }, 350);
+
+  setTimeout(() => {
+    curtain.classList.remove("wipe-out");
+    isTransitioning = false;
+  }, 700);
+}
+
+function navigateTo(route) {
+  const nextHash = `#/${route}`;
+  if (window.location.hash !== nextHash) {
+    window.location.hash = nextHash;
+  } else {
+    performPageSwitch(route, true);
+  }
+}
+
+window.addEventListener("hashchange", () => {
+  performPageSwitch(parseHashRoute(), true);
+});
+
+window.addEventListener("resize", () => {
+  syncNavIndicator(currentRoute);
+});
+
+/* ========== LOADER & COUNT-UP ========== */
+function runCountUps() {
+  document.querySelectorAll("[data-count]").forEach(el => {
+    const target = parseInt(el.dataset.count, 10);
+    if (isNaN(target)) return;
+    const startTime = performance.now();
+    const duration = 1100;
+    function tick(now) {
+      const p = Math.min((now - startTime) / duration, 1);
+      const eased = 1 - Math.pow(1 - p, 3);
+      el.textContent = Math.round(target * eased);
+      if (p < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  });
+}
+
+(function initLoader() {
+  const loader = document.getElementById("loader");
+  const finish = () => {
+    if (!loader) return;
+    loader.classList.add("out");
+    runCountUps();
+    syncNavIndicator(currentRoute);
+  };
+  window.addEventListener("load", () => setTimeout(finish, 750));
+  setTimeout(finish, 2400);
+})();
+
+/* ========== PERSISTENT THREE.JS BACKGROUND ========== */
+(function initThreeBackground() {
+  if (typeof THREE === "undefined") return;
+  const host = document.getElementById("three-bg");
+  if (!host) return;
+
+  const scene = new THREE.Scene();
+  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
+  camera.position.z = 16;
+
+  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setSize(window.innerWidth, window.innerHeight);
+  host.appendChild(renderer.domElement);
+
+  const count = 900;
+  const positions = new Float32Array(count * 3);
+  for (let i = 0; i < count * 3; i++) {
+    positions[i] = (Math.random() - 0.5) * 44;
+  }
+  const pGeo = new THREE.BufferGeometry();
+  pGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+  const pMat = new THREE.PointsMaterial({
+    color: 0xb9a6ff,
+    size: 0.085,
+    transparent: true,
+    opacity: 0.65
+  });
+  const particles = new THREE.Points(pGeo, pMat);
+  scene.add(particles);
+
+  const wireA = new THREE.Mesh(
+    new THREE.IcosahedronGeometry(3.2, 1),
+    new THREE.MeshBasicMaterial({ color: 0x7c5cff, wireframe: true, transparent: true, opacity: 0.2 })
+  );
+  wireA.position.set(-6.5, 2.2, -5);
+  scene.add(wireA);
+
+  const wireB = new THREE.Mesh(
+    new THREE.TorusKnotGeometry(1.7, 0.25, 90, 12),
+    new THREE.MeshBasicMaterial({ color: 0xff5fa2, wireframe: true, transparent: true, opacity: 0.14 })
+  );
+  wireB.position.set(7.2, -2.5, -6);
+  scene.add(wireB);
+
+  let mouseX = 0, mouseY = 0;
+  window.addEventListener("mousemove", e => {
+    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
+    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
+  }, { passive: true });
+
+  window.addEventListener("resize", () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+  });
+
+  function renderLoop() {
+    requestAnimationFrame(renderLoop);
+    particles.rotation.y += 0.0006;
+    particles.rotation.x += 0.00025;
+
+    wireA.rotation.x += 0.003;
+    wireA.rotation.y += 0.004;
+    wireB.rotation.x -= 0.0025;
+    wireB.rotation.y += 0.0035;
+
+    const targetCamX = mouseX * 1.6 + threeShiftTarget.x;
+    const targetCamY = -mouseY * 1.1 + threeShiftTarget.y;
+    camera.position.x += (targetCamX - camera.position.x) * 0.04;
+    camera.position.y += (targetCamY - camera.position.y) * 0.04;
+    camera.rotation.z += (threeShiftTarget.rot * 0.04 - camera.rotation.z) * 0.05;
+    camera.lookAt(0, 0, 0);
+
+    renderer.render(scene, camera);
+  }
+  renderLoop();
+})();
+
+/* ========== CURSOR, SPOTLIGHT, 3D HERO TILT & MAGNETIC BUTTONS ========== */
+(function initInteractions() {
+  const dot = document.getElementById("cur-dot");
+  const ring = document.getElementById("cur-ring");
+  const spot = document.getElementById("spotlight");
+  let mx = window.innerWidth / 2, my = window.innerHeight / 2;
+  let rx = mx, ry = my;
+
+  window.addEventListener("mousemove", e => {
+    mx = e.clientX;
+    my = e.clientY;
+    if (dot) {
+      dot.style.left = `${mx}px`;
+      dot.style.top = `${my}px`;
+    }
+    if (spot) {
+      spot.style.left = `${mx}px`;
+      spot.style.top = `${my}px`;
+    }
+    const card = e.target.closest && e.target.closest(".card");
+    if (card) {
+      const r = card.getBoundingClientRect();
+      card.style.setProperty("--mx", `${mx - r.left}px`);
+      card.style.setProperty("--my", `${my - r.top}px`);
+    }
+  }, { passive: true });
+
+  (function followRing() {
+    rx += (mx - rx) * 0.16;
+    ry += (my - ry) * 0.16;
+    if (ring) {
+      ring.style.left = `${rx}px`;
+      ring.style.top = `${ry}px`;
+    }
+    requestAnimationFrame(followRing);
+  })();
+
+  document.addEventListener("mouseover", e => {
+    if (!ring) return;
+    const interactive = e.target.closest("a, button, input, select, .chip-float, .ledger-click-item");
+    ring.classList.toggle("hov", !!interactive);
+  });
+
+  const stage = document.getElementById("hero-stage");
+  const mock = document.getElementById("hero-mock");
+  if (stage && mock && window.matchMedia("(hover: hover)").matches) {
+    stage.addEventListener("mousemove", e => {
+      const r = stage.getBoundingClientRect();
+      const px = (e.clientX - r.left) / r.width - 0.5;
+      const py = (e.clientY - r.top) / r.height - 0.5;
+      mock.style.transform = `rotateY(${px * 14}deg) rotateX(${-py * 12}deg)`;
+      stage.querySelectorAll(".chip-float").forEach(chip => {
+        const d = parseFloat(chip.dataset.depth || "1.5");
+        chip.style.transform = `translate(${px * d * 18}px, ${py * d * 18}px)`;
+      });
+    });
+    stage.addEventListener("mouseleave", () => {
+      mock.style.transform = "";
+      stage.querySelectorAll(".chip-float").forEach(chip => {
+        chip.style.transform = "";
+      });
+    });
+  }
+
+  if (window.matchMedia("(hover: hover)").matches) {
+    document.querySelectorAll(".magnetic").forEach(btn => {
+      btn.addEventListener("mousemove", e => {
+        const r = btn.getBoundingClientRect();
+        const dx = (e.clientX - (r.left + r.width / 2)) * 0.2;
+        const dy = (e.clientY - (r.top + r.height / 2)) * 0.25;
+        btn.style.transform = `translate(${dx}px, ${dy}px)`;
+      });
+      btn.addEventListener("mouseleave", () => {
+        btn.style.transform = "";
+      });
+    });
+  }
+
+  ["drop-coa", "drop-po"].forEach(zoneId => {
+    const zone = document.getElementById(zoneId);
+    if (!zone) return;
+    const input = zone.querySelector("input[type=file]");
+    ["dragenter", "dragover"].forEach(evt => {
+      zone.addEventListener(evt, e => {
+        e.preventDefault();
+        zone.classList.add("dragover");
+      });
+    });
+    ["dragleave", "drop"].forEach(evt => {
+      zone.addEventListener(evt, e => {
+        e.preventDefault();
+        zone.classList.remove("dragover");
+      });
+    });
+    zone.addEventListener("drop", e => {
+      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length && input) {
+        input.files = e.dataTransfer.files;
+      }
+    });
+  });
+})();
+
+/* ========== PROCESSING OVERLAY HELPERS ========== */
+function startAuditProcessingAnimation() {
+  const overlay = document.getElementById("audit-processing");
+  const stepLabel = document.getElementById("proc-step-text");
+  const steps = [
+    "Extracting parameters",
+    "Validating against USP / ICH Q3D",
+    "Cross-checking PO",
+    "Sealing with SHA-256"
+  ];
+  let idx = 0;
+
+  const paintSteps = activeIndex => {
+    steps.forEach((label, i) => {
+      const row = document.getElementById(`step-${i}`);
+      if (!row) return;
+      if (i < activeIndex) {
+        row.className = "flex items-center gap-2.5 text-emerald-300 font-medium";
+        row.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>${label}</span>`;
+      } else if (i === activeIndex) {
+        row.className = "flex items-center gap-2.5 text-white font-semibold";
+        row.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-pink-400"></i><span>${label}</span>`;
+      } else {
+        row.className = "flex items-center gap-2.5 text-slate-500";
+        row.innerHTML = `<i class="fa-regular fa-circle"></i><span>${label}</span>`;
+      }
+    });
+    if (stepLabel) stepLabel.textContent = steps[activeIndex] || steps[0];
+  };
+
+  paintSteps(0);
+  if (overlay) overlay.classList.add("active");
+  if (stepIntervalId) clearInterval(stepIntervalId);
+
+  stepIntervalId = setInterval(() => {
+    idx = (idx + 1) % steps.length;
+    paintSteps(idx);
+  }, 950);
+}
+
+function stopAuditProcessingAnimation() {
+  if (stepIntervalId) {
+    clearInterval(stepIntervalId);
+    stepIntervalId = null;
+  }
+  const overlay = document.getElementById("audit-processing");
+  if (overlay) overlay.classList.remove("active");
+}
+
+/* ========== CORE APPLICATION LOGIC (PRESERVED) ========== */
+window.addEventListener("DOMContentLoaded", () => {
+  const initialRoute = parseHashRoute();
+  performPageSwitch(initialRoute, false);
   loadLedger();
 });
 
-function checkUserSession(){
-  const savedUser=localStorage.getItem('certi_user');
-  if(!savedUser){
-    document.getElementById('auth-modal').classList.remove('hidden-modal');
-  }else{
-    try{
-      const user=JSON.parse(savedUser);
-      document.getElementById('current-user-badge').innerText=`${user.name} (${user.company})`;
-    }catch{
-      document.getElementById('auth-modal').classList.remove('hidden-modal');
-    }
-  }
-}
-
-function setAuthMode(mode){
-  currentAuthMode=mode;
-  const regFields=document.getElementById('reg-fields');
-  const title=document.getElementById('auth-modal-title');
-  const sub=document.getElementById('auth-modal-sub');
-  const submitBtn=document.getElementById('auth-submit-btn');
-  const loginBtn=document.getElementById('mode-login-btn');
-  const regBtn=document.getElementById('mode-reg-btn');
-
-  if(mode==='register'){
-    regFields.classList.remove('hidden');
-    title.innerText='Create New Profile';
-    sub.innerText='Enter your institution & role details to start auditing.';
-    submitBtn.innerText='Register & Open Workspace';
-    regBtn.className="flex-1 py-2 text-xs font-bold rounded-xl transition bg-gradient-to-r from-violet-600 to-pink-500 text-white shadow-md";
-    loginBtn.className="flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white";
-  }else{
-    regFields.classList.add('hidden');
-    title.innerText='Welcome Back to CertiVerify';
-    sub.innerText='Sign in with your registered credentials to access your session ledger.';
-    submitBtn.innerText='Sign In to Workspace';
-    loginBtn.className="flex-1 py-2 text-xs font-bold rounded-xl transition bg-gradient-to-r from-violet-600 to-pink-500 text-white shadow-md";
-    regBtn.className="flex-1 py-2 text-xs font-bold transition text-slate-400 hover:text-white";
-  }
-}
-
-async function handleAuthSubmit(e){
-  e.preventDefault();
-  const email=document.getElementById('auth-email').value.trim().toLowerCase();
-  const password=document.getElementById('auth-pass').value;
-
-  if(currentAuthMode==='register'){
-    const name=document.getElementById('reg-name').value.trim();
-    const company=document.getElementById('reg-company').value.trim();
-    const role=document.getElementById('reg-role').value;
-    if(!name||!company||!email||!password) return alert('Please fill in all required registration fields.');
-    try{
-      const res=await fetch(`${API_BASE}/api/v1/auth/register`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({name,email,password,company_or_college:company,role})
-      });
-      if(!res.ok){const err=await res.json();throw new Error(err.detail||'Registration failed.')}
-      alert('Account created successfully! Please sign in with your credentials.');
-      setAuthMode('login');
-    }catch(err){alert('Registration Error: '+err.message)}
-  }else{
-    try{
-      const res=await fetch(`${API_BASE}/api/v1/auth/login`,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body:JSON.stringify({email,password,role:'Senior QA Compliance Officer'})
-      });
-      if(!res.ok){const err=await res.json();throw new Error(err.detail||'Authentication failed.')}
-      const data=await res.json();
-      localStorage.setItem('certi_user',JSON.stringify(data.user));
-      document.getElementById('current-user-badge').innerText=`${data.user.name} (${data.user.company})`;
-      document.getElementById('auth-modal').classList.add('hidden-modal');
-      loadLedger();
-    }catch(err){alert('Login Denied: '+err.message)}
-  }
-}
-
-function logout(){
-  localStorage.removeItem('certi_user');
-  window.location.reload();
-}
-
-/* ========== REVEAL + COUNT-UP ========== */
-function countUp(el){
-  const to=+el.dataset.count,t0=performance.now(),d=1600;
-  (function f(t){const p=Math.min((t-t0)/d,1);el.textContent=Math.round(to*(1-Math.pow(1-p,4)));if(p<1)requestAnimationFrame(f)})(t0);
-}
-const io=new IntersectionObserver(es=>es.forEach(e=>{
-  if(e.isIntersecting){
-    e.target.classList.add('in');
-    e.target.querySelectorAll('[data-count]').forEach(countUp);
-    if(e.target.dataset.count) countUp(e.target);
-    io.unobserve(e.target);
-  }
-}),{threshold:.15});
-function revealAll(){document.querySelectorAll('.rv').forEach(el=>io.observe(el))}
-
-/* ========== NAV, PROGRESS, GLOW, SPOTLIGHT, PARALLAX ========== */
-const nav=document.getElementById('nav'),glow=document.getElementById('glow');
-addEventListener('scroll',()=>{
-  nav.classList.toggle('sc',scrollY>30);
-  const max=Math.max(1,document.documentElement.scrollHeight-innerHeight);
-  document.getElementById('progress').style.width=(scrollY/max*100)+'%';
-},{passive:true});
-
-addEventListener('mousemove',e=>{
-  glow.style.left=e.clientX+'px';glow.style.top=e.clientY+'px';
-  const c=e.target.closest&&e.target.closest('.card');
-  if(c){const r=c.getBoundingClientRect();c.style.setProperty('--mx',(e.clientX-r.left)+'px');c.style.setProperty('--my',(e.clientY-r.top)+'px')}
-});
-
-const stage=document.getElementById('stage'),mock=document.getElementById('mock');
-if(matchMedia('(hover:hover)').matches){
-  stage.addEventListener('mousemove',e=>{
-    const r=stage.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;
-    mock.style.transform=`rotateY(${x*14}deg) rotateX(${-y*12}deg)`;
-    stage.querySelectorAll('.chip').forEach(c=>{const d=+c.dataset.depth;c.style.transform=`translate(${x*d*22}px,${y*d*22}px)`});
-  });
-  stage.addEventListener('mouseleave',()=>{mock.style.transform='';stage.querySelectorAll('.chip').forEach(c=>c.style.transform='')});
-}
-
-/* stagger index for dynamic rows */
-new MutationObserver(ms=>ms.forEach(m=>m.addedNodes.forEach(n=>{
-  if(n.nodeType===1&&n.parentElement) n.style.setProperty('--i',Array.prototype.indexOf.call(n.parentElement.children,n));
-}))).observe(document.getElementById('app'),{childList:true,subtree:true});
-
-/* flash result card on new result */
-new MutationObserver(()=>{const c=document.getElementById('result-card');c.classList.remove('flash');void c.offsetWidth;c.classList.add('flash')})
-  .observe(document.getElementById('res-title'),{childList:true,characterData:true,subtree:true});
-
-/* ========== TAB CONTROLLER ========== */
-function switchTab(tabId){
-  document.querySelectorAll('.tab-content').forEach(el=>el.classList.remove('active'));
-  document.getElementById(`tab-${tabId}`).classList.add('active');
-  ['portal','ledger','audit','research'].forEach(k=>{
-    const cls='navbtn'+(k===tabId?' act':'');
-    document.getElementById('nav-'+k).className=cls;
-    document.getElementById('win-'+k).className=cls;
-  });
-  if(tabId==='ledger') loadFullLedger();
-  if(tabId==='audit') loadAuditTrail();
-}
-function goChapter(id){
-  switchTab(id);
-  document.getElementById('app').scrollIntoView({behavior:'smooth'});
-}
-
-/* ========== API HANDLERS ========== */
-async function handleAudit(event){
+async function handleAudit(event) {
   event.preventDefault();
-  const coaInput=document.getElementById('coa-file'),poInput=document.getElementById('po-file');
-  const btnText=document.getElementById('btn-text'),submitBtn=document.getElementById('submit-btn');
-  const card=document.getElementById('result-card');
-  if(!coaInput.files[0]) return alert('Please select a Certificate of Analysis PDF.');
-  btnText.innerText='Scanning Dossier with AI Engine...';
-  submitBtn.disabled=true; card.classList.add('run');
-  const formData=new FormData();
-  formData.append('file',coaInput.files[0]);
-  if(poInput.files[0]) formData.append('po_file',poInput.files[0]);
-  try{
-    const response=await fetch(`${API_BASE}/api/v1/extract-coa`,{method:'POST',body:formData});
-    if(!response.ok){const errData=await response.json();throw new Error(errData.detail||'Audit execution failed.')}
-    const result=await response.json();
+  const coaInput = document.getElementById("coa-file");
+  const poInput = document.getElementById("po-file");
+  const btnText = document.getElementById("btn-text");
+  const submitBtn = document.getElementById("submit-btn");
+
+  if (!coaInput.files[0]) return alert("Please select a Certificate of Analysis PDF.");
+
+  btnText.innerText = "Executing 5-Pillar Research AI Audit...";
+  submitBtn.disabled = true;
+  startAuditProcessingAnimation();
+
+  const formData = new FormData();
+  formData.append("file", coaInput.files[0]);
+  if (poInput.files[0]) formData.append("po_file", poInput.files[0]);
+
+  try {
+    const response = await fetch(`${API_BASE}/api/v1/extract-coa`, { method: "POST", body: formData });
+    if (!response.ok) {
+      const errData = await response.json();
+      throw new Error(errData.detail || "Audit execution failed.");
+    }
+    const result = await response.json();
     renderAuditResult(result);
     loadLedger();
-  }catch(err){alert('Audit Error: '+err.message)}
-  finally{
-    btnText.innerText='Execute 5-Pillar Research AI Audit';
-    submitBtn.disabled=false; card.classList.remove('run');
+    stopAuditProcessingAnimation();
+    navigateTo("result");
+  } catch (err) {
+    stopAuditProcessingAnimation();
+    alert("Audit Error: " + err.message);
+  } finally {
+    btnText.innerText = "Execute 5-Pillar Research AI Audit";
+    submitBtn.disabled = false;
   }
 }
 
-async function loadLedger(){
-  try{
-    const res=await fetch(`${API_BASE}/api/v1/ledger`);
-    const records=await res.json();
-    const ledgerList=document.getElementById('ledger-list');
-    document.getElementById('ledger-count').innerText=records.length;
-    if(records.length===0){ledgerList.innerHTML='<p class="text-xs text-slate-500 text-center py-6">No batches audited yet.</p>';return}
-    ledgerList.innerHTML='';
-    records.forEach(r=>{
-      const ok=r.status==='COMPLIANT'||r.status==='PASS';
-      const badge=ok?'bg-emerald-500/15 text-emerald-300 border-emerald-500/30':'bg-rose-500/15 text-rose-300 border-rose-500/30';
-      const div=document.createElement('div');
-      div.className="p-3.5 rounded-2xl bg-white/[.04] border border-white/10 hover:border-violet-500/50 hover:bg-white/[.07] hover:translate-x-1.5 cursor-pointer transition flex justify-between items-center gap-3 group";
-      div.onclick=()=>{renderAuditResult(r);document.getElementById('result-card').scrollIntoView({behavior:'smooth',block:'center'})};
-      div.innerHTML=`
+async function loadLedger() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/ledger`);
+    const records = await res.json();
+    latestLedgerCache = Array.isArray(records) ? records : [];
+    const ledgerList = document.getElementById("ledger-list");
+    document.getElementById("ledger-count").innerText = latestLedgerCache.length;
+    const fullBadge = document.getElementById("full-ledger-badge");
+    if (fullBadge) fullBadge.innerText = latestLedgerCache.length;
+
+    if (latestLedgerCache.length === 0) {
+      ledgerList.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">No batches audited yet.</p>';
+      return;
+    }
+
+    ledgerList.innerHTML = "";
+    latestLedgerCache.forEach((r, idx) => {
+      const isCompliant = r.status === "COMPLIANT" || r.status === "PASS";
+      const badge = isCompliant
+        ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+        : "bg-rose-500/15 text-rose-300 border-rose-500/30";
+      const div = document.createElement("div");
+      div.style.setProperty("--i", idx);
+      div.className = "anim-row ledger-click-item p-3.5 rounded-2xl bg-white/[.04] border border-white/10 hover:border-violet-500/50 hover:bg-white/[.07] transition flex justify-between items-center gap-3 group";
+      div.onclick = () => {
+        renderAuditResult(r);
+        navigateTo("result");
+      };
+      div.innerHTML = `
         <div class="min-w-0">
           <p class="text-xs font-bold text-white group-hover:text-violet-300 transition truncate">${r.batch_id}</p>
-          <p class="text-[10px] text-slate-400 truncate">${r.filename} &bull; ${r.supplier}</p>
+          <p class="text-[11px] text-slate-400 truncate">${r.filename} &bull; ${r.supplier}</p>
         </div>
         <span class="text-[10px] px-2.5 py-1 rounded-xl border font-bold shrink-0 ${badge}">${r.status}</span>`;
       ledgerList.appendChild(div);
     });
-  }catch(err){console.error('Failed to load ledger:',err)}
+  } catch (err) {
+    console.error("Failed to load ledger:", err);
+  }
 }
 
-async function loadFullLedger(){
-  try{
-    const res=await fetch(`${API_BASE}/api/v1/ledger`);
-    const records=await res.json();
-    const tbody=document.getElementById('full-ledger-tbody');
-    tbody.innerHTML='';
-    if(records.length===0){tbody.innerHTML='<tr><td colspan="6" class="p-8 text-center text-slate-500">No batch records found in database.</td></tr>';return}
-    records.forEach(r=>{
-      const ok=r.status==='COMPLIANT'||r.status==='PASS';
-      const badge=ok?'bg-emerald-500/15 text-emerald-300 border-emerald-500/30':'bg-rose-500/15 text-rose-300 border-rose-500/30';
-      const tr=document.createElement('tr');
-      tr.className="hover:bg-white/[.05] transition";
-      tr.innerHTML=`
-        <td class="p-3.5 font-bold text-white">${r.batch_id}</td>
-        <td class="p-3.5 text-slate-200">${r.material_name}</td>
-        <td class="p-3.5 text-slate-400">${r.supplier}</td>
-        <td class="p-3.5 text-violet-300 font-bold">${r.risk_score}/100</td>
-        <td class="p-3.5 text-slate-400 text-[11px]">${r.timestamp}</td>
-        <td class="p-3.5"><span class="px-3 py-1 rounded-xl border text-[10px] font-bold ${badge}">${r.status}</span></td>`;
-      tbody.appendChild(tr);
-    });
-  }catch(err){console.error('Failed to load full ledger:',err)}
+function renderFullLedgerRows(records) {
+  const tbody = document.getElementById("full-ledger-tbody");
+  tbody.innerHTML = "";
+  if (!records || records.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500">No batch records found in database.</td></tr>';
+    return;
+  }
+  records.forEach((r, idx) => {
+    const isCompliant = r.status === "COMPLIANT" || r.status === "PASS";
+    const badge = isCompliant
+      ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+      : "bg-rose-500/15 text-rose-300 border-rose-500/30";
+    const tr = document.createElement("tr");
+    tr.style.setProperty("--i", idx);
+    tr.className = "anim-row ledger-click-item hover:bg-white/[.06] transition";
+    tr.onclick = () => {
+      renderAuditResult(r);
+      navigateTo("result");
+    };
+    tr.innerHTML = `
+      <td class="p-3.5 font-bold text-white">${r.batch_id}</td>
+      <td class="p-3.5 text-slate-200">${r.material_name}</td>
+      <td class="p-3.5 text-slate-400">${r.supplier}</td>
+      <td class="p-3.5 text-violet-300 font-bold">${r.risk_score}/100</td>
+      <td class="p-3.5 text-slate-400 text-[11px]">${r.timestamp}</td>
+      <td class="p-3.5 text-right"><span class="px-3 py-1 rounded-xl border text-[10px] font-bold ${badge}">${r.status}</span></td>`;
+    tbody.appendChild(tr);
+  });
 }
 
-async function loadAuditTrail(){
-  try{
-    const res=await fetch(`${API_BASE}/api/v1/audit-trail`);
-    const logs=await res.json();
-    const tbody=document.getElementById('audit-trail-tbody');
-    tbody.innerHTML='';
-    if(logs.length===0){tbody.innerHTML='<tr><td colspan="5" class="p-8 text-center text-slate-500">No audit trail records found.</td></tr>';return}
-    logs.forEach(l=>{
-      const tr=document.createElement('tr');
-      tr.className="hover:bg-white/[.05] transition";
-      tr.innerHTML=`
+function filterLedgerTable() {
+  const q = (document.getElementById("ledger-search")?.value || "").trim().toLowerCase();
+  if (!q) {
+    renderFullLedgerRows(latestLedgerCache);
+    return;
+  }
+  const filtered = latestLedgerCache.filter(r =>
+    String(r.batch_id || "").toLowerCase().includes(q) ||
+    String(r.material_name || "").toLowerCase().includes(q) ||
+    String(r.supplier || "").toLowerCase().includes(q) ||
+    String(r.status || "").toLowerCase().includes(q)
+  );
+  renderFullLedgerRows(filtered);
+}
+
+async function loadFullLedger() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/ledger`);
+    const records = await res.json();
+    latestLedgerCache = Array.isArray(records) ? records : [];
+    document.getElementById("ledger-count").innerText = latestLedgerCache.length;
+    const fullBadge = document.getElementById("full-ledger-badge");
+    if (fullBadge) fullBadge.innerText = latestLedgerCache.length;
+    filterLedgerTable();
+  } catch (err) {
+    console.error("Failed to load full ledger:", err);
+  }
+}
+
+async function loadAuditTrail() {
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/audit-trail`);
+    const logs = await res.json();
+    const tbody = document.getElementById("audit-trail-tbody");
+    tbody.innerHTML = "";
+    if (!logs || logs.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500">No audit trail records found.</td></tr>';
+      return;
+    }
+    logs.forEach((l, idx) => {
+      const tr = document.createElement("tr");
+      tr.style.setProperty("--i", idx);
+      tr.className = "anim-row hover:bg-white/[.05] transition";
+      tr.innerHTML = `
         <td class="p-3.5 text-violet-300 font-bold">#${l.id}</td>
         <td class="p-3.5 text-slate-400 text-[11px]">${l.timestamp}</td>
         <td class="p-3.5 text-slate-300">${l.user}</td>
@@ -707,44 +1784,82 @@ async function loadAuditTrail(){
         <td class="p-3.5 text-slate-400">${l.details}</td>`;
       tbody.appendChild(tr);
     });
-  }catch(err){console.error('Failed to load audit trail:',err)}
+  } catch (err) {
+    console.error("Failed to load audit trail:", err);
+  }
 }
 
-function renderAuditResult(r){
-  document.getElementById('res-engine').innerText=r.ai_engine||'CertiVerify 5-Pillar Engine';
-  document.getElementById('res-title').innerText=`${r.batch_id} — ${r.material_name||'Material'}`;
-  document.getElementById('res-supplier').innerText=`Supplier: ${r.supplier} | Audited: ${r.timestamp}`;
-  const ok=r.status==='COMPLIANT'||r.status==='PASS';
-  const vb=document.getElementById('res-verdict-badge');
-  vb.innerText=r.verdict;
-  vb.className=`px-3.5 py-2 rounded-2xl font-extrabold text-xs tracking-wider uppercase border ${ok?'bg-emerald-500/15 text-emerald-300 border-emerald-500/30':'bg-rose-500/15 text-rose-300 border-rose-500/30'}`;
-  document.getElementById('res-risk').innerText=`Risk Score: ${r.risk_score}/100 | Confidence: ${r.confidence_score}%`;
-  document.getElementById('res-summary').innerText=r.summary;
+function renderAuditResult(r) {
+  document.getElementById("res-engine").innerText = r.ai_engine || "CertiVerify 5-Pillar Engine";
+  document.getElementById("res-title").innerText = `${r.batch_id} — ${r.material_name || "Material"}`;
+  document.getElementById("res-supplier").innerText = `Supplier: ${r.supplier} | Audited: ${r.timestamp}`;
 
-  const tbody=document.getElementById('parameters-table-body');
-  tbody.innerHTML='';
-  const params=r.parameters||r.test_results||[];
-  if(params.length===0){
-    tbody.innerHTML='<tr><td colspan="5" class="p-6 text-center text-slate-500">No parameters available.</td></tr>';
-  }else{
-    params.forEach(p=>{
-      const pass=p.status==='PASS';
-      const tr=document.createElement('tr');
-      tr.className="hover:bg-white/[.05] transition";
-      tr.innerHTML=`
+  const isCompliant = r.status === "COMPLIANT" || r.status === "PASS";
+  const vb = document.getElementById("res-verdict-badge");
+  vb.innerText = r.verdict;
+  vb.className = `px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider border ${
+    isCompliant
+      ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+      : "bg-rose-500/15 text-rose-300 border-rose-500/30"
+  }`;
+
+  const numericRisk = Math.max(0, Math.min(100, Number(r.risk_score) || 0));
+  const ringCircle = document.getElementById("risk-ring-circle");
+  const ringLabel = document.getElementById("risk-ring-label");
+  const circumference = 163.36;
+  if (ringCircle) {
+    const offset = circumference - (numericRisk / 100) * circumference;
+    ringCircle.style.strokeDashoffset = String(offset);
+  }
+  if (ringLabel) {
+    ringLabel.innerText = `${numericRisk}`;
+  }
+
+  document.getElementById("res-risk").innerText = `Risk Score: ${r.risk_score}/100 | Confidence: ${r.confidence_score}%`;
+  document.getElementById("res-summary").innerText = r.summary;
+
+  const tbody = document.getElementById("parameters-table-body");
+  tbody.innerHTML = "";
+  const params = r.parameters || r.test_results || [];
+  if (params.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="p-5 text-center text-slate-500">No parameters available.</td></tr>';
+  } else {
+    params.forEach((p, idx) => {
+      const pass = p.status === "PASS";
+      const tr = document.createElement("tr");
+      tr.style.setProperty("--i", idx);
+      tr.className = "anim-row hover:bg-white/[.05] transition";
+      tr.innerHTML = `
         <td class="p-3 font-semibold text-slate-200">${p.parameter}</td>
         <td class="p-3 text-slate-400 text-xs">${p.specification}</td>
         <td class="p-3 text-slate-200 text-xs">${p.result}</td>
-        <td class="p-3 text-violet-300 text-xs font-bold">${p.confidence||'99.5%'}</td>
-        <td class="p-3 text-right"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${pass?'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30':'bg-rose-500/15 text-rose-300 border border-rose-500/30'}">${p.status}</span></td>`;
+        <td class="p-3 text-violet-300 text-xs font-bold">${p.confidence || "99.5%"}</td>
+        <td class="p-3 text-right"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${
+          pass
+            ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
+            : "bg-rose-500/15 text-rose-300 border border-rose-500/30"
+        }">${p.status}</span></td>`;
       tbody.appendChild(tr);
     });
   }
-  const capaList=document.getElementById('res-capa-list');
-  capaList.innerHTML='';
-  const capas=r.capa_recommendations||r.deviations||['All parameters verified against USP monographs.'];
-  capas.forEach(c=>{const li=document.createElement('li');li.innerText=c;capaList.appendChild(li)});
-  document.getElementById('res-hash').innerText=`SHA-256 Dossier Seal: ${r.sha256_hash}`;
+
+  const capaList = document.getElementById("res-capa-list");
+  capaList.innerHTML = "";
+  const capas = r.capa_recommendations || r.deviations || ["All parameters verified against USP monographs."];
+  capas.forEach((c, idx) => {
+    const li = document.createElement("li");
+    li.style.setProperty("--i", idx);
+    li.className = "anim-row";
+    li.innerText = c;
+    capaList.appendChild(li);
+  });
+
+  document.getElementById("res-hash").innerText = `SHA-256 Dossier Seal: ${r.sha256_hash}`;
+}
+
+function logout() {
+  alert("Signed out successfully from CertiVerify Enterprise session.");
+  window.location.reload();
 }
 </script>
 </body>
