@@ -117,7 +117,7 @@ def clean_extracted_text(raw_text: str) -> str:
 
 def analyze_coa_locally(coa_text: str, po_text: str, filename: str, db_session=None) -> dict:
     batch_id = f"BATCH-ENT-{uuid.uuid4().hex[:6].upper()}"
-    
+
     anomaly_flag = "Normal variance across historical batches (Baseline established)"
     if db_session:
         try:
@@ -279,7 +279,7 @@ def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
     existing = db.query(DBUserAccount).filter(DBUserAccount.email == payload.email.strip().lower()).first()
     if existing:
         raise HTTPException(status_code=400, detail="Account with this email already exists.")
-    
+
     new_user = DBUserAccount(
         name=payload.name,
         email=payload.email.strip().lower(),
@@ -288,7 +288,7 @@ def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
         role=payload.role
     )
     db.add(new_user)
-    
+
     audit_entry = DBAuditLog(
         user_email=payload.email.strip().lower(),
         action_type="USER_REGISTERED",
@@ -296,16 +296,16 @@ def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
     )
     db.add(audit_entry)
     db.commit()
-    
+
     return {"registered": True, "message": "Account created successfully."}
 
 @app.post("/api/v1/auth/login")
 def login_user_secure(payload: LoginRequest, db: Session = Depends(get_db)):
     user = db.query(DBUserAccount).filter(DBUserAccount.email == payload.email.strip().lower()).first()
-    
+
     if not user:
         raise HTTPException(status_code=401, detail="Account not found. Please register an account first.")
-    
+
     if user.password != payload.password:
         raise HTTPException(status_code=401, detail="Incorrect password. Please verify your credentials.")
 
@@ -316,7 +316,7 @@ def login_user_secure(payload: LoginRequest, db: Session = Depends(get_db)):
     )
     db.add(audit_entry)
     db.commit()
-    
+
     return {
         "authenticated": True,
         "user": {"name": user.name, "email": user.email, "company": user.company_or_college, "role": user.role},
@@ -347,6 +347,34 @@ def get_ledger(db: Session = Depends(get_db)):
         })
     return ledger_list
 
+@app.delete("/api/v1/ledger/{batch_id}")
+def delete_single_batch(batch_id: str, db: Session = Depends(get_db)):
+    record = db.query(DBBatchRecord).filter(DBBatchRecord.batch_id == batch_id).first()
+    if not record:
+        raise HTTPException(status_code=404, detail="Batch record not found.")
+
+    db.delete(record)
+    audit_entry = DBAuditLog(
+        user_email="system.qa@certiverify.ai",
+        action_type="BATCH_DELETED",
+        details=f"Deleted single batch record {batch_id} from ledger."
+    )
+    db.add(audit_entry)
+    db.commit()
+    return {"deleted": True, "batch_id": batch_id}
+
+@app.delete("/api/v1/ledger")
+def clear_all_batch_history(db: Session = Depends(get_db)):
+    deleted_count = db.query(DBBatchRecord).delete()
+    audit_entry = DBAuditLog(
+        user_email="system.qa@certiverify.ai",
+        action_type="ALL_BATCH_HISTORY_CLEARED",
+        details=f"Cleared {deleted_count} batch records from ledger."
+    )
+    db.add(audit_entry)
+    db.commit()
+    return {"cleared": True, "deleted_count": deleted_count}
+
 @app.post("/api/v1/extract-coa")
 async def extract_coa(file: UploadFile = File(...), po_file: Optional[UploadFile] = File(None), db: Session = Depends(get_db)):
     try:
@@ -358,7 +386,7 @@ async def extract_coa(file: UploadFile = File(...), po_file: Optional[UploadFile
             po_text = extract_text_from_pdf(po_bytes)
 
         result = analyze_coa_with_gemini(coa_text, po_text, file.filename or "CoA.pdf", db_session=db)
-        
+
         db_batch = DBBatchRecord(
             batch_id=result["batch_id"],
             filename=result["filename"],

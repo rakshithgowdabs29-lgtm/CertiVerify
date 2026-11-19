@@ -1006,20 +1006,24 @@ input[type=file]::file-selector-button {
       </div>
 
       <div class="lg:col-span-5 card p-6 flex flex-col page-stagger" style="--d:1">
-        <div class="flex items-center justify-between mb-4 shrink-0">
-          <div>
+        <div class="flex items-center justify-between gap-2 mb-4 shrink-0">
+          <div class="min-w-0">
             <h3 class="font-display text-base font-bold text-white flex items-center gap-2">
               <i class="fa-solid fa-clock-rotate-left text-violet-400"></i>
               <span>Recent Batches</span>
             </h3>
-            <p class="text-xs text-slate-400 mt-0.5">Select any batch to open its full result</p>
+            <p class="text-xs text-slate-400 mt-0.5 truncate">Select to view or delete history</p>
           </div>
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5 shrink-0">
             <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-violet-500/15 text-violet-200 border border-violet-500/30">
               <span id="ledger-count">0</span>
             </span>
-            <button type="button" onclick="loadLedger()" aria-label="Refresh recent batches" class="magnetic w-8 h-8 rounded-xl bg-white/[.05] border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition">
+            <button type="button" onclick="loadLedger()" title="Refresh recent batches" aria-label="Refresh recent batches" class="magnetic w-8 h-8 rounded-xl bg-white/[.05] border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition">
               <i class="fa-solid fa-rotate text-xs"></i>
+            </button>
+            <button type="button" onclick="clearAllHistory()" title="Clear all batch history" aria-label="Clear all batch history" class="magnetic px-2.5 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-[11px] font-semibold inline-flex items-center gap-1.5 transition">
+              <i class="fa-solid fa-trash-can text-[11px]"></i>
+              <span>Clear All</span>
             </button>
           </div>
         </div>
@@ -1112,24 +1116,28 @@ input[type=file]::file-selector-button {
               <span>Batch Ledger</span>
               <span id="full-ledger-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-500/30">0</span>
             </h2>
-            <p class="text-xs text-slate-400 mt-0.5">Click any batch row to open its full verification result.</p>
+            <p class="text-xs text-slate-400 mt-0.5">Click any batch row to open its full result, or delete individual / all records.</p>
           </div>
         </div>
 
-        <div class="flex items-center gap-2.5">
+        <div class="flex flex-wrap items-center gap-2">
           <div class="relative">
             <i class="fa-solid fa-magnifying-glass text-xs text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-            <input type="search" id="ledger-search" oninput="filterLedgerTable()" placeholder="Filter batch, material, supplier..." class="text-xs pl-8 pr-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-white placeholder-slate-500 focus:border-violet-400 outline-none w-48 sm:w-64">
+            <input type="search" id="ledger-search" oninput="filterLedgerTable()" placeholder="Filter batch, material, supplier..." class="text-xs pl-8 pr-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-white placeholder-slate-500 focus:border-violet-400 outline-none w-44 sm:w-60">
           </div>
-          <button type="button" onclick="loadFullLedger()" class="magnetic btn-g !py-2 !px-4 text-xs inline-flex items-center gap-2">
+          <button type="button" onclick="loadFullLedger()" class="magnetic btn-g !py-2 !px-3.5 text-xs inline-flex items-center gap-1.5">
             <i class="fa-solid fa-rotate"></i>
             <span>Refresh</span>
+          </button>
+          <button type="button" onclick="clearAllHistory()" class="magnetic btn-g !py-2 !px-3.5 text-xs inline-flex items-center gap-1.5 border-rose-500/30 text-rose-300 hover:bg-rose-500/15">
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Clear All</span>
           </button>
         </div>
       </div>
 
       <div class="inner-scroll-x flex-1 mt-4 rounded-2xl border border-white/10">
-        <table class="w-full text-left text-xs min-w-[680px]">
+        <table class="w-full text-left text-xs min-w-[720px]">
           <thead class="bg-white/[.05] text-slate-400 uppercase text-[10px] sticky top-0 z-10">
             <tr>
               <th class="p-3.5">Batch ID</th>
@@ -1137,7 +1145,7 @@ input[type=file]::file-selector-button {
               <th class="p-3.5">Supplier</th>
               <th class="p-3.5">Risk Score</th>
               <th class="p-3.5">Timestamp</th>
-              <th class="p-3.5 text-right">Status</th>
+              <th class="p-3.5 text-right">Status &amp; Action</th>
             </tr>
           </thead>
           <tbody id="full-ledger-tbody" class="divide-y divide-white/[.06]">
@@ -1618,7 +1626,7 @@ function stopAuditProcessingAnimation() {
   if (overlay) overlay.classList.remove("active");
 }
 
-/* ========== CORE APPLICATION LOGIC (PRESERVED) ========== */
+/* ========== CORE APPLICATION LOGIC + HISTORY DELETION ========== */
 window.addEventListener("DOMContentLoaded", () => {
   const initialRoute = parseHashRoute();
   performPageSwitch(initialRoute, false);
@@ -1662,42 +1670,95 @@ async function handleAudit(event) {
   }
 }
 
+function renderRecentLedgerList(records) {
+  const ledgerList = document.getElementById("ledger-list");
+  const countEl = document.getElementById("ledger-count");
+  const fullBadge = document.getElementById("full-ledger-badge");
+  const safeList = Array.isArray(records) ? records : [];
+
+  if (countEl) countEl.innerText = safeList.length;
+  if (fullBadge) fullBadge.innerText = safeList.length;
+  if (!ledgerList) return;
+
+  if (safeList.length === 0) {
+    ledgerList.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">No batches audited yet.</p>';
+    return;
+  }
+
+  ledgerList.innerHTML = "";
+  safeList.forEach((r, idx) => {
+    const isCompliant = r.status === "COMPLIANT" || r.status === "PASS";
+    const badge = isCompliant
+      ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
+      : "bg-rose-500/15 text-rose-300 border-rose-500/30";
+    const div = document.createElement("div");
+    div.style.setProperty("--i", idx);
+    div.className = "anim-row ledger-click-item p-3.5 rounded-2xl bg-white/[.04] border border-white/10 hover:border-violet-500/50 hover:bg-white/[.07] transition flex justify-between items-center gap-3 group";
+    div.onclick = () => {
+      renderAuditResult(r);
+      navigateTo("result");
+    };
+    div.innerHTML = `
+      <div class="min-w-0">
+        <p class="text-xs font-bold text-white group-hover:text-violet-300 transition truncate">${r.batch_id}</p>
+        <p class="text-[11px] text-slate-400 truncate">${r.filename} &bull; ${r.supplier}</p>
+      </div>
+      <div class="flex items-center gap-2 shrink-0">
+        <span class="text-[10px] px-2.5 py-1 rounded-xl border font-bold ${badge}">${r.status}</span>
+        <button type="button" onclick="deleteSingleHistory('${r.batch_id}', event)" title="Delete batch" aria-label="Delete ${r.batch_id}" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 flex items-center justify-center transition">
+          <i class="fa-solid fa-trash text-[11px]"></i>
+        </button>
+      </div>`;
+    ledgerList.appendChild(div);
+  });
+}
+
+async function deleteSingleHistory(batchId, event) {
+  if (event) event.stopPropagation();
+  if (!confirm(`Delete batch ${batchId} from history?`)) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/ledger/${encodeURIComponent(batchId)}`, {
+      method: "DELETE"
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || "Failed to delete batch.");
+    }
+    latestLedgerCache = latestLedgerCache.filter(item => item.batch_id !== batchId);
+    renderRecentLedgerList(latestLedgerCache);
+    filterLedgerTable();
+  } catch (err) {
+    alert("Delete Error: " + err.message);
+  }
+}
+
+async function clearAllHistory() {
+  if (latestLedgerCache.length === 0) return;
+  if (!confirm("Delete ALL batch history records? This cannot be undone.")) return;
+
+  try {
+    const res = await fetch(`${API_BASE}/api/v1/ledger`, {
+      method: "DELETE"
+    });
+    if (!res.ok) {
+      const errData = await res.json().catch(() => ({}));
+      throw new Error(errData.detail || "Failed to clear all history.");
+    }
+    latestLedgerCache = [];
+    renderRecentLedgerList([]);
+    filterLedgerTable();
+  } catch (err) {
+    alert("Clear History Error: " + err.message);
+  }
+}
+
 async function loadLedger() {
   try {
     const res = await fetch(`${API_BASE}/api/v1/ledger`);
     const records = await res.json();
     latestLedgerCache = Array.isArray(records) ? records : [];
-    const ledgerList = document.getElementById("ledger-list");
-    document.getElementById("ledger-count").innerText = latestLedgerCache.length;
-    const fullBadge = document.getElementById("full-ledger-badge");
-    if (fullBadge) fullBadge.innerText = latestLedgerCache.length;
-
-    if (latestLedgerCache.length === 0) {
-      ledgerList.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">No batches audited yet.</p>';
-      return;
-    }
-
-    ledgerList.innerHTML = "";
-    latestLedgerCache.forEach((r, idx) => {
-      const isCompliant = r.status === "COMPLIANT" || r.status === "PASS";
-      const badge = isCompliant
-        ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-        : "bg-rose-500/15 text-rose-300 border-rose-500/30";
-      const div = document.createElement("div");
-      div.style.setProperty("--i", idx);
-      div.className = "anim-row ledger-click-item p-3.5 rounded-2xl bg-white/[.04] border border-white/10 hover:border-violet-500/50 hover:bg-white/[.07] transition flex justify-between items-center gap-3 group";
-      div.onclick = () => {
-        renderAuditResult(r);
-        navigateTo("result");
-      };
-      div.innerHTML = `
-        <div class="min-w-0">
-          <p class="text-xs font-bold text-white group-hover:text-violet-300 transition truncate">${r.batch_id}</p>
-          <p class="text-[11px] text-slate-400 truncate">${r.filename} &bull; ${r.supplier}</p>
-        </div>
-        <span class="text-[10px] px-2.5 py-1 rounded-xl border font-bold shrink-0 ${badge}">${r.status}</span>`;
-      ledgerList.appendChild(div);
-    });
+    renderRecentLedgerList(latestLedgerCache);
   } catch (err) {
     console.error("Failed to load ledger:", err);
   }
@@ -1728,7 +1789,14 @@ function renderFullLedgerRows(records) {
       <td class="p-3.5 text-slate-400">${r.supplier}</td>
       <td class="p-3.5 text-violet-300 font-bold">${r.risk_score}/100</td>
       <td class="p-3.5 text-slate-400 text-[11px]">${r.timestamp}</td>
-      <td class="p-3.5 text-right"><span class="px-3 py-1 rounded-xl border text-[10px] font-bold ${badge}">${r.status}</span></td>`;
+      <td class="p-3.5 text-right">
+        <div class="inline-flex items-center gap-2">
+          <span class="px-3 py-1 rounded-xl border text-[10px] font-bold ${badge}">${r.status}</span>
+          <button type="button" onclick="deleteSingleHistory('${r.batch_id}', event)" title="Delete batch" aria-label="Delete ${r.batch_id}" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 inline-flex items-center justify-center transition">
+            <i class="fa-solid fa-trash text-[11px]"></i>
+          </button>
+        </div>
+      </td>`;
     tbody.appendChild(tr);
   });
 }
@@ -1753,9 +1821,7 @@ async function loadFullLedger() {
     const res = await fetch(`${API_BASE}/api/v1/ledger`);
     const records = await res.json();
     latestLedgerCache = Array.isArray(records) ? records : [];
-    document.getElementById("ledger-count").innerText = latestLedgerCache.length;
-    const fullBadge = document.getElementById("full-ledger-badge");
-    if (fullBadge) fullBadge.innerText = latestLedgerCache.length;
+    renderRecentLedgerList(latestLedgerCache);
     filterLedgerTable();
   } catch (err) {
     console.error("Failed to load full ledger:", err);
