@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CertiVerify AI — Compliance Audits in Seconds</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#7c5cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -844,6 +848,10 @@ input[type=file]::file-selector-button {
   </nav>
 
   <div class="desktop-only-user flex items-center gap-2.5 shrink-0">
+    <button type="button" id="install-app-btn" onclick="triggerPwaInstall()" class="hidden magnetic text-xs px-3.5 py-2 rounded-xl border border-violet-500/40 bg-violet-500/15 text-violet-200 hover:bg-violet-500/25 transition font-semibold inline-flex items-center gap-1.5">
+      <i class="fa-solid fa-mobile-screen-button"></i>
+      <span>Install App</span>
+    </button>
     <span class="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-slate-200 font-medium">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>Rakshith Gowda BS (QA Lead)
     </span>
@@ -874,6 +882,10 @@ input[type=file]::file-selector-button {
           </button>
           <button type="button" onclick="navigateTo('framework')" class="magnetic btn-g inline-flex items-center gap-2">
             <span>How it works</span>
+          </button>
+          <button type="button" id="hero-install-btn" onclick="triggerPwaInstall()" class="hidden magnetic btn-g inline-flex items-center gap-2 border-violet-500/40 text-violet-200">
+            <i class="fa-solid fa-download text-xs"></i>
+            <span>Install Mobile App</span>
           </button>
         </div>
         <div class="page-stagger grid grid-cols-3 gap-3 pt-4 max-w-lg" style="--d:4">
@@ -1257,6 +1269,27 @@ let isTransitioning = false;
 let latestLedgerCache = [];
 let threeShiftTarget = { x: 0, y: 0, rot: 0 };
 let stepIntervalId = null;
+let deferredInstallPrompt = null;
+
+window.addEventListener("beforeinstallprompt", e => {
+  e.preventDefault();
+  deferredInstallPrompt = e;
+  ["install-app-btn", "hero-install-btn"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove("hidden");
+  });
+});
+
+async function triggerPwaInstall() {
+  if (!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice.catch(() => {});
+  deferredInstallPrompt = null;
+  ["install-app-btn", "hero-install-btn"].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add("hidden");
+  });
+}
 
 /* ========== HASH ROUTING & 700MS CURTAIN TRANSITION ========== */
 function parseHashRoute() {
@@ -1926,6 +1959,12 @@ function renderAuditResult(r) {
 function logout() {
   alert("Signed out successfully from CertiVerify Enterprise session.");
   window.location.reload();
+}
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch(err => console.error("SW registration failed:", err));
+  });
 }
 </script>
 </body>
