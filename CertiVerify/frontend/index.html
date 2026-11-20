@@ -35,776 +35,162 @@ tailwind.config = {
   --glass: rgba(18, 15, 34, 0.64);
   --border: rgba(255, 255, 255, 0.1);
 }
-
-* {
-  box-sizing: border-box;
-}
-
+* { box-sizing: border-box; }
 html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  background: var(--bg);
-  color: #e7e5f2;
-  font-family: 'Inter', sans-serif;
-  overflow: hidden;
+  margin: 0; padding: 0; width: 100%; height: 100%;
+  background: var(--bg); color: #e7e5f2;
+  font-family: 'Inter', sans-serif; overflow: hidden;
   -webkit-font-smoothing: antialiased;
 }
+h1, h2, h3, .font-display { font-family: 'Sora', sans-serif; }
+::selection { background: var(--v); color: #fff; }
 
-@media (hover: hover) {
-  body, button, a, input, select {
-    cursor: none;
-  }
-}
-
-h1, h2, h3, .font-display {
-  font-family: 'Sora', sans-serif;
-}
-
-::selection {
-  background: var(--v);
-  color: #fff;
-}
-
-/* Auth Gate Modal */
 #auth-gate {
-  position: fixed;
-  inset: 0;
-  z-index: 950;
-  background: rgba(7, 6, 13, 0.95);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
-  overflow-y: auto;
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(7, 6, 13, 0.96);
+  backdrop-filter: blur(24px); -webkit-backdrop-filter: blur(24px);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; overflow-y: auto;
 }
+#auth-gate.unlocked { display: none !important; }
 
-#auth-gate.unlocked {
-  display: none;
-}
-
-/* Persistent background layers */
-#three-bg {
-  position: fixed;
-  inset: 0;
-  z-index: -4;
-  pointer-events: none;
-}
-
-.aurora {
-  position: fixed;
-  inset: 0;
-  z-index: -3;
-  overflow: hidden;
-  pointer-events: none;
-  background: radial-gradient(circle at 50% 25%, rgba(124, 92, 255, 0.08), transparent 65%);
-}
-
-.aurora i {
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(115px);
-  opacity: 0.45;
-  will-change: transform;
-}
-
-.aurora i:nth-child(1) {
-  width: 620px;
-  height: 620px;
-  background: var(--v);
-  top: -180px;
-  left: -120px;
-  animation: drift1 18s ease-in-out infinite;
-}
-
-.aurora i:nth-child(2) {
-  width: 560px;
-  height: 560px;
-  background: var(--p);
-  top: 18%;
-  right: -160px;
-  opacity: 0.34;
-  animation: drift2 22s ease-in-out infinite;
-}
-
-.aurora i:nth-child(3) {
-  width: 520px;
-  height: 520px;
-  background: var(--b);
-  bottom: -200px;
-  left: 28%;
-  opacity: 0.32;
-  animation: drift1 26s ease-in-out infinite reverse;
-}
-
-.aurora i:nth-child(4) {
-  width: 340px;
-  height: 340px;
-  background: var(--a);
-  bottom: 10%;
-  right: 12%;
-  opacity: 0.16;
-  animation: drift2 20s ease-in-out infinite;
-}
-
-@keyframes drift1 {
-  50% { transform: translate(110px, 80px) scale(1.12); }
-}
-
-@keyframes drift2 {
-  50% { transform: translate(-100px, 65px) scale(0.92); }
-}
+#three-bg { position: fixed; inset: 0; z-index: -4; pointer-events: none; }
+.aurora { position: fixed; inset: 0; z-index: -3; overflow: hidden; pointer-events: none; background: radial-gradient(circle at 50% 25%, rgba(124, 92, 255, 0.08), transparent 65%); }
+.aurora i { position: absolute; border-radius: 50%; filter: blur(115px); opacity: 0.45; }
+.aurora i:nth-child(1) { width: 620px; height: 620px; background: var(--v); top: -180px; left: -120px; animation: drift1 18s ease-in-out infinite; }
+.aurora i:nth-child(2) { width: 560px; height: 560px; background: var(--p); top: 18%; right: -160px; opacity: 0.34; animation: drift2 22s ease-in-out infinite; }
+.aurora i:nth-child(3) { width: 520px; height: 520px; background: var(--b); bottom: -200px; left: 28%; opacity: 0.32; animation: drift1 26s ease-in-out infinite reverse; }
+.aurora i:nth-child(4) { width: 340px; height: 340px; background: var(--a); bottom: 10%; right: 12%; opacity: 0.16; animation: drift2 20s ease-in-out infinite; }
+@keyframes drift1 { 50% { transform: translate(110px, 80px) scale(1.12); } }
+@keyframes drift2 { 50% { transform: translate(-100px, 65px) scale(0.92); } }
 
 .gridbg {
-  position: fixed;
-  inset: 0;
-  z-index: -2;
-  pointer-events: none;
-  background-image:
-    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px);
+  position: fixed; inset: 0; z-index: -2; pointer-events: none;
+  background-image: linear-gradient(rgba(255,255,255,.04) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.04) 1px, transparent 1px);
   background-size: 64px 64px;
   -webkit-mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 35%, transparent 85%);
   mask-image: radial-gradient(ellipse 75% 65% at 50% 35%, #000 35%, transparent 85%);
 }
 
-.grain {
-  position: fixed;
-  inset: 0;
-  z-index: -1;
-  pointer-events: none;
-  opacity: 0.065;
-  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
-}
-
-#spotlight {
-  position: fixed;
-  width: 540px;
-  height: 540px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 1;
-  background: radial-gradient(circle, rgba(124, 92, 255, 0.18), rgba(255, 95, 162, 0.05) 45%, transparent 70%);
-  transform: translate(-50%, -50%);
-  left: 50%;
-  top: 40%;
-  transition: opacity 0.25s ease;
-}
-
-/* Custom Cursor */
-#cur-dot, #cur-ring {
-  position: fixed;
-  top: 0;
-  left: 0;
-  pointer-events: none;
-  z-index: 900;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-}
-
-#cur-dot {
-  width: 7px;
-  height: 7px;
-  background: #fff;
-  box-shadow: 0 0 12px var(--v);
-}
-
-#cur-ring {
-  width: 36px;
-  height: 36px;
-  border: 1.5px solid rgba(124, 92, 255, 0.65);
-  transition: width 0.22s ease, height 0.22s ease, background 0.22s ease, border-color 0.22s ease;
-}
-
-#cur-ring.hov {
-  width: 62px;
-  height: 62px;
-  background: rgba(255, 95, 162, 0.12);
-  border-color: var(--p);
-}
-
-@media (hover: none) {
-  #cur-dot, #cur-ring { display: none; }
-}
-
-/* First-visit Loader */
-#loader {
-  position: fixed;
-  inset: 0;
-  z-index: 800;
-  background: var(--bg);
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 16px;
-  transition: opacity 0.65s ease, visibility 0.65s ease;
-}
-
-#loader.out {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-
-#loader .lg {
-  width: 76px;
-  height: 76px;
-  border-radius: 24px;
-  background: linear-gradient(135deg, var(--v), var(--p));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 30px;
-  color: #fff;
-  animation: popPulse 1.25s ease infinite;
-  box-shadow: 0 0 80px rgba(124, 92, 255, 0.75);
-}
-
-@keyframes popPulse {
-  0%, 100% { transform: scale(1) rotate(0deg); }
-  50% { transform: scale(1.14) rotate(8deg); }
-}
-
-/* 700ms Page Curtain Wipe */
 #curtain {
-  position: fixed;
-  inset: 0;
-  z-index: 700;
-  pointer-events: none;
-  transform: translateY(100%);
-  opacity: 0;
+  position: fixed; inset: 0; z-index: 700; pointer-events: none;
+  transform: translateY(100%); opacity: 0;
   background: linear-gradient(135deg, #120e28 0%, #261645 48%, #3c1538 100%);
   border-top: 2px solid rgba(255, 95, 162, 0.55);
-  box-shadow: 0 -20px 80px rgba(124, 92, 255, 0.45);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  display: flex; align-items: center; justify-content: center;
 }
+#curtain.wipe-in { animation: curtainIn 0.35s cubic-bezier(0.77, 0, 0.18, 1) forwards; }
+#curtain.wipe-out { animation: curtainOut 0.35s cubic-bezier(0.77, 0, 0.18, 1) forwards; }
+@keyframes curtainIn { 0% { transform: translateY(100%); opacity: 0.7; } 100% { transform: translateY(0%); opacity: 1; } }
+@keyframes curtainOut { 0% { transform: translateY(0%); opacity: 1; } 100% { transform: translateY(-100%); opacity: 0.7; } }
 
-#curtain.wipe-in {
-  animation: curtainIn 0.35s cubic-bezier(0.77, 0, 0.18, 1) forwards;
-}
-
-#curtain.wipe-out {
-  animation: curtainOut 0.35s cubic-bezier(0.77, 0, 0.18, 1) forwards;
-}
-
-@keyframes curtainIn {
-  0% { transform: translateY(100%); opacity: 0.7; }
-  100% { transform: translateY(0%); opacity: 1; }
-}
-
-@keyframes curtainOut {
-  0% { transform: translateY(0%); opacity: 1; }
-  100% { transform: translateY(-100%); opacity: 0.7; }
-}
-
-/* Full-screen Processing State during Audit */
 #audit-processing {
-  position: fixed;
-  inset: 0;
-  z-index: 650;
+  position: fixed; inset: 0; z-index: 650;
   background: rgba(7, 6, 13, 0.88);
   backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
+  display: none; align-items: center; justify-content: center; padding: 24px;
 }
-
-#audit-processing.active {
-  display: flex;
-  animation: fadeInOverlay 0.25s ease forwards;
-}
-
-@keyframes fadeInOverlay {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
+#audit-processing.active { display: flex; }
 .scan-beam {
-  position: absolute;
-  left: 0;
-  right: 0;
-  height: 3px;
+  position: absolute; left: 0; right: 0; height: 3px;
   background: linear-gradient(90deg, transparent, var(--v), var(--p), var(--a), transparent);
   box-shadow: 0 0 28px var(--v), 0 0 60px var(--p);
   animation: beamSweep 2.2s ease-in-out infinite;
-  pointer-events: none;
 }
+@keyframes beamSweep { 0% { top: 6%; } 50% { top: 94%; } 100% { top: 6%; } }
 
-@keyframes beamSweep {
-  0% { top: 6%; opacity: 0.5; }
-  50% { top: 94%; opacity: 1; }
-  100% { top: 6%; opacity: 0.5; }
-}
-
-/* Floating Navigation Bar (Top on desktop, Bottom dock on mobile) */
 #nav {
-  position: fixed;
-  top: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 400;
-  width: min(1240px, calc(100% - 24px));
-  padding: 10px 14px;
-  border-radius: 22px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  background: rgba(14, 12, 26, 0.68);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
+  position: fixed; top: 16px; left: 50%; transform: translateX(-50%); z-index: 400;
+  width: min(1240px, calc(100% - 24px)); padding: 10px 14px; border-radius: 22px;
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  background: rgba(14, 12, 26, 0.68); border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(24px); box-shadow: 0 20px 60px rgba(0, 0, 0, 0.45);
 }
-
 @media (max-width: 767px) {
-  #nav {
-    top: auto;
-    bottom: 12px;
-    width: calc(100% - 16px);
-    padding: 8px 10px;
-    border-radius: 24px;
-  }
-  .desktop-only-brand, .desktop-only-user {
-    display: none !important;
-  }
+  #nav { top: auto; bottom: 12px; width: calc(100% - 16px); padding: 8px 10px; border-radius: 24px; }
+  .desktop-only-brand, .desktop-only-user { display: none !important; }
 }
-
 .logo-mark {
-  width: 36px;
-  height: 36px;
-  border-radius: 12px;
+  width: 36px; height: 36px; border-radius: 12px;
   background: linear-gradient(135deg, var(--v), var(--p));
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
+  display: flex; align-items: center; justify-content: center; color: #fff;
   box-shadow: 0 8px 24px rgba(124, 92, 255, 0.45);
 }
-
 .nav-pill-wrap {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-  padding: 4px;
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  position: relative; display: flex; align-items: center; gap: 2px;
+  padding: 4px; border-radius: 16px;
+  background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07);
 }
-
 #nav-slider {
-  position: absolute;
-  top: 4px;
-  bottom: 4px;
-  left: 4px;
-  border-radius: 12px;
+  position: absolute; top: 4px; bottom: 4px; left: 4px; border-radius: 12px;
   background: linear-gradient(135deg, var(--v), #9b5cff 55%, var(--p));
-  box-shadow: 0 6px 22px rgba(124, 92, 255, 0.5);
   transition: transform 0.36s cubic-bezier(0.22, 1, 0.36, 1), width 0.36s cubic-bezier(0.22, 1, 0.36, 1);
-  z-index: 0;
-  pointer-events: none;
+  z-index: 0; pointer-events: none;
 }
-
 .navbtn {
-  position: relative;
-  z-index: 1;
-  padding: 8px 13px;
-  border-radius: 12px;
-  font-size: 12.5px;
-  font-weight: 600;
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  color: #a8a4c2;
-  transition: color 0.22s ease;
-  white-space: nowrap;
+  position: relative; z-index: 1; padding: 8px 13px; border-radius: 12px;
+  font-size: 12.5px; font-weight: 600; display: inline-flex; align-items: center; gap: 7px;
+  color: #a8a4c2; transition: color 0.22s ease; white-space: nowrap;
 }
+.navbtn:hover, .navbtn.act { color: #ffffff; }
 
-.navbtn:hover {
-  color: #ffffff;
-}
-
-.navbtn.act {
-  color: #ffffff;
-}
-
-/* SPA Page Viewport (100vh, no page scroll) */
-#spa-viewport {
-  position: relative;
-  width: 100%;
-  height: 100vh;
-  overflow: hidden;
-}
-
+#spa-viewport { position: relative; width: 100%; height: 100vh; overflow: hidden; }
 .page-view {
-  position: fixed;
-  inset: 0;
-  width: 100%;
-  height: 100vh;
-  padding: 84px 24px 24px;
-  display: none;
-  flex-direction: column;
-  justify-content: center;
-  overflow: hidden;
-  z-index: 10;
+  position: fixed; inset: 0; width: 100%; height: 100vh;
+  padding: 84px 24px 24px; display: none; flex-direction: column;
+  justify-content: center; overflow: hidden; z-index: 10;
 }
-
 @media (max-width: 767px) {
-  .page-view {
-    padding: 18px 14px 86px;
-    overflow-y: auto;
-    justify-content: flex-start;
-  }
+  .page-view { padding: 18px 14px 86px; overflow-y: auto; justify-content: flex-start; }
 }
+.page-view.active { display: flex; }
 
-.page-view.active {
-  display: flex;
-}
-
-.page-view.entering .page-stagger {
-  animation: staggerUp 0.62s cubic-bezier(0.2, 0.85, 0.25, 1) both;
-  animation-delay: calc(var(--d, 0) * 65ms);
-}
-
-@keyframes staggerUp {
-  0% {
-    opacity: 0;
-    transform: translateY(26px) scale(0.985);
-    filter: blur(4px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-    filter: blur(0);
-  }
-}
-
-/* Glass Cards + Spotlight */
 .card {
-  position: relative;
-  border-radius: 26px;
-  background: var(--glass);
-  border: 1px solid var(--border);
-  backdrop-filter: blur(22px);
-  -webkit-backdrop-filter: blur(22px);
-  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.45);
-  overflow: hidden;
-  transition: border-color 0.28s ease, transform 0.22s ease-out, box-shadow 0.28s ease;
+  position: relative; border-radius: 26px; background: var(--glass);
+  border: 1px solid var(--border); backdrop-filter: blur(22px);
+  box-shadow: 0 26px 70px rgba(0, 0, 0, 0.45); overflow: hidden;
 }
-
-.card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.25s ease;
-  background: radial-gradient(420px circle at var(--mx, 50%) var(--my, 50%), rgba(124, 92, 255, 0.22), rgba(255, 95, 162, 0.08) 45%, transparent 70%);
-}
-
-.card:hover::before {
-  opacity: 1;
-}
-
-.card:hover {
-  border-color: rgba(124, 92, 255, 0.45);
-  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.55), 0 0 35px rgba(124, 92, 255, 0.14);
-}
-
-.card > * {
-  position: relative;
-  z-index: 1;
-}
-
-/* Buttons & Gradient Text */
 .pill-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 600;
-  color: #cfc8ff;
-  background: rgba(124, 92, 255, 0.14);
-  border: 1px solid rgba(124, 92, 255, 0.35);
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px;
+  border-radius: 999px; font-size: 12px; font-weight: 600; color: #cfc8ff;
+  background: rgba(124, 92, 255, 0.14); border: 1px solid rgba(124, 92, 255, 0.35);
 }
-
-.pill-badge b {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background: #3df5a8;
-  box-shadow: 0 0 12px #3df5a8;
-  animation: blinkDot 1.6s infinite;
-}
-
-@keyframes blinkDot {
-  50% { opacity: 0.35; }
-}
-
+.pill-badge b { width: 7px; height: 7px; border-radius: 50%; background: #3df5a8; box-shadow: 0 0 12px #3df5a8; }
 .grad {
   background: linear-gradient(100deg, #fff 0%, #c9b8ff 32%, var(--p) 68%, var(--a) 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-  animation: shineText 6s linear infinite;
+  -webkit-background-clip: text; background-clip: text; color: transparent;
 }
-
-@keyframes shineText {
-  to { background-position: 200% center; }
-}
-
 .btn-p {
-  position: relative;
-  overflow: hidden;
-  padding: 13px 24px;
-  border-radius: 16px;
-  font-weight: 700;
-  font-size: 13.5px;
-  color: #fff;
+  padding: 13px 24px; border-radius: 16px; font-weight: 700; font-size: 13.5px; color: #fff;
   background: linear-gradient(135deg, var(--v), #9b5cff 55%, var(--p));
-  box-shadow: 0 14px 38px rgba(124, 92, 255, 0.45);
-  transition: transform 0.2s ease, box-shadow 0.25s ease;
+  box-shadow: 0 14px 38px rgba(124, 92, 255, 0.45); cursor: pointer;
 }
-
-.btn-p:hover {
-  box-shadow: 0 18px 50px rgba(255, 95, 162, 0.45);
-}
-
-.btn-p::after {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: -75%;
-  width: 45%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
-  transform: skewX(-20deg);
-  transition: left 0.65s ease;
-}
-
-.btn-p:hover::after {
-  left: 145%;
-}
-
 .btn-g {
-  padding: 13px 22px;
-  border-radius: 16px;
-  font-weight: 600;
-  font-size: 13.5px;
-  color: #e7e5f2;
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  background: rgba(255, 255, 255, 0.04);
-  transition: all 0.22s ease;
+  padding: 13px 22px; border-radius: 16px; font-weight: 600; font-size: 13.5px; color: #e7e5f2;
+  border: 1px solid rgba(255, 255, 255, 0.14); background: rgba(255, 255, 255, 0.04); cursor: pointer;
 }
-
-.btn-g:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.32);
-}
-
-/* 3D Preview Card on HOME */
-.stage {
-  position: relative;
-  perspective: 1400px;
-  height: 450px;
-}
-
-.mock {
-  position: relative;
-  border-radius: 28px;
-  padding: 22px;
-  background: linear-gradient(160deg, rgba(32, 26, 62, 0.92), rgba(14, 12, 28, 0.92));
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  box-shadow: 0 45px 110px rgba(0, 0, 0, 0.65), 0 0 85px rgba(124, 92, 255, 0.24);
-  transform-style: preserve-3d;
-  transition: transform 0.14s ease-out;
-}
-
-.dots i {
-  display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  margin-right: 6px;
-}
-
-.ring {
-  width: 118px;
-  height: 118px;
-  transform: rotate(-90deg);
-}
-
-.ring circle {
-  fill: none;
-  stroke-width: 10;
-  stroke-linecap: round;
-}
-
-.ring .bg {
-  stroke: rgba(255, 255, 255, 0.08);
-}
-
-.ring .fg {
-  stroke: url(#rg);
-  stroke-dasharray: 314;
-  stroke-dashoffset: 314;
-  animation: ringFill 2s 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
-@keyframes ringFill {
-  to { stroke-dashoffset: 38; }
-}
-
-.bar {
-  height: 7px;
-  border-radius: 99px;
-  background: rgba(255, 255, 255, 0.08);
-  overflow: hidden;
-}
-
-.bar i {
-  display: block;
-  height: 100%;
-  width: 0;
-  border-radius: 99px;
-  background: linear-gradient(90deg, var(--v), var(--p));
-  animation: barGrow 1.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-}
-
-@keyframes barGrow {
-  to { width: var(--w); }
-}
-
-.chip-float {
-  position: absolute;
-  padding: 9px 14px;
-  border-radius: 16px;
-  font-size: 12px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(20, 17, 38, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.14);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.5);
-  transition: transform 0.14s ease-out;
-  will-change: transform;
-}
-
-.chip-float .bob {
-  animation: bobFloat 5s ease-in-out infinite;
-}
-
-@keyframes bobFloat {
-  50% { transform: translateY(-9px); }
-}
-
-/* Dropzones on UPLOAD page */
 .dropzone {
-  position: relative;
-  border-radius: 20px;
-  padding: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  border-radius: 20px; padding: 16px; background: rgba(255, 255, 255, 0.03);
   border: 1.5px dashed rgba(255, 255, 255, 0.18);
-  transition: border-color 0.25s ease, background 0.25s ease, transform 0.2s ease;
 }
-
-.dropzone:hover, .dropzone.dragover {
-  border-color: var(--v);
-  background: rgba(124, 92, 255, 0.1);
-}
-
-input[type=file] {
-  font-size: 12px;
-  color: #b5b0cf;
-  width: 100%;
-  outline: none;
-}
-
+input[type=file] { font-size: 12px; color: #b5b0cf; width: 100%; }
 input[type=file]::file-selector-button {
-  margin-right: 12px;
-  padding: 8px 14px;
-  border: 0;
-  border-radius: 11px;
-  font-weight: 700;
-  font-size: 11.5px;
-  color: #fff;
-  background: linear-gradient(135deg, var(--v), var(--p));
-  cursor: pointer;
+  margin-right: 12px; padding: 8px 14px; border: 0; border-radius: 11px;
+  font-weight: 700; font-size: 11.5px; color: #fff;
+  background: linear-gradient(135deg, var(--v), var(--p)); cursor: pointer;
 }
-
-.inner-scroll {
-  overflow-y: auto;
-}
-
-.inner-scroll-x {
-  overflow: auto;
-}
-
-.anim-row {
-  animation: rowSlideIn 0.42s cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  animation-delay: calc(var(--i, 0) * 40ms);
-}
-
-@keyframes rowSlideIn {
-  from { opacity: 0; transform: translateX(-16px); }
-  to { opacity: 1; transform: translateX(0); }
-}
-
+.inner-scroll { overflow-y: auto; }
+.inner-scroll-x { overflow: auto; }
 .bnum {
-  font-family: 'Sora', sans-serif;
-  font-weight: 800;
-  font-size: 2.4rem;
-  line-height: 1;
+  font-family: 'Sora', sans-serif; font-weight: 800; font-size: 2.4rem; line-height: 1;
   background: linear-gradient(135deg, var(--v), var(--p), var(--a));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
-}
-
-::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-
-::-webkit-scrollbar-track {
-  background: rgba(7, 6, 13, 0.4);
-}
-
-::-webkit-scrollbar-thumb {
-  background: #2e2657;
-  border-radius: 999px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--v);
-}
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-  }
+  -webkit-background-clip: text; background-clip: text; color: transparent;
 }
 </style>
 </head>
 <body>
 
-<!-- STRICT ACCOUNT GATE (Sign In / Create Account / Gmail OTP Reset) -->
+<!-- STRICT ACCOUNT GATE -->
 <div id="auth-gate">
   <div class="card max-w-md w-full p-7 border border-violet-500/40">
     <div class="text-center mb-5">
@@ -888,13 +274,7 @@ input[type=file]::file-selector-button {
   </div>
 </div>
 
-<!-- First-visit Loader -->
-<div id="loader">
-  <div class="lg"><i class="fa-solid fa-shield-halved"></i></div>
-  <p class="text-xs font-medium tracking-widest uppercase text-slate-400">CertiVerify AI</p>
-</div>
-
-<!-- Page Transition Curtain (700ms total wipe) -->
+<!-- Page Transition Curtain -->
 <div id="curtain" aria-hidden="true">
   <div class="flex items-center gap-3 text-white font-display font-bold tracking-tight text-lg">
     <span class="w-2.5 h-2.5 rounded-full bg-pink-400 animate-ping"></span>
@@ -906,7 +286,7 @@ input[type=file]::file-selector-button {
 <div id="audit-processing" aria-live="polite">
   <div class="scan-beam"></div>
   <div class="card max-w-md w-full p-8 text-center border border-violet-500/40">
-    <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-tr from-violet-600 via-pink-500 to-amber-400 flex items-center justify-center text-white text-2xl shadow-lg shadow-violet-500/40 animate-pulse">
+    <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-gradient-to-tr from-violet-600 via-pink-500 to-amber-400 flex items-center justify-center text-white text-2xl shadow-lg animate-pulse">
       <i class="fa-solid fa-microchip"></i>
     </div>
     <h3 class="font-display text-xl font-bold text-white">Running 5-Pillar Audit</h3>
@@ -920,14 +300,9 @@ input[type=file]::file-selector-button {
   </div>
 </div>
 
-<!-- Persistent Three.js Canvas + Aurora + Grid + Grain + Spotlight + Cursor -->
 <div id="three-bg"></div>
 <div class="aurora"><i></i><i></i><i></i><i></i></div>
 <div class="gridbg"></div>
-<div class="grain"></div>
-<div id="spotlight"></div>
-<div id="cur-dot"></div>
-<div id="cur-ring"></div>
 
 <!-- Persistent Floating Navigation -->
 <header id="nav">
@@ -950,14 +325,14 @@ input[type=file]::file-selector-button {
   </nav>
 
   <div class="desktop-only-user flex items-center gap-2.5 shrink-0">
-    <button type="button" id="install-app-btn" onclick="triggerPwaInstall()" class="hidden magnetic text-xs px-3.5 py-2 rounded-xl border border-violet-500/40 bg-violet-500/15 text-violet-200 hover:bg-violet-500/25 transition font-semibold inline-flex items-center gap-1.5">
+    <button type="button" id="install-app-btn" onclick="triggerPwaInstall()" class="hidden text-xs px-3.5 py-2 rounded-xl border border-violet-500/40 bg-violet-500/15 text-violet-200 hover:bg-violet-500/25 transition font-semibold inline-flex items-center gap-1.5">
       <i class="fa-solid fa-mobile-screen-button"></i>
       <span>Install App</span>
     </button>
     <span class="flex items-center gap-2 text-xs px-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-slate-200 font-medium">
       <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span id="user-chip-label">Not Signed In</span>
     </span>
-    <button type="button" onclick="logout()" class="magnetic text-xs px-3.5 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition font-semibold">Sign Out</button>
+    <button type="button" onclick="logout()" class="text-xs px-3.5 py-2 rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-300 hover:bg-rose-500/20 transition font-semibold">Sign Out</button>
   </div>
 </header>
 
@@ -968,108 +343,44 @@ input[type=file]::file-selector-button {
   <section id="page-home" class="page-view active">
     <div class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-10 items-center">
       <div class="lg:col-span-7 space-y-5">
-        <div class="page-stagger" style="--d:0">
-          <span class="pill-badge"><b></b>FDA 21 CFR Part 11 · USP · EP · ICH Q3D</span>
-        </div>
-        <h1 class="page-stagger font-display text-4xl sm:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.05] text-white" style="--d:1">
+        <span class="pill-badge"><b></b>FDA 21 CFR Part 11 · USP · EP · ICH Q3D</span>
+        <h1 class="font-display text-4xl sm:text-5xl xl:text-6xl font-extrabold tracking-tight leading-[1.05] text-white">
           Certify every batch <span class="grad">before it ships.</span>
         </h1>
-        <p class="page-stagger text-base sm:text-lg text-slate-300/90 max-w-xl leading-relaxed" style="--d:2">
+        <p class="text-base sm:text-lg text-slate-300/90 max-w-xl leading-relaxed">
           Upload Certificates of Analysis and Purchase Orders to verify specifications, detect batch anomalies, and seal every decision with SHA-256.
         </p>
-        <div class="page-stagger flex flex-wrap items-center gap-3.5 pt-2" style="--d:3">
-          <button type="button" onclick="navigateTo('upload')" class="magnetic btn-p inline-flex items-center gap-2">
+        <div class="flex flex-wrap items-center gap-3.5 pt-2">
+          <button type="button" onclick="navigateTo('upload')" class="btn-p inline-flex items-center gap-2">
             <i class="fa-solid fa-file-arrow-up text-xs"></i>
             <span>Upload &amp; Audit</span>
           </button>
-          <button type="button" onclick="navigateTo('framework')" class="magnetic btn-g inline-flex items-center gap-2">
+          <button type="button" onclick="navigateTo('framework')" class="btn-g inline-flex items-center gap-2">
             <span>How it works</span>
           </button>
-          <button type="button" id="hero-install-btn" onclick="triggerPwaInstall()" class="hidden magnetic btn-g inline-flex items-center gap-2 border-violet-500/40 text-violet-200">
+          <button type="button" id="hero-install-btn" onclick="triggerPwaInstall()" class="hidden btn-g inline-flex items-center gap-2 border-violet-500/40 text-violet-200">
             <i class="fa-solid fa-download text-xs"></i>
             <span>Install Mobile App</span>
           </button>
         </div>
-        <div class="page-stagger grid grid-cols-3 gap-3 pt-4 max-w-lg" style="--d:4">
-          <div class="card p-3.5 rounded-2xl">
-            <div class="bnum text-2xl"><span data-count="5">5</span></div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Audit pillars</p>
-          </div>
-          <div class="card p-3.5 rounded-2xl">
-            <div class="bnum text-2xl"><span data-count="256">256</span></div>
-            <p class="text-[11px] text-slate-400 mt-0.5">SHA-256 seal</p>
-          </div>
-          <div class="card p-3.5 rounded-2xl">
-            <div class="bnum text-2xl">Part <span data-count="11">11</span></div>
-            <p class="text-[11px] text-slate-400 mt-0.5">Audit trail</p>
-          </div>
+        <div class="grid grid-cols-3 gap-3 pt-4 max-w-lg">
+          <div class="card p-3.5 rounded-2xl"><div class="bnum text-2xl">5</div><p class="text-[11px] text-slate-400 mt-0.5">Audit pillars</p></div>
+          <div class="card p-3.5 rounded-2xl"><div class="bnum text-2xl">256</div><p class="text-[11px] text-slate-400 mt-0.5">SHA-256 seal</p></div>
+          <div class="card p-3.5 rounded-2xl"><div class="bnum text-2xl">Part 11</div><p class="text-[11px] text-slate-400 mt-0.5">Audit trail</p></div>
         </div>
       </div>
 
-      <div class="lg:col-span-5 page-stagger" style="--d:2">
-        <div id="hero-stage" class="stage flex items-center justify-center">
-          <div id="hero-mock" class="mock w-full max-w-md" data-depth="1">
-            <div class="flex items-center justify-between mb-4">
-              <div class="dots"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div>
-              <span class="text-[10px] font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/[.06] text-slate-300 border border-white/10">Sample preview</span>
-            </div>
-            <div class="flex items-center gap-5">
-              <div class="relative shrink-0">
-                <svg class="ring" viewBox="0 0 118 118">
-                  <defs>
-                    <linearGradient id="rg" x1="0" y1="0" x2="1" y2="1">
-                      <stop offset="0%" stop-color="#7c5cff" />
-                      <stop offset="100%" stop-color="#ff5fa2" />
-                    </linearGradient>
-                  </defs>
-                  <circle class="bg" cx="59" cy="59" r="50" />
-                  <circle class="fg" cx="59" cy="59" r="50" />
-                </svg>
-                <div class="absolute inset-0 flex flex-col items-center justify-center">
-                  <span class="font-display text-2xl font-extrabold text-white" data-count="96">96</span>
-                  <span class="text-[9px] uppercase tracking-widest text-slate-400">Confidence</span>
-                </div>
-              </div>
-              <div class="min-w-0">
-                <p class="text-[11px] text-slate-400 uppercase tracking-wider">Release Readiness</p>
-                <p class="font-display text-lg font-bold text-white truncate mt-0.5">Amoxicillin API</p>
-                <span class="inline-block mt-2 text-[11px] font-semibold px-2.5 py-0.5 rounded-lg bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">COMPLIANT</span>
-              </div>
-            </div>
-            <div class="mt-5 space-y-3">
-              <div>
-                <div class="flex justify-between text-xs mb-1 text-slate-300"><span>USP Assay Threshold</span><span>99.4%</span></div>
-                <div class="bar"><i style="--w:94%"></i></div>
-              </div>
-              <div>
-                <div class="flex justify-between text-xs mb-1 text-slate-300"><span>ICH Q3D Heavy Metals</span><span>Low Risk</span></div>
-                <div class="bar"><i style="--w:88%"></i></div>
-              </div>
-              <div>
-                <div class="flex justify-between text-xs mb-1 text-slate-300"><span>PO Cross-Match</span><span>Verified</span></div>
-                <div class="bar"><i style="--w:98%"></i></div>
-              </div>
-            </div>
-            <div class="mt-5 pt-3 border-t border-white/10 flex items-center justify-between text-[11px] text-slate-400">
-              <span>SHA-256 Dossier Seal</span>
-              <span class="text-violet-300 font-medium">Immutable</span>
-            </div>
+      <div class="lg:col-span-5">
+        <div class="card p-6 border border-white/15">
+          <div class="flex items-center justify-between mb-4">
+            <span class="text-xs font-bold text-white">Amoxicillin API</span>
+            <span class="text-[10px] font-semibold uppercase tracking-widest px-2.5 py-1 rounded-full bg-white/[.06] text-slate-300 border border-white/10">Sample preview</span>
           </div>
-
-          <div class="chip-float -top-2 right-1" data-depth="2.2">
-            <div class="bob flex items-center gap-2 text-emerald-300">
-              <i class="fa-solid fa-circle-check"></i><span>All parameters passed</span>
-            </div>
-          </div>
-          <div class="chip-float bottom-4 -left-2" data-depth="2.8">
-            <div class="bob flex items-center gap-2 text-violet-300" style="animation-delay:-2s">
-              <i class="fa-solid fa-shield-halved"></i><span>Tamper-proof seal</span>
-            </div>
-          </div>
-          <div class="chip-float -bottom-2 right-6" data-depth="1.8">
-            <div class="bob flex items-center gap-2 text-amber-300" style="animation-delay:-3.4s">
-              <i class="fa-solid fa-file-contract"></i><span>PO cross-verified</span>
-            </div>
+          <p class="text-xs text-slate-400 mb-4">Confidence Score: <strong class="text-white">96%</strong> &bull; Status: <span class="text-emerald-300 font-semibold">COMPLIANT</span></p>
+          <div class="space-y-2.5 text-xs text-slate-300">
+            <div class="flex justify-between"><span>USP Assay Threshold</span><span>99.4%</span></div>
+            <div class="flex justify-between"><span>ICH Q3D Heavy Metals</span><span>Low Risk</span></div>
+            <div class="flex justify-between"><span>PO Cross-Match</span><span>Verified</span></div>
           </div>
         </div>
       </div>
@@ -1079,39 +390,37 @@ input[type=file]::file-selector-button {
   <!-- 2. UPLOAD PAGE -->
   <section id="page-upload" class="page-view">
     <div class="max-w-6xl w-full mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
-      <div class="lg:col-span-7 card p-6 sm:p-7 flex flex-col justify-between page-stagger" style="--d:0">
+      <div class="lg:col-span-7 card p-6 sm:p-7 flex flex-col justify-between">
         <div>
           <div class="flex items-center justify-between mb-5">
             <div>
               <span class="pill-badge text-[11px]">Dedicated Upload Workspace</span>
               <h2 class="font-display text-2xl font-bold text-white mt-2">Upload Batch Dossier</h2>
             </div>
-            <button type="button" onclick="navigateTo('home')" class="magnetic btn-g !py-1.5 !px-3.5 text-xs inline-flex items-center gap-1.5">
+            <button type="button" onclick="navigateTo('home')" class="btn-g !py-1.5 !px-3.5 text-xs inline-flex items-center gap-1.5">
               <i class="fa-solid fa-arrow-left text-[11px]"></i>
               <span>Home</span>
             </button>
           </div>
 
           <form id="audit-form" onsubmit="handleAudit(event)" class="space-y-4">
-            <div id="drop-coa" class="dropzone">
+            <div class="dropzone">
               <label for="coa-file" class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-200 mb-2">
                 <span><i class="fa-solid fa-file-pdf text-pink-400 mr-2"></i>Certificate of Analysis (CoA PDF) *</span>
                 <span class="text-[11px] text-violet-300 font-normal normal-case">Required</span>
               </label>
-              <p class="text-xs text-slate-400 mb-2.5">Drag and drop your CoA PDF here or browse from your device.</p>
               <input type="file" id="coa-file" accept=".pdf" required>
             </div>
 
-            <div id="drop-po" class="dropzone">
+            <div class="dropzone">
               <label for="po-file" class="flex items-center justify-between text-xs font-semibold uppercase tracking-wider text-slate-200 mb-2">
                 <span><i class="fa-solid fa-file-invoice text-violet-400 mr-2"></i>Purchase Order / Spec Sheet</span>
                 <span class="text-[11px] text-slate-400 font-normal normal-case">Optional</span>
               </label>
-              <p class="text-xs text-slate-400 mb-2.5">Attach a PO PDF to cross-check quantities, supplier, and batch specs.</p>
               <input type="file" id="po-file" accept=".pdf">
             </div>
 
-            <button type="submit" id="submit-btn" class="magnetic btn-p w-full flex items-center justify-center gap-2.5 uppercase tracking-wider text-xs mt-2">
+            <button type="submit" id="submit-btn" class="btn-p w-full flex items-center justify-center gap-2.5 uppercase tracking-wider text-xs mt-2">
               <i class="fa-solid fa-bolt"></i>
               <span id="btn-text">Execute 5-Pillar Research AI Audit</span>
             </button>
@@ -1119,7 +428,7 @@ input[type=file]::file-selector-button {
         </div>
       </div>
 
-      <div class="lg:col-span-5 card p-6 flex flex-col page-stagger" style="--d:1">
+      <div class="lg:col-span-5 card p-6 flex flex-col">
         <div class="flex items-center justify-between gap-2 mb-4 shrink-0">
           <div class="min-w-0">
             <h3 class="font-display text-base font-bold text-white flex items-center gap-2">
@@ -1132,10 +441,10 @@ input[type=file]::file-selector-button {
             <span class="text-xs font-bold px-2.5 py-1 rounded-full bg-violet-500/15 text-violet-200 border border-violet-500/30">
               <span id="ledger-count">0</span>
             </span>
-            <button type="button" onclick="loadLedger()" title="Refresh recent batches" aria-label="Refresh recent batches" class="magnetic w-8 h-8 rounded-xl bg-white/[.05] border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition">
+            <button type="button" onclick="loadLedger()" title="Refresh recent batches" class="w-8 h-8 rounded-xl bg-white/[.05] border border-white/10 text-slate-300 hover:text-white flex items-center justify-center transition">
               <i class="fa-solid fa-rotate text-xs"></i>
             </button>
-            <button type="button" onclick="clearAllHistory()" title="Clear all batch history" aria-label="Clear all batch history" class="magnetic px-2.5 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-[11px] font-semibold inline-flex items-center gap-1.5 transition">
+            <button type="button" onclick="clearAllHistory()" title="Clear all batch history" class="px-2.5 h-8 rounded-xl bg-rose-500/10 hover:bg-rose-500/20 border border-rose-500/30 text-rose-300 text-[11px] font-semibold inline-flex items-center gap-1.5 transition">
               <i class="fa-solid fa-trash-can text-[11px]"></i>
               <span>Clear All</span>
             </button>
@@ -1151,11 +460,11 @@ input[type=file]::file-selector-button {
 
   <!-- 3. RESULT PAGE -->
   <section id="page-result" class="page-view">
-    <div id="result-card" class="card max-w-6xl w-full mx-auto p-6 sm:p-7 flex flex-col justify-between max-h-[calc(100vh-112px)] page-stagger" style="--d:0">
+    <div id="result-card" class="card max-w-6xl w-full mx-auto p-6 sm:p-7 flex flex-col justify-between max-h-[calc(100vh-112px)]">
       <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-white/10 shrink-0">
         <div class="min-w-0">
           <div class="flex flex-wrap items-center gap-2">
-            <button type="button" onclick="navigateTo('upload')" class="magnetic btn-g !py-1.5 !px-3.5 text-xs inline-flex items-center gap-1.5">
+            <button type="button" onclick="navigateTo('upload')" class="btn-g !py-1.5 !px-3.5 text-xs inline-flex items-center gap-1.5">
               <i class="fa-solid fa-arrow-left text-[11px]"></i>
               <span>Back to Upload</span>
             </button>
@@ -1165,18 +474,9 @@ input[type=file]::file-selector-button {
           <p id="res-supplier" class="text-xs text-slate-400 mt-0.5 truncate">Select or run a batch audit to view detailed verification results.</p>
         </div>
 
-        <div class="flex items-center gap-4 shrink-0">
-          <div class="relative w-16 h-16 flex items-center justify-center">
-            <svg class="w-16 h-16 -rotate-90" viewBox="0 0 64 64">
-              <circle cx="32" cy="32" r="26" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="5" />
-              <circle id="risk-ring-circle" cx="32" cy="32" r="26" fill="none" stroke="url(#rg)" stroke-width="5" stroke-linecap="round" stroke-dasharray="163.36" stroke-dashoffset="163.36" style="transition: stroke-dashoffset 0.9s cubic-bezier(0.2, 0.85, 0.25, 1)" />
-            </svg>
-            <span id="risk-ring-label" class="absolute font-display text-xs font-bold text-white">--</span>
-          </div>
-          <div class="text-right">
-            <div id="res-verdict-badge" class="px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-white/[.05] text-slate-300 border border-white/10">PENDING</div>
-            <p id="res-risk" class="text-[11px] text-slate-400 mt-1.5">Risk Score: -- | Confidence: --</p>
-          </div>
+        <div class="text-right shrink-0">
+          <div id="res-verdict-badge" class="px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider bg-white/[.05] text-slate-300 border border-white/10">PENDING</div>
+          <p id="res-risk" class="text-[11px] text-slate-400 mt-1.5">Risk Score: -- | Confidence: --</p>
         </div>
       </div>
 
@@ -1222,28 +522,23 @@ input[type=file]::file-selector-button {
 
   <!-- 4. LEDGER PAGE -->
   <section id="page-ledger" class="page-view">
-    <div class="card max-w-6xl w-full mx-auto p-6 sm:p-7 flex flex-col max-h-[calc(100vh-112px)] page-stagger" style="--d:0">
+    <div class="card max-w-6xl w-full mx-auto p-6 sm:p-7 flex flex-col max-h-[calc(100vh-112px)]">
       <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10 shrink-0">
-        <div class="flex items-center gap-3">
-          <div>
-            <h2 class="font-display text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
-              <span>Batch Ledger</span>
-              <span id="full-ledger-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-500/30">0</span>
-            </h2>
-            <p class="text-xs text-slate-400 mt-0.5">Click any batch row to open its full result, or delete individual / all records.</p>
-          </div>
+        <div>
+          <h2 class="font-display text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
+            <span>Batch Ledger</span>
+            <span id="full-ledger-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-500/30">0</span>
+          </h2>
+          <p class="text-xs text-slate-400 mt-0.5">Click any batch row to open its full result, or delete individual / all records.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <div class="relative">
-            <i class="fa-solid fa-magnifying-glass text-xs text-slate-400 absolute left-3 top-1/2 -translate-y-1/2"></i>
-            <input type="search" id="ledger-search" oninput="filterLedgerTable()" placeholder="Filter batch, material, supplier..." class="text-xs pl-8 pr-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-white placeholder-slate-500 focus:border-violet-400 outline-none w-44 sm:w-60">
-          </div>
-          <button type="button" onclick="loadFullLedger()" class="magnetic btn-g !py-2 !px-3.5 text-xs inline-flex items-center gap-1.5">
+          <input type="search" id="ledger-search" oninput="filterLedgerTable()" placeholder="Filter batch, material, supplier..." class="text-xs px-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-white placeholder-slate-500 focus:border-violet-400 outline-none w-44 sm:w-60">
+          <button type="button" onclick="loadFullLedger()" class="btn-g !py-2 !px-3.5 text-xs inline-flex items-center gap-1.5">
             <i class="fa-solid fa-rotate"></i>
             <span>Refresh</span>
           </button>
-          <button type="button" onclick="clearAllHistory()" class="magnetic btn-g !py-2 !px-3.5 text-xs inline-flex items-center gap-1.5 border-rose-500/30 text-rose-300 hover:bg-rose-500/15">
+          <button type="button" onclick="clearAllHistory()" class="btn-g !py-2 !px-3.5 text-xs inline-flex items-center gap-1.5 border-rose-500/30 text-rose-300 hover:bg-rose-500/15">
             <i class="fa-solid fa-trash-can"></i>
             <span>Clear All</span>
           </button>
@@ -1272,14 +567,13 @@ input[type=file]::file-selector-button {
 
   <!-- 5. AUDIT TRAIL PAGE -->
   <section id="page-trail" class="page-view">
-    <div class="card max-w-6xl w-full mx-auto p-6 sm:p-7 flex flex-col max-h-[calc(100vh-112px)] page-stagger" style="--d:0">
+    <div class="card max-w-6xl w-full mx-auto p-6 sm:p-7 flex flex-col max-h-[calc(100vh-112px)]">
       <div class="flex flex-wrap items-center justify-between gap-3 pb-4 border-b border-white/10 shrink-0">
         <div>
           <span class="pill-badge text-[11px]">FDA 21 CFR Part 11</span>
           <h2 class="font-display text-xl sm:text-2xl font-bold text-white mt-1.5">Compliance Audit Trail</h2>
-          <p class="text-xs text-slate-400 mt-0.5">Chronological record of system events and compliance actions.</p>
         </div>
-        <button type="button" onclick="loadAuditTrail()" class="magnetic btn-g !py-2 !px-4 text-xs inline-flex items-center gap-2">
+        <button type="button" onclick="loadAuditTrail()" class="btn-g !py-2 !px-4 text-xs inline-flex items-center gap-2">
           <i class="fa-solid fa-rotate"></i>
           <span>Refresh</span>
         </button>
@@ -1307,42 +601,38 @@ input[type=file]::file-selector-button {
   <!-- 6. FRAMEWORK PAGE -->
   <section id="page-framework" class="page-view">
     <div class="max-w-6xl w-full mx-auto flex flex-col max-h-[calc(100vh-112px)]">
-      <div class="flex flex-wrap items-end justify-between gap-3 mb-4 shrink-0 page-stagger" style="--d:0">
+      <div class="flex flex-wrap items-end justify-between gap-3 mb-4 shrink-0">
         <div>
           <span class="pill-badge text-[11px]">Architecture</span>
           <h2 class="font-display text-2xl sm:text-3xl font-extrabold text-white mt-1.5">5-Pillar Compliance <span class="grad">Framework</span></h2>
         </div>
-        <button type="button" onclick="navigateTo('upload')" class="magnetic btn-p !py-2.5 !px-5 text-xs">
+        <button type="button" onclick="navigateTo('upload')" class="btn-p !py-2.5 !px-5 text-xs">
           <span>Upload Dossier</span>
         </button>
       </div>
 
       <div class="inner-scroll grid grid-cols-1 md:grid-cols-6 gap-4 pr-1 pb-2">
-        <div class="card md:col-span-3 p-5 page-stagger" style="--d:1">
+        <div class="card md:col-span-3 p-5">
           <div class="bnum">01</div>
           <h3 class="font-display text-base font-bold text-white mt-2">Confidence-Aware Extraction</h3>
           <p class="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed">Parses CoA and PO tables with field-level confidence scoring so uncertain readings are surfaced clearly.</p>
         </div>
-
-        <div class="card md:col-span-3 p-5 page-stagger" style="--d:2">
+        <div class="card md:col-span-3 p-5">
           <div class="bnum">02</div>
           <h3 class="font-display text-base font-bold text-white mt-2">Context-Aware Validation</h3>
           <p class="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed">Evaluates extracted analytical results against USP, EP, and ICH Q3D specification limits.</p>
         </div>
-
-        <div class="card md:col-span-2 p-5 page-stagger" style="--d:3">
+        <div class="card md:col-span-2 p-5">
           <div class="bnum">03</div>
           <h3 class="font-display text-base font-bold text-white mt-2">Cross-Document Consistency</h3>
           <p class="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed">Reconciles supplier certificates against purchase order terms to catch discrepancies early.</p>
         </div>
-
-        <div class="card md:col-span-2 p-5 page-stagger" style="--d:4">
+        <div class="card md:col-span-2 p-5">
           <div class="bnum">04</div>
           <h3 class="font-display text-base font-bold text-white mt-2">Tamper Screening</h3>
           <p class="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed">Generates a SHA-256 cryptographic seal for every dossier to protect record integrity.</p>
         </div>
-
-        <div class="card md:col-span-2 p-5 page-stagger" style="--d:5">
+        <div class="card md:col-span-2 p-5">
           <div class="bnum">05</div>
           <h3 class="font-display text-base font-bold text-white mt-2">Batch Anomaly Screening</h3>
           <p class="text-xs sm:text-sm text-slate-300/90 mt-1.5 leading-relaxed">Flags unusual batch deviations and guides corrective and preventive action (CAPA) directives.</p>
@@ -1355,7 +645,6 @@ input[type=file]::file-selector-button {
 
 <script>
 const API_BASE = "https://certiverify-backend-loxl.onrender.com";
-
 const ROUTES = ["home", "upload", "result", "ledger", "trail", "framework"];
 const ROUTE_LABELS = {
   home: "Home",
@@ -1369,12 +658,17 @@ const ROUTE_LABELS = {
 let currentRoute = "home";
 let isTransitioning = false;
 let latestLedgerCache = [];
-let threeShiftTarget = { x: 0, y: 0, rot: 0 };
 let stepIntervalId = null;
 let deferredInstallPrompt = null;
 let activeUser = null;
 
-/* ========== AUTH & SAVED USER PROGRESS ========== */
+/* Unregister any old service worker so fresh index.html always loads */
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.getRegistrations().then(regs => {
+    regs.forEach(reg => reg.unregister());
+  }).catch(() => {});
+}
+
 function getProgressStorageKey(user) {
   const keyPart = (user && (user.username || user.email)) || "guest";
   return `certiverify_progress_${keyPart}`;
@@ -1385,13 +679,12 @@ function saveUserProgress(extra = {}) {
   const key = getProgressStorageKey(activeUser);
   let existing = {};
   try { existing = JSON.parse(localStorage.getItem(key) || "{}"); } catch {}
-  const updated = {
+  localStorage.setItem(key, JSON.stringify({
     ...existing,
     lastRoute: currentRoute,
     updatedAt: new Date().toISOString(),
     ...extra,
-  };
-  localStorage.setItem(key, JSON.stringify(updated));
+  }));
 }
 
 function restoreUserProgress() {
@@ -1399,12 +692,8 @@ function restoreUserProgress() {
   const key = getProgressStorageKey(activeUser);
   try {
     const saved = JSON.parse(localStorage.getItem(key) || "{}");
-    if (saved.lastResult) {
-      renderAuditResult(saved.lastResult, false);
-    }
-    if (saved.lastRoute && ROUTES.includes(saved.lastRoute)) {
-      navigateTo(saved.lastRoute);
-    }
+    if (saved.lastResult) renderAuditResult(saved.lastResult, false);
+    if (saved.lastRoute && ROUTES.includes(saved.lastRoute)) navigateTo(saved.lastRoute);
   } catch {}
 }
 
@@ -1526,10 +815,8 @@ async function handleLogin(e) {
 }
 
 async function handleSendOtp() {
-  const emailInput = document.getElementById("otp-email");
-  const email = (emailInput.value || "").trim().toLowerCase();
+  const email = (document.getElementById("otp-email").value || "").trim().toLowerCase();
   if (!email) return alert("Enter your registered Gmail address first.");
-
   const btn = document.getElementById("send-otp-btn");
   btn.disabled = true;
   try {
@@ -1556,7 +843,6 @@ async function handleResetPassword(e) {
   const btn = document.getElementById("reset-pass-btn");
 
   if (!email) return alert("Please enter your Gmail address above and send OTP first.");
-
   btn.disabled = true;
   try {
     const res = await fetch(`${API_BASE}/api/v1/auth/reset-password`, {
@@ -1591,7 +877,6 @@ function logout() {
   switchAuthTab("login");
 }
 
-/* ========== PWA INSTALL PROMPT ========== */
 window.addEventListener("beforeinstallprompt", e => {
   e.preventDefault();
   deferredInstallPrompt = e;
@@ -1606,13 +891,8 @@ async function triggerPwaInstall() {
   deferredInstallPrompt.prompt();
   await deferredInstallPrompt.userChoice.catch(() => {});
   deferredInstallPrompt = null;
-  ["install-app-btn", "hero-install-btn"].forEach(id => {
-    const el = document.getElementById(id);
-    if (el) el.classList.add("hidden");
-  });
 }
 
-/* ========== HASH ROUTING & 700MS CURTAIN TRANSITION ========== */
 function parseHashRoute() {
   const raw = (window.location.hash || "#/home").replace(/^#\/?/, "").split("?")[0].toLowerCase();
   if (raw === "audit") return "upload";
@@ -1623,12 +903,10 @@ function syncNavIndicator(route) {
   const slider = document.getElementById("nav-slider");
   const navWrap = document.querySelector(".nav-pill-wrap");
   if (!slider || !navWrap) return;
-
   const activeKey = route === "result" ? "upload" : route;
   document.querySelectorAll(".navbtn[data-route]").forEach(btn => {
     btn.classList.toggle("act", btn.dataset.route === activeKey);
   });
-
   const activeBtn = navWrap.querySelector(`.navbtn[data-route="${activeKey}"]`);
   if (activeBtn) {
     const wrapRect = navWrap.getBoundingClientRect();
@@ -1639,67 +917,35 @@ function syncNavIndicator(route) {
   }
 }
 
-function triggerPageSideEffects(route) {
-  if (!activeUser) return;
-  if (route === "ledger") {
-    loadFullLedger();
-  } else if (route === "trail") {
-    loadAuditTrail();
-  }
-}
-
 function performPageSwitch(targetRoute, animate = true) {
   if (!ROUTES.includes(targetRoute)) targetRoute = "home";
-
   const applyView = () => {
     ROUTES.forEach(r => {
       const el = document.getElementById(`page-${r}`);
-      if (!el) return;
-      el.classList.remove("active", "entering");
-      if (r === targetRoute) {
-        el.classList.add("active");
-        void el.offsetWidth;
-        el.classList.add("entering");
-        if (window.innerWidth < 768) el.scrollTop = 0;
-      }
+      if (el) el.classList.toggle("active", r === targetRoute);
     });
     currentRoute = targetRoute;
     saveUserProgress({ lastRoute: currentRoute });
     syncNavIndicator(targetRoute);
-    triggerPageSideEffects(targetRoute);
-
-    const idx = ROUTES.indexOf(targetRoute);
-    threeShiftTarget.x = (idx - 2.5) * 1.15;
-    threeShiftTarget.y = Math.sin(idx * 0.9) * 0.85;
-    threeShiftTarget.rot = idx * 0.45;
+    if (activeUser && targetRoute === "ledger") loadFullLedger();
+    if (activeUser && targetRoute === "trail") loadAuditTrail();
   };
-
-  if (!animate || targetRoute === currentRoute) {
+  if (!animate || targetRoute === currentRoute || isTransitioning) {
     applyView();
     return;
   }
-
-  if (isTransitioning) {
-    applyView();
-    return;
-  }
-
   isTransitioning = true;
   const curtain = document.getElementById("curtain");
-  const curtainLabel = document.getElementById("curtain-label");
-  if (curtainLabel) curtainLabel.textContent = ROUTE_LABELS[targetRoute] || "CertiVerify AI";
-
+  document.getElementById("curtain-label").textContent = ROUTE_LABELS[targetRoute] || "CertiVerify AI";
   curtain.classList.remove("wipe-in", "wipe-out");
   void curtain.offsetWidth;
   curtain.classList.add("wipe-in");
-
   setTimeout(() => {
     applyView();
     curtain.classList.remove("wipe-in");
     void curtain.offsetWidth;
     curtain.classList.add("wipe-out");
   }, 350);
-
   setTimeout(() => {
     curtain.classList.remove("wipe-out");
     isTransitioning = false;
@@ -1708,284 +954,33 @@ function performPageSwitch(targetRoute, animate = true) {
 
 function navigateTo(route) {
   const nextHash = `#/${route}`;
-  if (window.location.hash !== nextHash) {
-    window.location.hash = nextHash;
-  } else {
-    performPageSwitch(route, true);
-  }
+  if (window.location.hash !== nextHash) window.location.hash = nextHash;
+  else performPageSwitch(route, true);
 }
 
-window.addEventListener("hashchange", () => {
-  performPageSwitch(parseHashRoute(), true);
-});
+window.addEventListener("hashchange", () => performPageSwitch(parseHashRoute(), true));
+window.addEventListener("resize", () => syncNavIndicator(currentRoute));
 
-window.addEventListener("resize", () => {
-  syncNavIndicator(currentRoute);
-});
-
-/* ========== LOADER & COUNT-UP ========== */
-function runCountUps() {
-  document.querySelectorAll("[data-count]").forEach(el => {
-    const target = parseInt(el.dataset.count, 10);
-    if (isNaN(target)) return;
-    const startTime = performance.now();
-    const duration = 1100;
-    function tick(now) {
-      const p = Math.min((now - startTime) / duration, 1);
-      const eased = 1 - Math.pow(1 - p, 3);
-      el.textContent = Math.round(target * eased);
-      if (p < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
-  });
-}
-
-(function initLoader() {
-  const loader = document.getElementById("loader");
-  const finish = () => {
-    if (!loader) return;
-    loader.classList.add("out");
-    runCountUps();
-    syncNavIndicator(currentRoute);
-  };
-  window.addEventListener("load", () => setTimeout(finish, 750));
-  setTimeout(finish, 2400);
-})();
-
-/* ========== PERSISTENT THREE.JS BACKGROUND ========== */
-(function initThreeBackground() {
-  if (typeof THREE === "undefined") return;
-  const host = document.getElementById("three-bg");
-  if (!host) return;
-
-  const scene = new THREE.Scene();
-  const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-  camera.position.z = 16;
-
-  const renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  host.appendChild(renderer.domElement);
-
-  const count = 900;
-  const positions = new Float32Array(count * 3);
-  for (let i = 0; i < count * 3; i++) {
-    positions[i] = (Math.random() - 0.5) * 44;
-  }
-  const pGeo = new THREE.BufferGeometry();
-  pGeo.setAttribute("position", new THREE.BufferAttribute(positions, 3));
-  const pMat = new THREE.PointsMaterial({
-    color: 0xb9a6ff,
-    size: 0.085,
-    transparent: true,
-    opacity: 0.65
-  });
-  const particles = new THREE.Points(pGeo, pMat);
-  scene.add(particles);
-
-  const wireA = new THREE.Mesh(
-    new THREE.IcosahedronGeometry(3.2, 1),
-    new THREE.MeshBasicMaterial({ color: 0x7c5cff, wireframe: true, transparent: true, opacity: 0.2 })
-  );
-  wireA.position.set(-6.5, 2.2, -5);
-  scene.add(wireA);
-
-  const wireB = new THREE.Mesh(
-    new THREE.TorusKnotGeometry(1.7, 0.25, 90, 12),
-    new THREE.MeshBasicMaterial({ color: 0xff5fa2, wireframe: true, transparent: true, opacity: 0.14 })
-  );
-  wireB.position.set(7.2, -2.5, -6);
-  scene.add(wireB);
-
-  let mouseX = 0, mouseY = 0;
-  window.addEventListener("mousemove", e => {
-    mouseX = (e.clientX / window.innerWidth - 0.5) * 2;
-    mouseY = (e.clientY / window.innerHeight - 0.5) * 2;
-  }, { passive: true });
-
-  window.addEventListener("resize", () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
-  });
-
-  function renderLoop() {
-    requestAnimationFrame(renderLoop);
-    particles.rotation.y += 0.0006;
-    particles.rotation.x += 0.00025;
-
-    wireA.rotation.x += 0.003;
-    wireA.rotation.y += 0.004;
-    wireB.rotation.x -= 0.0025;
-    wireB.rotation.y += 0.0035;
-
-    const targetCamX = mouseX * 1.6 + threeShiftTarget.x;
-    const targetCamY = -mouseY * 1.1 + threeShiftTarget.y;
-    camera.position.x += (targetCamX - camera.position.x) * 0.04;
-    camera.position.y += (targetCamY - camera.position.y) * 0.04;
-    camera.rotation.z += (threeShiftTarget.rot * 0.04 - camera.rotation.z) * 0.05;
-    camera.lookAt(0, 0, 0);
-
-    renderer.render(scene, camera);
-  }
-  renderLoop();
-})();
-
-/* ========== CURSOR, SPOTLIGHT, 3D HERO TILT & MAGNETIC BUTTONS ========== */
-(function initInteractions() {
-  const dot = document.getElementById("cur-dot");
-  const ring = document.getElementById("cur-ring");
-  const spot = document.getElementById("spotlight");
-  let mx = window.innerWidth / 2, my = window.innerHeight / 2;
-  let rx = mx, ry = my;
-
-  window.addEventListener("mousemove", e => {
-    mx = e.clientX;
-    my = e.clientY;
-    if (dot) {
-      dot.style.left = `${mx}px`;
-      dot.style.top = `${my}px`;
-    }
-    if (spot) {
-      spot.style.left = `${mx}px`;
-      spot.style.top = `${my}px`;
-    }
-    const card = e.target.closest && e.target.closest(".card");
-    if (card) {
-      const r = card.getBoundingClientRect();
-      card.style.setProperty("--mx", `${mx - r.left}px`);
-      card.style.setProperty("--my", `${my - r.top}px`);
-    }
-  }, { passive: true });
-
-  (function followRing() {
-    rx += (mx - rx) * 0.16;
-    ry += (my - ry) * 0.16;
-    if (ring) {
-      ring.style.left = `${rx}px`;
-      ring.style.top = `${ry}px`;
-    }
-    requestAnimationFrame(followRing);
-  })();
-
-  document.addEventListener("mouseover", e => {
-    if (!ring) return;
-    const interactive = e.target.closest("a, button, input, select, .chip-float, .ledger-click-item");
-    ring.classList.toggle("hov", !!interactive);
-  });
-
-  const stage = document.getElementById("hero-stage");
-  const mock = document.getElementById("hero-mock");
-  if (stage && mock && window.matchMedia("(hover: hover)").matches) {
-    stage.addEventListener("mousemove", e => {
-      const r = stage.getBoundingClientRect();
-      const px = (e.clientX - r.left) / r.width - 0.5;
-      const py = (e.clientY - r.top) / r.height - 0.5;
-      mock.style.transform = `rotateY(${px * 14}deg) rotateX(${-py * 12}deg)`;
-      stage.querySelectorAll(".chip-float").forEach(chip => {
-        const d = parseFloat(chip.dataset.depth || "1.5");
-        chip.style.transform = `translate(${px * d * 18}px, ${py * d * 18}px)`;
-      });
-    });
-    stage.addEventListener("mouseleave", () => {
-      mock.style.transform = "";
-      stage.querySelectorAll(".chip-float").forEach(chip => {
-        chip.style.transform = "";
-      });
-    });
-  }
-
-  if (window.matchMedia("(hover: hover)").matches) {
-    document.querySelectorAll(".magnetic").forEach(btn => {
-      btn.addEventListener("mousemove", e => {
-        const r = btn.getBoundingClientRect();
-        const dx = (e.clientX - (r.left + r.width / 2)) * 0.2;
-        const dy = (e.clientY - (r.top + r.height / 2)) * 0.25;
-        btn.style.transform = `translate(${dx}px, ${dy}px)`;
-      });
-      btn.addEventListener("mouseleave", () => {
-        btn.style.transform = "";
-      });
-    });
-  }
-
-  ["drop-coa", "drop-po"].forEach(zoneId => {
-    const zone = document.getElementById(zoneId);
-    if (!zone) return;
-    const input = zone.querySelector("input[type=file]");
-    ["dragenter", "dragover"].forEach(evt => {
-      zone.addEventListener(evt, e => {
-        e.preventDefault();
-        zone.classList.add("dragover");
-      });
-    });
-    ["dragleave", "drop"].forEach(evt => {
-      zone.addEventListener(evt, e => {
-        e.preventDefault();
-        zone.classList.remove("dragover");
-      });
-    });
-    zone.addEventListener("drop", e => {
-      if (e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files.length && input) {
-        input.files = e.dataTransfer.files;
-      }
-    });
-  });
-})();
-
-/* ========== PROCESSING OVERLAY HELPERS ========== */
 function startAuditProcessingAnimation() {
   const overlay = document.getElementById("audit-processing");
-  const stepLabel = document.getElementById("proc-step-text");
-  const steps = [
-    "Extracting parameters",
-    "Validating against USP / ICH Q3D",
-    "Cross-checking PO",
-    "Sealing with SHA-256"
-  ];
+  const steps = ["Extracting parameters", "Validating against USP / ICH Q3D", "Cross-checking PO", "Sealing with SHA-256"];
   let idx = 0;
-
-  const paintSteps = activeIndex => {
-    steps.forEach((label, i) => {
-      const row = document.getElementById(`step-${i}`);
-      if (!row) return;
-      if (i < activeIndex) {
-        row.className = "flex items-center gap-2.5 text-emerald-300 font-medium";
-        row.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i><span>${label}</span>`;
-      } else if (i === activeIndex) {
-        row.className = "flex items-center gap-2.5 text-white font-semibold";
-        row.innerHTML = `<i class="fa-solid fa-circle-notch fa-spin text-pink-400"></i><span>${label}</span>`;
-      } else {
-        row.className = "flex items-center gap-2.5 text-slate-500";
-        row.innerHTML = `<i class="fa-regular fa-circle"></i><span>${label}</span>`;
-      }
-    });
-    if (stepLabel) stepLabel.textContent = steps[activeIndex] || steps[0];
-  };
-
-  paintSteps(0);
   if (overlay) overlay.classList.add("active");
   if (stepIntervalId) clearInterval(stepIntervalId);
-
   stepIntervalId = setInterval(() => {
     idx = (idx + 1) % steps.length;
-    paintSteps(idx);
+    document.getElementById("proc-step-text").textContent = steps[idx];
   }, 950);
 }
 
 function stopAuditProcessingAnimation() {
-  if (stepIntervalId) {
-    clearInterval(stepIntervalId);
-    stepIntervalId = null;
-  }
-  const overlay = document.getElementById("audit-processing");
-  if (overlay) overlay.classList.remove("active");
+  if (stepIntervalId) clearInterval(stepIntervalId);
+  stepIntervalId = null;
+  document.getElementById("audit-processing").classList.remove("active");
 }
 
-/* ========== CORE APPLICATION LOGIC + HISTORY DELETION ========== */
 window.addEventListener("DOMContentLoaded", () => {
-  const initialRoute = parseHashRoute();
-  performPageSwitch(initialRoute, false);
+  performPageSwitch(parseHashRoute(), false);
   if (enforceAuthGate()) {
     loadLedger();
     restoreUserProgress();
@@ -1995,12 +990,10 @@ window.addEventListener("DOMContentLoaded", () => {
 async function handleAudit(event) {
   event.preventDefault();
   if (!enforceAuthGate()) return;
-
   const coaInput = document.getElementById("coa-file");
   const poInput = document.getElementById("po-file");
   const btnText = document.getElementById("btn-text");
   const submitBtn = document.getElementById("submit-btn");
-
   if (!coaInput.files[0]) return alert("Please select a Certificate of Analysis PDF.");
 
   btnText.innerText = "Executing 5-Pillar Research AI Audit...";
@@ -2033,42 +1026,28 @@ async function handleAudit(event) {
 
 function renderRecentLedgerList(records) {
   const ledgerList = document.getElementById("ledger-list");
-  const countEl = document.getElementById("ledger-count");
-  const fullBadge = document.getElementById("full-ledger-badge");
   const safeList = Array.isArray(records) ? records : [];
-
-  if (countEl) countEl.innerText = safeList.length;
-  if (fullBadge) fullBadge.innerText = safeList.length;
-  if (!ledgerList) return;
-
+  document.getElementById("ledger-count").innerText = safeList.length;
+  document.getElementById("full-ledger-badge").innerText = safeList.length;
   if (safeList.length === 0) {
     ledgerList.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">No batches audited yet.</p>';
     return;
   }
-
   ledgerList.innerHTML = "";
-  safeList.forEach((r, idx) => {
+  safeList.forEach(r => {
     const isCompliant = r.status === "COMPLIANT" || r.status === "PASS";
-    const badge = isCompliant
-      ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-      : "bg-rose-500/15 text-rose-300 border-rose-500/30";
+    const badge = isCompliant ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" : "bg-rose-500/15 text-rose-300 border-rose-500/30";
     const div = document.createElement("div");
-    div.style.setProperty("--i", idx);
-    div.className = "anim-row ledger-click-item p-3.5 rounded-2xl bg-white/[.04] border border-white/10 hover:border-violet-500/50 hover:bg-white/[.07] transition flex justify-between items-center gap-3 group";
-    div.onclick = () => {
-      renderAuditResult(r);
-      navigateTo("result");
-    };
+    div.className = "p-3.5 rounded-2xl bg-white/[.04] border border-white/10 hover:border-violet-500/50 transition flex justify-between items-center gap-3 cursor-pointer";
+    div.onclick = () => { renderAuditResult(r); navigateTo("result"); };
     div.innerHTML = `
       <div class="min-w-0">
-        <p class="text-xs font-bold text-white group-hover:text-violet-300 transition truncate">${r.batch_id}</p>
+        <p class="text-xs font-bold text-white truncate">${r.batch_id}</p>
         <p class="text-[11px] text-slate-400 truncate">${r.filename} &bull; ${r.supplier}</p>
       </div>
       <div class="flex items-center gap-2 shrink-0">
         <span class="text-[10px] px-2.5 py-1 rounded-xl border font-bold ${badge}">${r.status}</span>
-        <button type="button" onclick="deleteSingleHistory('${r.batch_id}', event)" title="Delete batch" aria-label="Delete ${r.batch_id}" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 flex items-center justify-center transition">
-          <i class="fa-solid fa-trash text-[11px]"></i>
-        </button>
+        <button type="button" onclick="deleteSingleHistory('${r.batch_id}', event)" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 flex items-center justify-center"><i class="fa-solid fa-trash text-[11px]"></i></button>
       </div>`;
     ledgerList.appendChild(div);
   });
@@ -2077,11 +1056,8 @@ function renderRecentLedgerList(records) {
 async function deleteSingleHistory(batchId, event) {
   if (event) event.stopPropagation();
   if (!confirm(`Delete batch ${batchId} from history?`)) return;
-
   try {
-    const res = await fetch(`${API_BASE}/api/v1/ledger/${encodeURIComponent(batchId)}`, {
-      method: "DELETE"
-    });
+    const res = await fetch(`${API_BASE}/api/v1/ledger/${encodeURIComponent(batchId)}`, { method: "DELETE" });
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       throw new Error(errData.detail || "Failed to delete batch.");
@@ -2096,12 +1072,9 @@ async function deleteSingleHistory(batchId, event) {
 
 async function clearAllHistory() {
   if (latestLedgerCache.length === 0) return;
-  if (!confirm("Delete ALL batch history records? This cannot be undone.")) return;
-
+  if (!confirm("Delete ALL batch history records?")) return;
   try {
-    const res = await fetch(`${API_BASE}/api/v1/ledger`, {
-      method: "DELETE"
-    });
+    const res = await fetch(`${API_BASE}/api/v1/ledger`, { method: "DELETE" });
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       throw new Error(errData.detail || "Failed to clear all history.");
@@ -2132,18 +1105,12 @@ function renderFullLedgerRows(records) {
     tbody.innerHTML = '<tr><td colspan="6" class="p-8 text-center text-slate-500">No batch records found in database.</td></tr>';
     return;
   }
-  records.forEach((r, idx) => {
+  records.forEach(r => {
     const isCompliant = r.status === "COMPLIANT" || r.status === "PASS";
-    const badge = isCompliant
-      ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-      : "bg-rose-500/15 text-rose-300 border-rose-500/30";
+    const badge = isCompliant ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" : "bg-rose-500/15 text-rose-300 border-rose-500/30";
     const tr = document.createElement("tr");
-    tr.style.setProperty("--i", idx);
-    tr.className = "anim-row ledger-click-item hover:bg-white/[.06] transition";
-    tr.onclick = () => {
-      renderAuditResult(r);
-      navigateTo("result");
-    };
+    tr.className = "hover:bg-white/[.06] transition cursor-pointer";
+    tr.onclick = () => { renderAuditResult(r); navigateTo("result"); };
     tr.innerHTML = `
       <td class="p-3.5 font-bold text-white">${r.batch_id}</td>
       <td class="p-3.5 text-slate-200">${r.material_name}</td>
@@ -2153,9 +1120,7 @@ function renderFullLedgerRows(records) {
       <td class="p-3.5 text-right">
         <div class="inline-flex items-center gap-2">
           <span class="px-3 py-1 rounded-xl border text-[10px] font-bold ${badge}">${r.status}</span>
-          <button type="button" onclick="deleteSingleHistory('${r.batch_id}', event)" title="Delete batch" aria-label="Delete ${r.batch_id}" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 inline-flex items-center justify-center transition">
-            <i class="fa-solid fa-trash text-[11px]"></i>
-          </button>
+          <button type="button" onclick="deleteSingleHistory('${r.batch_id}', event)" class="w-7 h-7 rounded-lg bg-rose-500/10 hover:bg-rose-500/25 border border-rose-500/30 text-rose-300 inline-flex items-center justify-center"><i class="fa-solid fa-trash text-[11px]"></i></button>
         </div>
       </td>`;
     tbody.appendChild(tr);
@@ -2164,17 +1129,13 @@ function renderFullLedgerRows(records) {
 
 function filterLedgerTable() {
   const q = (document.getElementById("ledger-search")?.value || "").trim().toLowerCase();
-  if (!q) {
-    renderFullLedgerRows(latestLedgerCache);
-    return;
-  }
-  const filtered = latestLedgerCache.filter(r =>
+  if (!q) return renderFullLedgerRows(latestLedgerCache);
+  renderFullLedgerRows(latestLedgerCache.filter(r =>
     String(r.batch_id || "").toLowerCase().includes(q) ||
     String(r.material_name || "").toLowerCase().includes(q) ||
     String(r.supplier || "").toLowerCase().includes(q) ||
     String(r.status || "").toLowerCase().includes(q)
-  );
-  renderFullLedgerRows(filtered);
+  ));
 }
 
 async function loadFullLedger() {
@@ -2199,10 +1160,9 @@ async function loadAuditTrail() {
       tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500">No audit trail records found.</td></tr>';
       return;
     }
-    logs.forEach((l, idx) => {
+    logs.forEach(l => {
       const tr = document.createElement("tr");
-      tr.style.setProperty("--i", idx);
-      tr.className = "anim-row hover:bg-white/[.05] transition";
+      tr.className = "hover:bg-white/[.05] transition";
       tr.innerHTML = `
         <td class="p-3.5 text-violet-300 font-bold">#${l.id}</td>
         <td class="p-3.5 text-slate-400 text-[11px]">${l.timestamp}</td>
@@ -2225,22 +1185,8 @@ function renderAuditResult(r, persist = true) {
   const vb = document.getElementById("res-verdict-badge");
   vb.innerText = r.verdict;
   vb.className = `px-3 py-1.5 rounded-xl font-bold text-xs uppercase tracking-wider border ${
-    isCompliant
-      ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30"
-      : "bg-rose-500/15 text-rose-300 border-rose-500/30"
+    isCompliant ? "bg-emerald-500/15 text-emerald-300 border-emerald-500/30" : "bg-rose-500/15 text-rose-300 border-rose-500/30"
   }`;
-
-  const numericRisk = Math.max(0, Math.min(100, Number(r.risk_score) || 0));
-  const ringCircle = document.getElementById("risk-ring-circle");
-  const ringLabel = document.getElementById("risk-ring-label");
-  const circumference = 163.36;
-  if (ringCircle) {
-    const offset = circumference - (numericRisk / 100) * circumference;
-    ringCircle.style.strokeDashoffset = String(offset);
-  }
-  if (ringLabel) {
-    ringLabel.innerText = `${numericRisk}`;
-  }
 
   document.getElementById("res-risk").innerText = `Risk Score: ${r.risk_score}/100 | Confidence: ${r.confidence_score}%`;
   document.getElementById("res-summary").innerText = r.summary;
@@ -2251,20 +1197,16 @@ function renderAuditResult(r, persist = true) {
   if (params.length === 0) {
     tbody.innerHTML = '<tr><td colspan="5" class="p-5 text-center text-slate-500">No parameters available.</td></tr>';
   } else {
-    params.forEach((p, idx) => {
+    params.forEach(p => {
       const pass = p.status === "PASS";
       const tr = document.createElement("tr");
-      tr.style.setProperty("--i", idx);
-      tr.className = "anim-row hover:bg-white/[.05] transition";
       tr.innerHTML = `
         <td class="p-3 font-semibold text-slate-200">${p.parameter}</td>
         <td class="p-3 text-slate-400 text-xs">${p.specification}</td>
         <td class="p-3 text-slate-200 text-xs">${p.result}</td>
         <td class="p-3 text-violet-300 text-xs font-bold">${p.confidence || "99.5%"}</td>
         <td class="p-3 text-right"><span class="px-2.5 py-1 rounded-lg text-[10px] font-bold ${
-          pass
-            ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"
-            : "bg-rose-500/15 text-rose-300 border border-rose-500/30"
+          pass ? "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30" : "bg-rose-500/15 text-rose-300 border border-rose-500/30"
         }">${p.status}</span></td>`;
       tbody.appendChild(tr);
     });
@@ -2273,25 +1215,14 @@ function renderAuditResult(r, persist = true) {
   const capaList = document.getElementById("res-capa-list");
   capaList.innerHTML = "";
   const capas = r.capa_recommendations || r.deviations || ["All parameters verified against USP monographs."];
-  capas.forEach((c, idx) => {
+  capas.forEach(c => {
     const li = document.createElement("li");
-    li.style.setProperty("--i", idx);
-    li.className = "anim-row";
     li.innerText = c;
     capaList.appendChild(li);
   });
 
   document.getElementById("res-hash").innerText = `SHA-256 Dossier Seal: ${r.sha256_hash}`;
-
-  if (persist) {
-    saveUserProgress({ lastResult: r });
-  }
-}
-
-if ("serviceWorker" in navigator) {
-  window.addEventListener("load", () => {
-    navigator.serviceWorker.register("/sw.js").catch(err => console.error("SW registration failed:", err));
-  });
+  if (persist) saveUserProgress({ lastResult: r });
 }
 </script>
 </body>
