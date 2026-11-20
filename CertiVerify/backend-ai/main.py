@@ -13,7 +13,7 @@ from typing import Optional
 import pdfplumber
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel
 from google import genai
 from google.genai import types
 
@@ -104,6 +104,12 @@ def verify_password(password: str, stored_hash: str) -> bool:
 def hash_otp(email: str, otp: str) -> str:
     return hashlib.sha256(f"{email.strip().lower()}:{otp}:{AUTH_SECRET}".encode("utf-8")).hexdigest()
 
+def validate_email_format(email: str) -> str:
+    cleaned = (email or "").strip().lower()
+    if "@" not in cleaned or "." not in cleaned.split("@")[-1]:
+        raise HTTPException(status_code=400, detail="Please enter a valid Gmail/email address.")
+    return cleaned
+
 def send_otp_gmail(recipient_email: str, otp_code: str) -> None:
     smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
     smtp_port = int(os.environ.get("SMTP_PORT", "587"))
@@ -149,7 +155,7 @@ app.add_middleware(
 class RegisterRequest(BaseModel):
     username: str
     name: str
-    email: EmailStr
+    email: str
     password: str
     company_or_college: str
     role: Optional[str] = "Senior QA Compliance Officer"
@@ -159,10 +165,10 @@ class LoginRequest(BaseModel):
     password: str
 
 class SendOtpRequest(BaseModel):
-    email: EmailStr
+    email: str
 
 class ResetPasswordRequest(BaseModel):
-    email: EmailStr
+    email: str
     otp: str
     new_password: str
 
@@ -348,7 +354,7 @@ def root():
 @app.post("/api/v1/auth/register")
 def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
     clean_username = payload.username.strip().lower()
-    clean_email = str(payload.email).strip().lower()
+    clean_email = validate_email_format(payload.email)
 
     if len(clean_username) < 3 or not re.match(r"^[a-z0-9_.-]+$", clean_username):
         raise HTTPException(status_code=400, detail="Username must be at least 3 characters (letters, numbers, _, ., -).")
@@ -394,7 +400,7 @@ def login_user_secure(payload: LoginRequest, db: Session = Depends(get_db)):
         raise HTTPException(status_code=401, detail="Account not found. Please create an account before logging in.")
 
     if not verify_password(payload.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Incorrect password. Use Forgot Password with Gmail OTP to reset it.")
+        raise HTTPException(status_code=401, detail="Incorrect password. Use Gmail OTP to reset it.")
 
     db.add(DBAuditLog(
         user_email=user.email,
@@ -417,7 +423,7 @@ def login_user_secure(payload: LoginRequest, db: Session = Depends(get_db)):
 
 @app.post("/api/v1/auth/send-otp")
 def send_password_otp(payload: SendOtpRequest, db: Session = Depends(get_db)):
-    clean_email = str(payload.email).strip().lower()
+    clean_email = validate_email_format(payload.email)
     user = db.query(DBUserAccount).filter(DBUserAccount.email == clean_email).first()
     if not user:
         raise HTTPException(status_code=404, detail="No registered account found with this email address.")
@@ -444,7 +450,7 @@ def send_password_otp(payload: SendOtpRequest, db: Session = Depends(get_db)):
 
 @app.post("/api/v1/auth/reset-password")
 def reset_password_with_otp(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
-    clean_email = str(payload.email).strip().lower()
+    clean_email = validate_email_format(payload.email)
     clean_otp = payload.otp.strip()
 
     if len(payload.new_password) < 6:
