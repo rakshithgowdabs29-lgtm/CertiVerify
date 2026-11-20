@@ -2,14 +2,18 @@ import os
 import io
 import json
 import hashlib
+import hmac
+import secrets
+import smtplib
 import uuid
 import re
-from datetime import datetime
+from email.message import EmailMessage
+from datetime import datetime, timedelta
 from typing import Optional
 import pdfplumber
 from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from pydantic import BaseModel, EmailStr
 from google import genai
 from google.genai import types
 
@@ -30,11 +34,21 @@ Base = declarative_base()
 class DBUserAccount(Base):
     __tablename__ = "user_accounts"
     id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
     name = Column(String)
     email = Column(String, unique=True, index=True)
-    password = Column(String)
+    password_hash = Column(String)
     company_or_college = Column(String)
     role = Column(String)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+class DBPasswordOTP(Base):
+    __tablename__ = "password_otps"
+    id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, index=True)
+    otp_hash = Column(String)
+    expires_at = Column(DateTime)
+    used = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class DBAuditLog(Base):
@@ -72,7 +86,55 @@ def get_db():
     finally:
         db.close()
 
-# --- CRITICAL: FASTAPI APP INSTANCE DEFINED AT MODULE SCOPE ---
+# --- PASSWORD & OTP HELPERS ---
+AUTH_SECRET = os.environ.get("AUTH_SECRET", "certiverify-secret-change-in-env")
+
+def hash_password(password: str) -> str:
+    salt = secrets.token_hex(16)
+    digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 120_000).hex()
+    return f"{salt}${digest}"
+
+def verify_password(password: str, stored_hash: str) -> bool:
+    if not stored_hash or "$" not in stored_hash:
+        return False
+    salt, expected_digest = stored_hash.split("$", 1)
+    actual_digest = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt.encode("utf-8"), 120_000).hex()
+    return hmac.compare_digest(actual_digest, expected_digest)
+
+def hash_otp(email: str, otp: str) -> str:
+    return hashlib.sha256(f"{email.strip().lower()}:{otp}:{AUTH_SECRET}".encode("utf-8")).hexdigest()
+
+def send_otp_gmail(recipient_email: str, otp_code: str) -> None:
+    smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
+    smtp_port = int(os.environ.get("SMTP_PORT", "587"))
+    smtp_user = os.environ.get("SMTP_USER", "").strip()
+    smtp_pass = os.environ.get("SMTP_PASS", "").strip()
+    smtp_from = os.environ.get("SMTP_FROM", smtp_user).strip()
+
+    if not smtp_user or not smtp_pass:
+        raise HTTPException(
+            status_code=503,
+            detail="Gmail OTP mail service is not configured on the server (set SMTP_USER and SMTP_PASS)."
+        )
+
+    msg = EmailMessage()
+    msg["Subject"] = "CertiVerify AI — Password Reset OTP"
+    msg["From"] = smtp_from
+    msg["To"] = recipient_email
+    msg.set_content(
+        f"Your CertiVerify AI password reset OTP is: {otp_code}\n\n"
+        f"This code expires in 10 minutes. If you did not request a password reset, ignore this email."
+    )
+
+    try:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=15) as server:
+            server.starttls()
+            server.login(smtp_user, smtp_pass)
+            server.send_message(msg)
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=f"Failed to send OTP email: {str(exc)}")
+
+# --- FASTAPI APP INSTANCE ---
 app = FastAPI(title="CertiVerify Enterprise AI - Regulatory Compliance Backend")
 
 app.add_middleware(
@@ -83,17 +145,26 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# --- REQUEST SCHEMAS ---
 class RegisterRequest(BaseModel):
+    username: str
     name: str
-    email: str
+    email: EmailStr
     password: str
     company_or_college: str
-    role: str
+    role: Optional[str] = "Senior QA Compliance Officer"
 
 class LoginRequest(BaseModel):
-    email: str
+    identifier: str  # username or email
     password: str
-    role: Optional[str] = "Senior QA Compliance Officer"
+
+class SendOtpRequest(BaseModel):
+    email: EmailStr
+
+class ResetPasswordRequest(BaseModel):
+    email: EmailStr
+    otp: str
+    new_password: str
 
 # --- GEMINI CLIENT SETUP ---
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
@@ -111,8 +182,8 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
     return text.strip()
 
 def clean_extracted_text(raw_text: str) -> str:
-    cleaned = re.sub(r'[ \t]+', ' ', raw_text)
-    cleaned = re.sub(r'\n\s*\n', '\n', cleaned)
+    cleaned = re.sub(r"[ \t]+", " ", raw_text)
+    cleaned = re.sub(r"\n\s*\n", "\n", cleaned)
     return cleaned.strip()
 
 def analyze_coa_locally(coa_text: str, po_text: str, filename: str, db_session=None) -> dict:
@@ -276,52 +347,137 @@ def root():
 
 @app.post("/api/v1/auth/register")
 def register_user(payload: RegisterRequest, db: Session = Depends(get_db)):
-    existing = db.query(DBUserAccount).filter(DBUserAccount.email == payload.email.strip().lower()).first()
-    if existing:
-        raise HTTPException(status_code=400, detail="Account with this email already exists.")
+    clean_username = payload.username.strip().lower()
+    clean_email = str(payload.email).strip().lower()
+
+    if len(clean_username) < 3 or not re.match(r"^[a-z0-9_.-]+$", clean_username):
+        raise HTTPException(status_code=400, detail="Username must be at least 3 characters (letters, numbers, _, ., -).")
+
+    if len(payload.password) < 6:
+        raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
+
+    if db.query(DBUserAccount).filter(DBUserAccount.email == clean_email).first():
+        raise HTTPException(status_code=400, detail="An account with this Gmail/email already exists.")
+
+    if db.query(DBUserAccount).filter(DBUserAccount.username == clean_username).first():
+        raise HTTPException(status_code=400, detail="This username is already taken.")
 
     new_user = DBUserAccount(
-        name=payload.name,
-        email=payload.email.strip().lower(),
-        password=payload.password,
-        company_or_college=payload.company_or_college,
-        role=payload.role
+        username=clean_username,
+        name=payload.name.strip(),
+        email=clean_email,
+        password_hash=hash_password(payload.password),
+        company_or_college=payload.company_or_college.strip(),
+        role=(payload.role or "Senior QA Compliance Officer").strip(),
     )
     db.add(new_user)
-
-    audit_entry = DBAuditLog(
-        user_email=payload.email.strip().lower(),
+    db.add(DBAuditLog(
+        user_email=clean_email,
         action_type="USER_REGISTERED",
-        details=f"New user {payload.name} registered from {payload.company_or_college} as {payload.role}"
-    )
-    db.add(audit_entry)
+        details=f"Registered account @{clean_username} ({new_user.name}) from {new_user.company_or_college}."
+    ))
     db.commit()
 
-    return {"registered": True, "message": "Account created successfully."}
+    return {"registered": True, "message": "Account created. You can now sign in with your username/email and password."}
 
 @app.post("/api/v1/auth/login")
 def login_user_secure(payload: LoginRequest, db: Session = Depends(get_db)):
-    user = db.query(DBUserAccount).filter(DBUserAccount.email == payload.email.strip().lower()).first()
+    ident = payload.identifier.strip().lower()
+    if not ident or not payload.password:
+        raise HTTPException(status_code=401, detail="Username/email and password are required.")
+
+    user = db.query(DBUserAccount).filter(
+        (DBUserAccount.email == ident) | (DBUserAccount.username == ident)
+    ).first()
 
     if not user:
-        raise HTTPException(status_code=401, detail="Account not found. Please register an account first.")
+        raise HTTPException(status_code=401, detail="Account not found. Please create an account before logging in.")
 
-    if user.password != payload.password:
-        raise HTTPException(status_code=401, detail="Incorrect password. Please verify your credentials.")
+    if not verify_password(payload.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Incorrect password. Use Forgot Password with Gmail OTP to reset it.")
 
-    audit_entry = DBAuditLog(
+    db.add(DBAuditLog(
         user_email=user.email,
         action_type="USER_LOGIN_SUCCESS",
-        details=f"User {user.name} ({user.role}) logged in successfully."
-    )
-    db.add(audit_entry)
+        details=f"@{user.username} ({user.name}) signed in."
+    ))
     db.commit()
 
     return {
         "authenticated": True,
-        "user": {"name": user.name, "email": user.email, "company": user.company_or_college, "role": user.role},
+        "user": {
+            "username": user.username,
+            "name": user.name,
+            "email": user.email,
+            "company": user.company_or_college,
+            "role": user.role,
+        },
         "token": f"cv-secure-token-{uuid.uuid4().hex[:12]}"
     }
+
+@app.post("/api/v1/auth/send-otp")
+def send_password_otp(payload: SendOtpRequest, db: Session = Depends(get_db)):
+    clean_email = str(payload.email).strip().lower()
+    user = db.query(DBUserAccount).filter(DBUserAccount.email == clean_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="No registered account found with this email address.")
+
+    otp_code = f"{secrets.randbelow(900000) + 100000}"
+    expires_at = datetime.utcnow() + timedelta(minutes=10)
+
+    db.query(DBPasswordOTP).filter(DBPasswordOTP.email == clean_email, DBPasswordOTP.used == 0).update({"used": 1})
+    db.add(DBPasswordOTP(
+        email=clean_email,
+        otp_hash=hash_otp(clean_email, otp_code),
+        expires_at=expires_at,
+        used=0,
+    ))
+    db.add(DBAuditLog(
+        user_email=clean_email,
+        action_type="PASSWORD_RESET_OTP_SENT",
+        details=f"Sent 6-digit password reset OTP to {clean_email}."
+    ))
+    db.commit()
+
+    send_otp_gmail(clean_email, otp_code)
+    return {"sent": True, "message": f"6-digit OTP sent to {clean_email}. Valid for 10 minutes."}
+
+@app.post("/api/v1/auth/reset-password")
+def reset_password_with_otp(payload: ResetPasswordRequest, db: Session = Depends(get_db)):
+    clean_email = str(payload.email).strip().lower()
+    clean_otp = payload.otp.strip()
+
+    if len(payload.new_password) < 6:
+        raise HTTPException(status_code=400, detail="New password must be at least 6 characters.")
+
+    user = db.query(DBUserAccount).filter(DBUserAccount.email == clean_email).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="No account found with this email address.")
+
+    otp_row = (
+        db.query(DBPasswordOTP)
+        .filter(
+            DBPasswordOTP.email == clean_email,
+            DBPasswordOTP.used == 0,
+            DBPasswordOTP.expires_at >= datetime.utcnow(),
+        )
+        .order_by(DBPasswordOTP.id.desc())
+        .first()
+    )
+
+    if not otp_row or not hmac.compare_digest(otp_row.otp_hash, hash_otp(clean_email, clean_otp)):
+        raise HTTPException(status_code=400, detail="Invalid or expired OTP.")
+
+    otp_row.used = 1
+    user.password_hash = hash_password(payload.new_password)
+    db.add(DBAuditLog(
+        user_email=clean_email,
+        action_type="PASSWORD_RESET_SUCCESS",
+        details=f"Password updated via Gmail OTP for @{user.username}."
+    ))
+    db.commit()
+
+    return {"reset": True, "message": "Password changed successfully. You can now log in with your new password."}
 
 @app.get("/api/v1/ledger")
 def get_ledger(db: Session = Depends(get_db)):
@@ -354,24 +510,22 @@ def delete_single_batch(batch_id: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Batch record not found.")
 
     db.delete(record)
-    audit_entry = DBAuditLog(
+    db.add(DBAuditLog(
         user_email="system.qa@certiverify.ai",
         action_type="BATCH_DELETED",
         details=f"Deleted single batch record {batch_id} from ledger."
-    )
-    db.add(audit_entry)
+    ))
     db.commit()
     return {"deleted": True, "batch_id": batch_id}
 
 @app.delete("/api/v1/ledger")
 def clear_all_batch_history(db: Session = Depends(get_db)):
     deleted_count = db.query(DBBatchRecord).delete()
-    audit_entry = DBAuditLog(
+    db.add(DBAuditLog(
         user_email="system.qa@certiverify.ai",
         action_type="ALL_BATCH_HISTORY_CLEARED",
         details=f"Cleared {deleted_count} batch records from ledger."
-    )
-    db.add(audit_entry)
+    ))
     db.commit()
     return {"cleared": True, "deleted_count": deleted_count}
 
@@ -403,12 +557,11 @@ async def extract_coa(file: UploadFile = File(...), po_file: Optional[UploadFile
         )
         db.add(db_batch)
 
-        audit_entry = DBAuditLog(
+        db.add(DBAuditLog(
             user_email="system.qa@certiverify.ai",
             action_type="COA_AI_AUDIT_EXECUTED",
             details=f"Audited file {file.filename}, Batch ID {result['batch_id']}, Result: {result['status']}"
-        )
-        db.add(audit_entry)
+        ))
         db.commit()
 
         return result
