@@ -71,21 +71,19 @@ h1, h2, h3, .font-display {
 #auth-gate {
   position: fixed;
   inset: 0;
-  z-index: 850;
-  background: rgba(7, 6, 13, 0.94);
+  z-index: 950;
+  background: rgba(7, 6, 13, 0.95);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 20px;
-  transition: opacity 0.35s ease, visibility 0.35s ease;
+  overflow-y: auto;
 }
 
 #auth-gate.unlocked {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
+  display: none;
 }
 
 /* Persistent background layers */
@@ -806,25 +804,42 @@ input[type=file]::file-selector-button {
 </head>
 <body>
 
-<!-- STRICT ACCOUNT GATE (Create Account / Sign In / Gmail OTP Reset) -->
+<!-- STRICT ACCOUNT GATE (Sign In / Create Account / Gmail OTP Reset) -->
 <div id="auth-gate">
   <div class="card max-w-md w-full p-7 border border-violet-500/40">
     <div class="text-center mb-5">
       <div class="logo-mark !w-12 !h-12 !rounded-2xl mx-auto mb-3 text-lg">
         <i class="fa-solid fa-shield-halved"></i>
       </div>
-      <h2 id="auth-title" class="font-display text-xl font-extrabold text-white">Create Your Account</h2>
-      <p id="auth-sub" class="text-xs text-slate-400 mt-1">Register a username, Gmail, and password before accessing CertiVerify AI.</p>
+      <h2 id="auth-title" class="font-display text-xl font-extrabold text-white">Sign In to CertiVerify AI</h2>
+      <p id="auth-sub" class="text-xs text-slate-400 mt-1">Sign in with your account or create a new account first.</p>
     </div>
 
     <div class="grid grid-cols-3 gap-1 bg-white/[.04] p-1 rounded-2xl mb-5 border border-white/10 text-xs font-semibold">
-      <button type="button" id="tab-auth-register" onclick="switchAuthTab('register')" class="py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white">Create Account</button>
-      <button type="button" id="tab-auth-login" onclick="switchAuthTab('login')" class="py-2 rounded-xl text-slate-400 hover:text-white">Sign In</button>
+      <button type="button" id="tab-auth-login" onclick="switchAuthTab('login')" class="py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white">Sign In</button>
+      <button type="button" id="tab-auth-register" onclick="switchAuthTab('register')" class="py-2 rounded-xl text-slate-400 hover:text-white">Create Account</button>
       <button type="button" id="tab-auth-forgot" onclick="switchAuthTab('forgot')" class="py-2 rounded-xl text-slate-400 hover:text-white">Gmail OTP</button>
     </div>
 
-    <!-- 1. CREATE ACCOUNT FORM -->
-    <form id="form-register" onsubmit="handleRegister(event)" class="space-y-3.5">
+    <!-- 1. SIGN IN FORM -->
+    <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+      <div>
+        <label class="block text-[11px] font-semibold uppercase text-violet-300 mb-1">Username or Gmail *</label>
+        <input type="text" id="login-identifier" required placeholder="your_username or yourname@gmail.com" class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white/[.05] border border-white/15 text-white outline-none focus:border-violet-400">
+      </div>
+      <div>
+        <label class="block text-[11px] font-semibold uppercase text-violet-300 mb-1">Password *</label>
+        <input type="password" id="login-password" required placeholder="••••••••" class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white/[.05] border border-white/15 text-white outline-none focus:border-violet-400">
+      </div>
+      <button type="submit" id="login-btn" class="btn-p w-full !py-3 text-xs uppercase tracking-wider">Sign In &amp; Load Saved Progress</button>
+      <p class="text-[11px] text-center text-slate-400">
+        New here? <button type="button" onclick="switchAuthTab('register')" class="text-violet-300 underline font-semibold">Create an account</button> ·
+        <button type="button" onclick="switchAuthTab('forgot')" class="text-pink-300 underline font-semibold">Forgot password?</button>
+      </p>
+    </form>
+
+    <!-- 2. CREATE ACCOUNT FORM -->
+    <form id="form-register" onsubmit="handleRegister(event)" class="space-y-3.5 hidden">
       <div>
         <label class="block text-[11px] font-semibold uppercase text-violet-300 mb-1">Username *</label>
         <input type="text" id="reg-username" required placeholder="rakshith_qa" class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white/[.05] border border-white/15 text-white outline-none focus:border-violet-400">
@@ -846,19 +861,6 @@ input[type=file]::file-selector-button {
         <input type="password" id="reg-password" required minlength="6" placeholder="At least 6 characters" class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white/[.05] border border-white/15 text-white outline-none focus:border-violet-400">
       </div>
       <button type="submit" id="reg-btn" class="btn-p w-full !py-3 text-xs uppercase tracking-wider">Create Account &amp; Store Credentials</button>
-    </form>
-
-    <!-- 2. LOGIN FORM -->
-    <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4 hidden">
-      <div>
-        <label class="block text-[11px] font-semibold uppercase text-violet-300 mb-1">Username or Gmail *</label>
-        <input type="text" id="login-identifier" required placeholder="rakshith_qa or yourname@gmail.com" class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white/[.05] border border-white/15 text-white outline-none focus:border-violet-400">
-      </div>
-      <div>
-        <label class="block text-[11px] font-semibold uppercase text-violet-300 mb-1">Password *</label>
-        <input type="password" id="login-password" required placeholder="••••••••" class="w-full text-xs px-3.5 py-2.5 rounded-xl bg-white/[.05] border border-white/15 text-white outline-none focus:border-violet-400">
-      </div>
-      <button type="submit" id="login-btn" class="btn-p w-full !py-3 text-xs uppercase tracking-wider">Sign In &amp; Load Saved Progress</button>
     </form>
 
     <!-- 3. FORGOT PASSWORD VIA GMAIL OTP -->
@@ -944,6 +946,7 @@ input[type=file]::file-selector-button {
     <button type="button" data-route="ledger" onclick="navigateTo('ledger')" class="navbtn"><i class="fa-solid fa-table-list"></i><span>Ledger</span></button>
     <button type="button" data-route="trail" onclick="navigateTo('trail')" class="navbtn"><i class="fa-solid fa-clock-rotate-left"></i><span>Audit Trail</span></button>
     <button type="button" data-route="framework" onclick="navigateTo('framework')" class="navbtn"><i class="fa-solid fa-cubes"></i><span>Framework</span></button>
+    <button type="button" onclick="logout()" title="Sign Out" aria-label="Sign Out" class="navbtn md:hidden text-rose-300"><i class="fa-solid fa-right-from-bracket"></i></button>
   </nav>
 
   <div class="desktop-only-user flex items-center gap-2.5 shrink-0">
@@ -1406,21 +1409,24 @@ function restoreUserProgress() {
 }
 
 function switchAuthTab(tab) {
-  ["register", "login", "forgot"].forEach(t => {
-    document.getElementById(`form-${t}`).classList.toggle("hidden", t !== tab);
+  ["login", "register", "forgot"].forEach(t => {
+    const form = document.getElementById(`form-${t}`);
     const btn = document.getElementById(`tab-auth-${t}`);
-    btn.className = t === tab
-      ? "py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white"
-      : "py-2 rounded-xl text-slate-400 hover:text-white";
+    if (form) form.classList.toggle("hidden", t !== tab);
+    if (btn) {
+      btn.className = t === tab
+        ? "py-2 rounded-xl bg-gradient-to-r from-violet-600 to-pink-500 text-white"
+        : "py-2 rounded-xl text-slate-400 hover:text-white";
+    }
   });
   const title = document.getElementById("auth-title");
   const sub = document.getElementById("auth-sub");
-  if (tab === "register") {
-    title.innerText = "Create Your Account";
-    sub.innerText = "Create a username, Gmail, and password before signing in.";
-  } else if (tab === "login") {
+  if (tab === "login") {
     title.innerText = "Sign In to CertiVerify AI";
     sub.innerText = "Enter your registered username or Gmail and password.";
+  } else if (tab === "register") {
+    title.innerText = "Create Your Account";
+    sub.innerText = "Create a username, Gmail, and password before signing in.";
   } else {
     title.innerText = "Reset Password via Gmail OTP";
     sub.innerText = "Enter your Gmail to receive a 6-digit OTP and set a new password.";
@@ -1444,7 +1450,7 @@ function enforceAuthGate() {
     activeUser = null;
     document.getElementById("user-chip-label").innerText = "Not Signed In";
     document.getElementById("auth-gate").classList.remove("unlocked");
-    switchAuthTab("register");
+    switchAuthTab("login");
     return false;
   }
   try {
@@ -1459,7 +1465,7 @@ function enforceAuthGate() {
     localStorage.removeItem("certi_token");
     activeUser = null;
     document.getElementById("auth-gate").classList.remove("unlocked");
-    switchAuthTab("register");
+    switchAuthTab("login");
     return false;
   }
 }
@@ -1485,6 +1491,7 @@ async function handleRegister(e) {
 
     alert("Account created! Now sign in with your username/Gmail and password.");
     document.getElementById("login-identifier").value = username;
+    document.getElementById("login-password").value = "";
     switchAuthTab("login");
   } catch (err) {
     alert("Registration Error: " + err.message);
@@ -1509,6 +1516,7 @@ async function handleLogin(e) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.detail || "Invalid credentials.");
 
+    document.getElementById("login-password").value = "";
     unlockWorkspaceForUser(data.user, data.token);
   } catch (err) {
     alert("Login Denied: " + err.message);
@@ -1559,7 +1567,9 @@ async function handleResetPassword(e) {
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.detail || "Password reset failed.");
 
-    alert(data.message || "Password updated! Sign in with your new password.");
+    alert(data.message || "Password changed successfully! Sign in with your new password.");
+    document.getElementById("otp-code").value = "";
+    document.getElementById("otp-new-password").value = "";
     document.getElementById("login-identifier").value = email;
     document.getElementById("login-password").value = "";
     switchAuthTab("login");
@@ -1576,6 +1586,7 @@ function logout() {
   localStorage.removeItem("certi_token");
   activeUser = null;
   document.getElementById("user-chip-label").innerText = "Not Signed In";
+  document.getElementById("login-password").value = "";
   document.getElementById("auth-gate").classList.remove("unlocked");
   switchAuthTab("login");
 }
@@ -1614,7 +1625,7 @@ function syncNavIndicator(route) {
   if (!slider || !navWrap) return;
 
   const activeKey = route === "result" ? "upload" : route;
-  document.querySelectorAll(".navbtn").forEach(btn => {
+  document.querySelectorAll(".navbtn[data-route]").forEach(btn => {
     btn.classList.toggle("act", btn.dataset.route === activeKey);
   });
 
