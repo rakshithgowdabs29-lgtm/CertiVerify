@@ -17,7 +17,7 @@ from pydantic import BaseModel
 from google import genai
 from google.genai import types
 
-from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Float
+from sqlalchemy import create_engine, Column, Integer, String, Text, DateTime, Float, text
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker, Session
 
@@ -78,6 +78,25 @@ class DBBatchRecord(Base):
     timestamp = Column(DateTime, default=datetime.utcnow)
 
 Base.metadata.create_all(bind=engine)
+
+def ensure_user_accounts_columns() -> None:
+    if engine.dialect.name != "postgresql":
+        return
+    alter_statements = [
+        "ALTER TABLE user_accounts ADD COLUMN IF NOT EXISTS username VARCHAR",
+        "ALTER TABLE user_accounts ADD COLUMN IF NOT EXISTS name VARCHAR",
+        "ALTER TABLE user_accounts ADD COLUMN IF NOT EXISTS email VARCHAR",
+        "ALTER TABLE user_accounts ADD COLUMN IF NOT EXISTS password_hash VARCHAR",
+        "ALTER TABLE user_accounts ADD COLUMN IF NOT EXISTS company_or_college VARCHAR",
+        "ALTER TABLE user_accounts ADD COLUMN IF NOT EXISTS role VARCHAR",
+        "ALTER TABLE user_accounts ADD COLUMN IF NOT EXISTS created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP",
+        "CREATE UNIQUE INDEX IF NOT EXISTS ix_user_accounts_username ON user_accounts (username)",
+    ]
+    with engine.begin() as conn:
+        for stmt in alter_statements:
+            conn.execute(text(stmt))
+
+ensure_user_accounts_columns()
 
 def get_db():
     db = SessionLocal()
