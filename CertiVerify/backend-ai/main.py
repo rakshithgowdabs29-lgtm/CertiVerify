@@ -11,7 +11,7 @@ from email.message import EmailMessage
 from datetime import datetime, timedelta
 from typing import Optional
 import pdfplumber
-from fastapi import FastAPI, File, UploadFile, HTTPException, Depends
+from fastapi import FastAPI, File, UploadFile, HTTPException, Depends, Form, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from google import genai
@@ -128,6 +128,10 @@ def validate_email_format(email: str) -> str:
     if "@" not in cleaned or "." not in cleaned.split("@")[-1]:
         raise HTTPException(status_code=400, detail="Please enter a valid Gmail/email address.")
     return cleaned
+
+def normalize_actor(actor: Optional[str]) -> str:
+    cleaned = (actor or "").strip()
+    return cleaned if cleaned else "qa.operator@certiverify.ai"
 
 def send_otp_gmail(recipient_email: str, otp_code: str) -> None:
     smtp_host = os.environ.get("SMTP_HOST", "smtp.gmail.com")
@@ -607,14 +611,14 @@ def get_ledger(db: Session = Depends(get_db)):
     return ledger_list
 
 @app.delete("/api/v1/ledger/{batch_id}")
-def delete_single_batch(batch_id: str, db: Session = Depends(get_db)):
+def delete_single_batch(batch_id: str, actor: Optional[str] = Query(None), db: Session = Depends(get_db)):
     record = db.query(DBBatchRecord).filter(DBBatchRecord.batch_id == batch_id).first()
     if not record:
         raise HTTPException(status_code=404, detail="Batch record not found.")
 
     db.delete(record)
     db.add(DBAuditLog(
-        user_email="system.qa@certiverify.ai",
+        user_email=normalize_actor(actor),
         action_type="BATCH_DELETED",
         details=f"Deleted single batch record {batch_id} from ledger."
     ))
@@ -622,10 +626,10 @@ def delete_single_batch(batch_id: str, db: Session = Depends(get_db)):
     return {"deleted": True, "batch_id": batch_id}
 
 @app.delete("/api/v1/ledger")
-def clear_all_batch_history(db: Session = Depends(get_db)):
+def clear_all_batch_history(actor: Optional[str] = Query(None), db: Session = Depends(get_db)):
     deleted_count = db.query(DBBatchRecord).delete()
     db.add(DBAuditLog(
-        user_email="system.qa@certiverify.ai",
+        user_email=normalize_actor(actor),
         action_type="ALL_BATCH_HISTORY_CLEARED",
         details=f"Cleared {deleted_count} batch records from ledger."
     ))
@@ -633,7 +637,12 @@ def clear_all_batch_history(db: Session = Depends(get_db)):
     return {"cleared": True, "deleted_count": deleted_count}
 
 @app.post("/api/v1/extract-coa")
-async def extract_coa(file: UploadFile = File(...), po_file: Optional[UploadFile] = File(None), db: Session = Depends(get_db)):
+async def extract_coa(
+    file: UploadFile = File(...),
+    po_file: Optional[UploadFile] = File(None),
+    actor: Optional[str] = Form(None),
+    db: Session = Depends(get_db),
+):
     try:
         coa_bytes = await file.read()
         coa_text = extract_text_from_pdf(coa_bytes)
@@ -661,7 +670,7 @@ async def extract_coa(file: UploadFile = File(...), po_file: Optional[UploadFile
         db.add(db_batch)
 
         db.add(DBAuditLog(
-            user_email="system.qa@certiverify.ai",
+            user_email=normalize_actor(actor),
             action_type="COA_AI_AUDIT_EXECUTED",
             details=f"Audited file {file.filename}, Batch ID {result['batch_id']}, Result: {result['status']}"
         ))

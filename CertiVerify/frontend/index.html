@@ -6,10 +6,10 @@
 <title>CertiVerify AI — Compliance Audits in Seconds</title>
 <link rel="manifest" href="/manifest.json">
 <meta name="theme-color" content="#7c5cff">
+<meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Sora:wght@500;600;700;800&display=swap" rel="stylesheet">
 <script>
@@ -54,7 +54,6 @@ h1, h2, h3, .font-display { font-family: 'Sora', sans-serif; }
 }
 #auth-gate.unlocked { display: none !important; }
 
-#three-bg { position: fixed; inset: 0; z-index: -4; pointer-events: none; }
 .aurora { position: fixed; inset: 0; z-index: -3; overflow: hidden; pointer-events: none; background: radial-gradient(circle at 50% 25%, rgba(124, 92, 255, 0.08), transparent 65%); }
 .aurora i { position: absolute; border-radius: 50%; filter: blur(115px); opacity: 0.45; }
 .aurora i:nth-child(1) { width: 620px; height: 620px; background: var(--v); top: -180px; left: -120px; animation: drift1 18s ease-in-out infinite; }
@@ -186,6 +185,13 @@ input[type=file]::file-selector-button {
   background: linear-gradient(135deg, var(--v), var(--p), var(--a));
   -webkit-background-clip: text; background-clip: text; color: transparent;
 }
+
+@media print {
+  body { background: #fff !important; color: #111 !important; overflow: visible !important; }
+  #nav, #auth-gate, #curtain, #audit-processing, .aurora, .gridbg, .no-print { display: none !important; }
+  #spa-viewport, .page-view.active { position: static !important; height: auto !important; padding: 0 !important; display: block !important; overflow: visible !important; }
+  .card { background: #fff !important; color: #111 !important; border: 1px solid #ccc !important; box-shadow: none !important; max-height: none !important; }
+}
 </style>
 </head>
 <body>
@@ -292,15 +298,14 @@ input[type=file]::file-selector-button {
     <h3 class="font-display text-xl font-bold text-white">Running 5-Pillar Audit</h3>
     <p id="proc-step-text" class="text-sm text-violet-300 font-medium mt-2">Extracting parameters</p>
     <div class="mt-6 space-y-2 text-left text-xs">
-      <div id="step-0" class="flex items-center gap-2.5 text-white font-medium"><i class="fa-solid fa-circle-notch fa-spin text-violet-400"></i><span>Extracting parameters</span></div>
-      <div id="step-1" class="flex items-center gap-2.5 text-slate-500"><i class="fa-regular fa-circle"></i><span>Validating against USP / ICH Q3D</span></div>
-      <div id="step-2" class="flex items-center gap-2.5 text-slate-500"><i class="fa-regular fa-circle"></i><span>Cross-checking PO</span></div>
-      <div id="step-3" class="flex items-center gap-2.5 text-slate-500"><i class="fa-regular fa-circle"></i><span>Sealing with SHA-256</span></div>
+      <div class="flex items-center gap-2.5 text-white font-medium"><i class="fa-solid fa-circle-notch fa-spin text-violet-400"></i><span>Extracting parameters</span></div>
+      <div class="flex items-center gap-2.5 text-slate-400"><i class="fa-regular fa-circle"></i><span>Validating against USP / ICH Q3D</span></div>
+      <div class="flex items-center gap-2.5 text-slate-400"><i class="fa-regular fa-circle"></i><span>Cross-checking PO</span></div>
+      <div class="flex items-center gap-2.5 text-slate-400"><i class="fa-regular fa-circle"></i><span>Sealing with SHA-256</span></div>
     </div>
   </div>
 </div>
 
-<div id="three-bg"></div>
 <div class="aurora"><i></i><i></i><i></i><i></i></div>
 <div class="gridbg"></div>
 
@@ -463,10 +468,14 @@ input[type=file]::file-selector-button {
     <div id="result-card" class="card max-w-6xl w-full mx-auto p-6 sm:p-7 flex flex-col justify-between max-h-[calc(100vh-112px)]">
       <div class="flex flex-wrap items-start justify-between gap-4 pb-4 border-b border-white/10 shrink-0">
         <div class="min-w-0">
-          <div class="flex flex-wrap items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2 no-print">
             <button type="button" onclick="navigateTo('upload')" class="btn-g !py-1.5 !px-3.5 text-xs inline-flex items-center gap-1.5">
               <i class="fa-solid fa-arrow-left text-[11px]"></i>
               <span>Back to Upload</span>
+            </button>
+            <button type="button" onclick="window.print()" class="btn-g !py-1.5 !px-3.5 text-xs inline-flex items-center gap-1.5 border-violet-500/40 text-violet-200">
+              <i class="fa-solid fa-print text-[11px]"></i>
+              <span>Print / Save PDF</span>
             </button>
             <span id="res-engine" class="text-[11px] font-semibold px-3 py-1 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30">CertiVerify 5-Pillar Engine</span>
           </div>
@@ -529,11 +538,15 @@ input[type=file]::file-selector-button {
             <span>Batch Ledger</span>
             <span id="full-ledger-badge" class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-violet-500/20 text-violet-200 border border-violet-500/30">0</span>
           </h2>
-          <p class="text-xs text-slate-400 mt-0.5">Click any batch row to open its full result, or delete individual / all records.</p>
+          <p class="text-xs text-slate-400 mt-0.5">Click any batch row to open its full result, export CSV, or delete records.</p>
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-          <input type="search" id="ledger-search" oninput="filterLedgerTable()" placeholder="Filter batch, material, supplier..." class="text-xs px-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-white placeholder-slate-500 focus:border-violet-400 outline-none w-44 sm:w-60">
+          <input type="search" id="ledger-search" oninput="filterLedgerTable()" placeholder="Filter batch, material, supplier..." class="text-xs px-3 py-2 rounded-xl bg-white/[.05] border border-white/10 text-white placeholder-slate-500 focus:border-violet-400 outline-none w-44 sm:w-56">
+          <button type="button" onclick="exportLedgerCsv()" class="btn-g !py-2 !px-3.5 text-xs inline-flex items-center gap-1.5 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/15">
+            <i class="fa-solid fa-file-csv"></i>
+            <span>Export CSV</span>
+          </button>
           <button type="button" onclick="loadFullLedger()" class="btn-g !py-2 !px-3.5 text-xs inline-flex items-center gap-1.5">
             <i class="fa-solid fa-rotate"></i>
             <span>Refresh</span>
@@ -542,6 +555,25 @@ input[type=file]::file-selector-button {
             <i class="fa-solid fa-trash-can"></i>
             <span>Clear All</span>
           </button>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 shrink-0">
+        <div class="p-3 rounded-2xl bg-white/[.03] border border-white/10">
+          <p class="text-[10px] uppercase text-slate-400 font-semibold">Total Batches</p>
+          <p id="kpi-total-batches" class="font-display text-lg font-extrabold text-white mt-0.5">0</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-emerald-500/[.06] border border-emerald-500/20">
+          <p class="text-[10px] uppercase text-emerald-300 font-semibold">Compliant</p>
+          <p id="kpi-compliant-batches" class="font-display text-lg font-extrabold text-emerald-300 mt-0.5">0</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-rose-500/[.06] border border-rose-500/20">
+          <p class="text-[10px] uppercase text-rose-300 font-semibold">Non-Compliant</p>
+          <p id="kpi-rejected-batches" class="font-display text-lg font-extrabold text-rose-300 mt-0.5">0</p>
+        </div>
+        <div class="p-3 rounded-2xl bg-violet-500/[.06] border border-violet-500/20">
+          <p class="text-[10px] uppercase text-violet-300 font-semibold">Audit Events</p>
+          <p id="kpi-audit-events" class="font-display text-lg font-extrabold text-violet-200 mt-0.5">0</p>
         </div>
       </div>
 
@@ -573,10 +605,16 @@ input[type=file]::file-selector-button {
           <span class="pill-badge text-[11px]">FDA 21 CFR Part 11</span>
           <h2 class="font-display text-xl sm:text-2xl font-bold text-white mt-1.5">Compliance Audit Trail</h2>
         </div>
-        <button type="button" onclick="loadAuditTrail()" class="btn-g !py-2 !px-4 text-xs inline-flex items-center gap-2">
-          <i class="fa-solid fa-rotate"></i>
-          <span>Refresh</span>
-        </button>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="exportAuditTrailCsv()" class="btn-g !py-2 !px-3.5 text-xs inline-flex items-center gap-1.5 border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/15">
+            <i class="fa-solid fa-file-csv"></i>
+            <span>Export CSV</span>
+          </button>
+          <button type="button" onclick="loadAuditTrail()" class="btn-g !py-2 !px-4 text-xs inline-flex items-center gap-2">
+            <i class="fa-solid fa-rotate"></i>
+            <span>Refresh</span>
+          </button>
+        </div>
       </div>
 
       <div class="inner-scroll-x flex-1 mt-4 rounded-2xl border border-white/10">
@@ -658,15 +696,64 @@ const ROUTE_LABELS = {
 let currentRoute = "home";
 let isTransitioning = false;
 let latestLedgerCache = [];
+let latestAuditCache = [];
 let stepIntervalId = null;
 let deferredInstallPrompt = null;
 let activeUser = null;
 
-/* Unregister any old service worker so fresh index.html always loads */
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.getRegistrations().then(regs => {
     regs.forEach(reg => reg.unregister());
   }).catch(() => {});
+}
+
+function getActorString() {
+  if (!activeUser) return "qa.operator@certiverify.ai";
+  return activeUser.email || `@${activeUser.username}` || "qa.operator@certiverify.ai";
+}
+
+function updateKpis() {
+  const total = latestLedgerCache.length;
+  const compliant = latestLedgerCache.filter(r => r.status === "COMPLIANT" || r.status === "PASS").length;
+  const rejected = total - compliant;
+  const events = latestAuditCache.length;
+
+  const setText = (id, val) => {
+    const el = document.getElementById(id);
+    if (el) el.innerText = String(val);
+  };
+  setText("kpi-total-batches", total);
+  setText("kpi-compliant-batches", compliant);
+  setText("kpi-rejected-batches", rejected);
+  setText("kpi-audit-events", events);
+}
+
+function downloadCsvFile(filename, headers, rows) {
+  const escapeCell = v => `"${String(v ?? "").replace(/"/g, '""')}"`;
+  const csvContent = [headers.map(escapeCell).join(","), ...rows.map(r => r.map(escapeCell).join(","))].join("\n");
+  const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.setAttribute("download", filename);
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
+function exportLedgerCsv() {
+  const headers = ["Batch ID", "Material", "Supplier", "Status", "Verdict", "Risk Score", "Confidence Score", "Timestamp", "SHA-256"];
+  const rows = latestLedgerCache.map(r => [
+    r.batch_id, r.material_name, r.supplier, r.status, r.verdict, r.risk_score, r.confidence_score, r.timestamp, r.sha256_hash
+  ]);
+  downloadCsvFile("certiverify_batch_ledger.csv", headers, rows);
+}
+
+function exportAuditTrailCsv() {
+  const headers = ["Log ID", "Timestamp", "User", "Action", "Details"];
+  const rows = latestAuditCache.map(l => [l.id, l.timestamp, l.user, l.action, l.details]);
+  downloadCsvFile("certiverify_audit_trail.csv", headers, rows);
 }
 
 function getProgressStorageKey(user) {
@@ -729,6 +816,7 @@ function unlockWorkspaceForUser(user, token) {
   document.getElementById("user-chip-label").innerText = `${user.name} (@${user.username})`;
   document.getElementById("auth-gate").classList.add("unlocked");
   loadLedger();
+  loadAuditTrail();
   restoreUserProgress();
 }
 
@@ -983,6 +1071,7 @@ window.addEventListener("DOMContentLoaded", () => {
   performPageSwitch(parseHashRoute(), false);
   if (enforceAuthGate()) {
     loadLedger();
+    loadAuditTrail();
     restoreUserProgress();
   }
 });
@@ -1003,6 +1092,7 @@ async function handleAudit(event) {
   const formData = new FormData();
   formData.append("file", coaInput.files[0]);
   if (poInput.files[0]) formData.append("po_file", poInput.files[0]);
+  formData.append("actor", getActorString());
 
   try {
     const response = await fetch(`${API_BASE}/api/v1/extract-coa`, { method: "POST", body: formData });
@@ -1013,6 +1103,7 @@ async function handleAudit(event) {
     const result = await response.json();
     renderAuditResult(result);
     loadLedger();
+    loadAuditTrail();
     stopAuditProcessingAnimation();
     navigateTo("result");
   } catch (err) {
@@ -1029,6 +1120,7 @@ function renderRecentLedgerList(records) {
   const safeList = Array.isArray(records) ? records : [];
   document.getElementById("ledger-count").innerText = safeList.length;
   document.getElementById("full-ledger-badge").innerText = safeList.length;
+  updateKpis();
   if (safeList.length === 0) {
     ledgerList.innerHTML = '<p class="text-xs text-slate-500 text-center py-6">No batches audited yet.</p>';
     return;
@@ -1057,7 +1149,8 @@ async function deleteSingleHistory(batchId, event) {
   if (event) event.stopPropagation();
   if (!confirm(`Delete batch ${batchId} from history?`)) return;
   try {
-    const res = await fetch(`${API_BASE}/api/v1/ledger/${encodeURIComponent(batchId)}`, { method: "DELETE" });
+    const actorParam = encodeURIComponent(getActorString());
+    const res = await fetch(`${API_BASE}/api/v1/ledger/${encodeURIComponent(batchId)}?actor=${actorParam}`, { method: "DELETE" });
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       throw new Error(errData.detail || "Failed to delete batch.");
@@ -1065,6 +1158,7 @@ async function deleteSingleHistory(batchId, event) {
     latestLedgerCache = latestLedgerCache.filter(item => item.batch_id !== batchId);
     renderRecentLedgerList(latestLedgerCache);
     filterLedgerTable();
+    loadAuditTrail();
   } catch (err) {
     alert("Delete Error: " + err.message);
   }
@@ -1074,7 +1168,8 @@ async function clearAllHistory() {
   if (latestLedgerCache.length === 0) return;
   if (!confirm("Delete ALL batch history records?")) return;
   try {
-    const res = await fetch(`${API_BASE}/api/v1/ledger`, { method: "DELETE" });
+    const actorParam = encodeURIComponent(getActorString());
+    const res = await fetch(`${API_BASE}/api/v1/ledger?actor=${actorParam}`, { method: "DELETE" });
     if (!res.ok) {
       const errData = await res.json().catch(() => ({}));
       throw new Error(errData.detail || "Failed to clear all history.");
@@ -1082,6 +1177,7 @@ async function clearAllHistory() {
     latestLedgerCache = [];
     renderRecentLedgerList([]);
     filterLedgerTable();
+    loadAuditTrail();
   } catch (err) {
     alert("Clear History Error: " + err.message);
   }
@@ -1154,13 +1250,15 @@ async function loadAuditTrail() {
   try {
     const res = await fetch(`${API_BASE}/api/v1/audit-trail`);
     const logs = await res.json();
+    latestAuditCache = Array.isArray(logs) ? logs : [];
+    updateKpis();
     const tbody = document.getElementById("audit-trail-tbody");
     tbody.innerHTML = "";
-    if (!logs || logs.length === 0) {
+    if (latestAuditCache.length === 0) {
       tbody.innerHTML = '<tr><td colspan="5" class="p-8 text-center text-slate-500">No audit trail records found.</td></tr>';
       return;
     }
-    logs.forEach(l => {
+    latestAuditCache.forEach(l => {
       const tr = document.createElement("tr");
       tr.className = "hover:bg-white/[.05] transition";
       tr.innerHTML = `
