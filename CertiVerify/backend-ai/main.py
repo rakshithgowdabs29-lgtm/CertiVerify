@@ -195,8 +195,9 @@ class ResetPasswordRequest(BaseModel):
     otp: str
     new_password: str
 
-# --- GEMINI CLIENT SETUP ---
+# --- GEMINI CLIENT & PDF/OCR HELPERS ---
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
+CANDIDATE_MODELS = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
     text = ""
@@ -210,13 +211,86 @@ def extract_text_from_pdf(file_bytes: bytes) -> str:
         text = f"PDF extraction fallback: {str(e)}"
     return text.strip()
 
+def ocr_pdf_with_gemini(file_bytes: bytes, doc_label: str = "PDF document") -> str:
+    if not file_bytes or not os.environ.get("GEMINI_API_KEY"):
+        return ""
+    prompt = (
+        f"Perform optical character recognition (OCR) on this {doc_label}. "
+        "Transcribe all visible text, tables, batch/lot IDs, material names, suppliers, "
+        "specification limits, and analytical test results accurately as plain text."
+    )
+    pdf_part = types.Part.from_bytes(data=file_bytes, mime_type="application/pdf")
+    for model_name in CANDIDATE_MODELS:
+        try:
+            response = client.models.generate_content(
+                model=model_name,
+                contents=[pdf_part, prompt],
+                config=types.GenerateContentConfig(temperature=0.0),
+            )
+            if response and response.text and response.text.strip():
+                return response.text.strip()
+        except Exception:
+            continue
+    return ""
+
+def load_pdf_text_with_ocr_fallback(file_bytes: bytes, doc_label: str = "CoA PDF") -> tuple[str, bool]:
+    extracted = extract_text_from_pdf(file_bytes)
+    if len(extracted.strip()) >= 25 and not extracted.startswith("PDF extraction fallback:"):
+        return extracted.strip(), False
+    ocr_text = ocr_pdf_with_gemini(file_bytes, doc_label=doc_label)
+    if ocr_text.strip():
+        return ocr_text.strip(), True
+    return extracted.strip(), False
+
 def clean_extracted_text(raw_text: str) -> str:
     cleaned = re.sub(r"[ \t]+", " ", raw_text)
     cleaned = re.sub(r"\n\s*\n", "\n", cleaned)
     return cleaned.strip()
 
-def build_rejected_document_result(filename: str, reason: str) -> dict:
+def extract_batch_codes(text: str) -> list[str]:
+    if not text:
+        return []
+    matches = re.findall(r"\b(?:BATCH|LOT|B\.?\s*NO\.?|LOT\s*NO\.?)[:\s#-]*([A-Z0-9-]{3,20})\b", text.upper())
+    return list(dict.fromkeys(matches))
+
+def evaluate_po_consistency(coa_text: str, po_text: str, batch_id: str, material_name: str, supplier: str) -> tuple[str, list[str], list[str]]:
+    if not po_text or not po_text.strip():
+        return "Single-document CoA dossier verified (no PO attached).", [], []
+
+    po_upper = po_text.upper()
+    coa_batches = extract_batch_codes(coa_text)
+    po_batches = extract_batch_codes(po_text)
+
+    mismatches: list[str] = []
+    notes: list[str] = []
+
+    if batch_id and batch_id.upper() not in po_upper:
+        if po_batches and coa_batches and not set(coa_batches).intersection(set(po_batches)):
+            mismatches.append(f"Batch/Lot mismatch: CoA lists {', '.join(coa_batches)} while PO lists {', '.join(po_batches)}.")
+        elif po_batches and batch_id.upper() not in po_batches:
+            mismatches.append(f"Batch ID '{batch_id}' not matched against PO batch reference(s): {', '.join(po_batches)}.")
+
+    mat_tokens = [w.lower() for w in re.findall(r"[A-Za-z]{4,}", material_name or "") if w.lower() not in {"batch", "certificate", "analysis", "report", "pdf"}]
+    if mat_tokens and not any(tok in po_text.lower() for tok in mat_tokens[:3]):
+        mismatches.append(f"Material mismatch: CoA material '{material_name}' was not clearly matched in attached PO.")
+
+    sup_tokens = [w.lower() for w in re.findall(r"[A-Za-z]{4,}", supplier or "") if w.lower() not in {"certified", "limited", "pvt", "ltd", "inc", "corp", "validated", "unrecognized"}]
+    if sup_tokens and not any(tok in po_text.lower() for tok in sup_tokens[:2]):
+        mismatches.append(f"Supplier mismatch: CoA supplier '{supplier}' was not clearly matched in attached PO.")
+
+    if mismatches:
+        return (
+            "Discrepancies detected between CoA and Purchase Order.",
+            mismatches,
+            [f"PO Discrepancy Alert: {m}" for m in mismatches] + ["Hold batch release until QA reconciles CoA and Purchase Order records."],
+        )
+
+    notes.append("CoA and Purchase Order cross-checked with no critical batch, material, or supplier contradictions.")
+    return "Cross-Document Consistency verified against Purchase Order.", [], notes
+
+def build_rejected_document_result(filename: str, reason: str, used_ocr: bool = False) -> dict:
     doc_id = f"INVALID-DOC-{uuid.uuid4().hex[:6].upper()}"
+    ocr_tag = " (OCR enabled)" if used_ocr else ""
     return {
         "batch_id": doc_id,
         "filename": filename,
@@ -228,7 +302,7 @@ def build_rejected_document_result(filename: str, reason: str) -> dict:
         "verdict": "REJECTED — INVALID DOCUMENT TYPE",
         "risk_score": 100,
         "confidence_score": 0.0,
-        "ai_engine": "CertiVerify Document Gatekeeper",
+        "ai_engine": f"CertiVerify Document Gatekeeper{ocr_tag}",
         "summary": f"Rejected '{filename}': {reason}",
         "parameters": [],
         "test_results": [],
@@ -253,7 +327,7 @@ def validate_coa_content(coa_text: str, filename: str) -> tuple[bool, str]:
         return False, f"Detected non-CoA document indicators ({', '.join(matched_non_coa[:3])}). Exam hall tickets and academic records cannot be validated as CoA batch releases."
 
     if len(coa_text.strip()) < 25:
-        return False, "Uploaded PDF contains little or no extractable text; cannot verify CoA analytical data."
+        return False, "Uploaded PDF contains little or no extractable text even after OCR; cannot verify CoA analytical data."
 
     coa_terms = [
         "certificate of analysis", "coa", "assay", "purity", "specification",
@@ -266,12 +340,14 @@ def validate_coa_content(coa_text: str, filename: str) -> tuple[bool, str]:
 
     return True, "Valid CoA structure detected."
 
-def analyze_coa_locally(coa_text: str, po_text: str, filename: str, db_session=None) -> dict:
+def analyze_coa_locally(coa_text: str, po_text: str, filename: str, db_session=None, used_ocr: bool = False) -> dict:
     is_valid, reason = validate_coa_content(coa_text, filename)
     if not is_valid:
-        return build_rejected_document_result(filename, reason)
+        return build_rejected_document_result(filename, reason, used_ocr=used_ocr)
 
     batch_id = f"BATCH-ENT-{uuid.uuid4().hex[:6].upper()}"
+    material_name = filename.replace(".pdf", "").replace(".PDF", "").replace("_", " ").title()
+    supplier = "Certified API Synthetics Ltd. (Validated)"
 
     anomaly_flag = "Normal variance across historical batches (Baseline established)"
     if db_session:
@@ -282,14 +358,8 @@ def analyze_coa_locally(coa_text: str, po_text: str, filename: str, db_session=N
         except Exception:
             pass
 
-    cross_doc_status = "Single-document CoA dossier verified."
-    if po_text.strip():
-        po_valid, po_reason = validate_coa_content(po_text, "purchase_order.pdf")
-        cross_doc_status = (
-            "Cross-Document Consistency checked against attached Purchase Order."
-            if po_valid or "purchase order" in po_text.lower() or "po" in po_text.lower()
-            else f"PO warning: {po_reason}"
-        )
+    cross_doc_status, po_mismatches, po_capas = evaluate_po_consistency(coa_text, po_text, batch_id, material_name, supplier)
+    has_po_mismatch = len(po_mismatches) > 0
 
     parameters = [
         {"parameter": "Assay / Purity (HPLC)", "specification": ">= 98.0% (USP Monograph)", "result": "99.42%", "status": "PASS", "confidence": "99.8%"},
@@ -298,41 +368,50 @@ def analyze_coa_locally(coa_text: str, po_text: str, filename: str, db_session=N
         {"parameter": "Acidity / Alkalinity (pH)", "specification": "5.5 - 7.5 (Potentiometric)", "result": "6.8", "status": "PASS", "confidence": "99.7%"},
     ]
 
+    final_status = "NON-COMPLIANT" if has_po_mismatch else "COMPLIANT"
+    final_verdict = "PO DISCREPANCY — HOLD FOR REVIEW" if has_po_mismatch else "APPROVED FOR PRODUCTION RELEASE"
+    risk_score = 75 if has_po_mismatch else 5
+    ocr_note = "OCR extracted scanned text." if used_ocr else "Direct PDF text extracted."
+
     return {
         "batch_id": batch_id,
         "filename": filename,
-        "material_name": filename.replace(".pdf", "").replace(".PDF", "").replace("_", " ").title(),
-        "supplier": "Certified API Synthetics Ltd. (Validated)",
+        "material_name": material_name,
+        "supplier": supplier,
         "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
-        "status": "COMPLIANT",
-        "overall_status": "COMPLIANT",
-        "verdict": "APPROVED FOR PRODUCTION RELEASE",
-        "risk_score": 5,
+        "status": final_status,
+        "overall_status": final_status,
+        "verdict": final_verdict,
+        "risk_score": risk_score,
         "confidence_score": 99.6,
         "ai_engine": "CertiVerify 5-Pillar Research Compliance Engine",
-        "summary": f"CoA audit complete for '{filename}'. [01 Confidence-Aware Extraction]: Verified. [02 Context-Aware Validation]: USP/ICH monographs matched. [03 Cross-Document Consistency]: {cross_doc_status}. [05 Batch Anomaly Screening]: {anomaly_flag}.",
+        "summary": f"CoA audit complete for '{filename}'. [01 Confidence-Aware Extraction]: {ocr_note} [02 Context-Aware Validation]: USP/ICH monographs matched. [03 Cross-Document Consistency]: {cross_doc_status} [05 Batch Anomaly Screening]: {anomaly_flag}.",
         "parameters": parameters,
         "test_results": parameters,
-        "deviations": [],
+        "deviations": po_mismatches,
         "capa_recommendations": [
             "All CoA analytical specifications verified against authorized pharmacopeia monographs.",
             f"Cross-Document Verification: {cross_doc_status}",
+            *po_capas,
             f"Batch Anomaly Screening: {anomaly_flag}",
             "Tamper Screening: Archive SHA-256 cryptographic dossier seal in immutable audit log."
         ],
         "sha256_hash": hashlib.sha256(f"{batch_id}-{filename}-{datetime.utcnow().isoformat()}".encode()).hexdigest(),
     }
 
-def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str, db_session=None) -> dict:
+def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str, db_session=None, used_ocr: bool = False) -> dict:
     is_valid, reason = validate_coa_content(coa_text, filename)
     if not is_valid:
-        return build_rejected_document_result(filename, reason)
+        return build_rejected_document_result(filename, reason, used_ocr=used_ocr)
 
-    sanitized_text = clean_extracted_text(coa_text)
+    sanitized_coa = clean_extracted_text(coa_text)
+    sanitized_po = clean_extracted_text(po_text) if po_text.strip() else "None provided"
+
     prompt = f"""
     You are an expert pharmaceutical and chemical QA compliance auditor.
     First determine if '{filename}' and its text represent a genuine Certificate of Analysis (CoA) with analytical/quality test parameters.
     If the document is an exam hall ticket, admit card, syllabus, invoice without lab specs, or unrelated document, set "is_valid_coa": false and explain why in "rejection_reason".
+    If Purchase Order text is provided, compare batch/lot numbers, material names, and supplier names between the CoA and PO, listing any contradictions in "po_mismatches".
 
     Return ONLY a valid JSON object with this exact structure:
     {{
@@ -345,25 +424,27 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str, db_sessi
         "lead_ppm": float,
         "moisture_percentage": float,
         "ph_value": float,
-        "status": "COMPLIANT",
-        "verdict": "APPROVED FOR PRODUCTION RELEASE",
         "risk_score": int,
         "confidence_score": float,
         "summary": "string",
-        "deviations": [],
+        "po_mismatches": ["string"],
+        "deviations": ["string"],
         "capa_recommendations": ["string"]
     }}
 
-    Document Text:
+    CoA Document Text:
     ---
-    {sanitized_text[:5000]}
+    {sanitized_coa[:4500]}
+    ---
+
+    Purchase Order Text:
+    ---
+    {sanitized_po[:2500]}
     ---
     """
 
-    candidate_models = ["gemini-2.0-flash", "gemini-1.5-flash", "gemini-1.5-pro"]
     response_text = None
-
-    for model_name in candidate_models:
+    for model_name in CANDIDATE_MODELS:
         try:
             response = client.models.generate_content(
                 model=model_name,
@@ -377,17 +458,20 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str, db_sessi
             continue
 
     if not response_text:
-        return analyze_coa_locally(coa_text, po_text, filename, db_session=db_session)
+        return analyze_coa_locally(coa_text, po_text, filename, db_session=db_session, used_ocr=used_ocr)
 
     try:
         ai_data = json.loads(response_text)
         if ai_data.get("is_valid_coa") is False:
             return build_rejected_document_result(
                 filename,
-                ai_data.get("rejection_reason") or "AI classified document as not a valid Certificate of Analysis."
+                ai_data.get("rejection_reason") or "AI classified document as not a valid Certificate of Analysis.",
+                used_ocr=used_ocr,
             )
 
         batch_id = ai_data.get("batch_id") or f"BATCH-ENT-{uuid.uuid4().hex[:6].upper()}"
+        material_name = ai_data.get("material_name") or filename.replace(".pdf", "").title()
+        supplier = ai_data.get("supplier") or "Certified API Synthetics Ltd."
         purity_val = float(ai_data.get("purity_percentage", 99.2))
         lead_val = float(ai_data.get("lead_ppm", 1.1))
         moisture_val = float(ai_data.get("moisture_percentage", 0.4))
@@ -400,9 +484,18 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str, db_sessi
             {"parameter": "Acidity / Alkalinity (pH)", "specification": "5.5 - 7.5", "result": f"{ph_val}", "status": "PASS" if 5.5 <= ph_val <= 7.5 else "FAIL", "confidence": "99.7%"},
         ]
 
-        all_passed = all(p["status"] == "PASS" for p in parameters)
-        final_status = "COMPLIANT" if all_passed else "NON-COMPLIANT"
-        final_verdict = "APPROVED FOR PRODUCTION RELEASE" if all_passed else "OUT OF SPECIFICATION — HOLD"
+        cross_doc_status, rule_mismatches, rule_capas = evaluate_po_consistency(coa_text, po_text, batch_id, material_name, supplier)
+        ai_mismatches = [m for m in (ai_data.get("po_mismatches") or []) if isinstance(m, str) and m.strip()]
+        all_mismatches = list(dict.fromkeys(rule_mismatches + ai_mismatches))
+
+        all_params_passed = all(p["status"] == "PASS" for p in parameters)
+        final_status = "COMPLIANT" if (all_params_passed and len(all_mismatches) == 0) else "NON-COMPLIANT"
+        if not all_params_passed:
+            final_verdict = "OUT OF SPECIFICATION — HOLD"
+        elif all_mismatches:
+            final_verdict = "PO DISCREPANCY — HOLD FOR REVIEW"
+        else:
+            final_verdict = "APPROVED FOR PRODUCTION RELEASE"
 
         anomaly_flag = "Normal variance across historical batches"
         if db_session:
@@ -413,39 +506,42 @@ def analyze_coa_with_gemini(coa_text: str, po_text: str, filename: str, db_sessi
             except Exception:
                 pass
 
-        cross_doc_status = "Single-document CoA dossier verified."
-        if po_text.strip():
-            cross_doc_status = "Cross-Document Consistency verified: Purchase Order attached."
+        if all_mismatches:
+            cross_doc_status = f"Mismatch detected: {'; '.join(all_mismatches)}"
 
+        ocr_note = "OCR extracted scanned text." if used_ocr else "Direct PDF text extracted."
         summary_text = ai_data.get("summary", "Document audited successfully.")
-        enhanced_summary = f"{summary_text} [01 Confidence-Aware Extraction]: Verified. [02 Context-Aware Validation]: USP/ICH checked. [03 Cross-Document Consistency]: {cross_doc_status}. [05 Batch Anomaly Screening]: {anomaly_flag}."
+        enhanced_summary = f"{summary_text} [01 Confidence-Aware Extraction]: {ocr_note} [02 Context-Aware Validation]: USP/ICH checked. [03 Cross-Document Consistency]: {cross_doc_status}. [05 Batch Anomaly Screening]: {anomaly_flag}."
+
+        combined_deviations = list(dict.fromkeys((ai_data.get("deviations") or []) + all_mismatches))
+        combined_capas = list(dict.fromkeys((ai_data.get("capa_recommendations") or []) + rule_capas))
 
         return {
             "batch_id": batch_id,
             "filename": filename,
-            "material_name": ai_data.get("material_name") or filename.replace(".pdf", "").title(),
-            "supplier": ai_data.get("supplier") or "Certified API Synthetics Ltd.",
+            "material_name": material_name,
+            "supplier": supplier,
             "timestamp": datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S UTC"),
             "status": final_status,
             "overall_status": final_status,
             "verdict": final_verdict,
-            "risk_score": int(ai_data.get("risk_score", 5 if all_passed else 85)),
+            "risk_score": int(ai_data.get("risk_score", 5 if final_status == "COMPLIANT" else (75 if all_mismatches else 85))),
             "confidence_score": float(ai_data.get("confidence_score", 99.6)),
-            "ai_engine": "Google Gemini Hybrid Compliance Engine",
+            "ai_engine": "Google Gemini Hybrid Compliance Engine" + (" + OCR" if used_ocr else ""),
             "summary": enhanced_summary,
             "parameters": parameters,
             "test_results": parameters,
-            "deviations": ai_data.get("deviations", []),
-            "capa_recommendations": ai_data.get("capa_recommendations", [
+            "deviations": combined_deviations,
+            "capa_recommendations": combined_capas or [
                 "Analytical specifications checked against USP/ICH/EP thresholds.",
                 f"Cross-Document Consistency: {cross_doc_status}",
                 f"Batch Anomaly Screening: {anomaly_flag}",
                 "Tamper Screening: Archive SHA-256 cryptographic dossier seal in immutable audit log."
-            ]),
+            ],
             "sha256_hash": hashlib.sha256(f"{batch_id}-{filename}-{datetime.utcnow().isoformat()}".encode()).hexdigest(),
         }
     except Exception:
-        return analyze_coa_locally(coa_text, po_text, filename, db_session=db_session)
+        return analyze_coa_locally(coa_text, po_text, filename, db_session=db_session, used_ocr=used_ocr)
 
 # --- API ROUTES ---
 @app.get("/")
@@ -645,13 +741,13 @@ async def extract_coa(
 ):
     try:
         coa_bytes = await file.read()
-        coa_text = extract_text_from_pdf(coa_bytes)
+        coa_text, used_ocr = load_pdf_text_with_ocr_fallback(coa_bytes, doc_label="Certificate of Analysis PDF")
         po_text = ""
         if po_file:
             po_bytes = await po_file.read()
-            po_text = extract_text_from_pdf(po_bytes)
+            po_text, _ = load_pdf_text_with_ocr_fallback(po_bytes, doc_label="Purchase Order PDF")
 
-        result = analyze_coa_with_gemini(coa_text, po_text, file.filename or "CoA.pdf", db_session=db)
+        result = analyze_coa_with_gemini(coa_text, po_text, file.filename or "CoA.pdf", db_session=db, used_ocr=used_ocr)
 
         db_batch = DBBatchRecord(
             batch_id=result["batch_id"],
